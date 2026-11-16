@@ -82,3 +82,16 @@ xvfb-run -a ./Build/Linux/GalgameOnline.x86_64 -batchmode -nographics -smoke
 - **物品名是占位**：`Assets/Scripts/Api/ItemNames.cs` 里的名字（星夜·凛等）
   照 HTML 客户端抄来，等真实角色/美术定了再改。
 - **美术**：用户自己用生图工具做，客户端只有占位色块，不编造、不下载任何美术资源。
+
+## GitHub 推送里的二进制文件（注意）
+
+同步工具只能推 UTF-8 文本文件，以下 23 个二进制文件**不在 GitHub 上**，
+只在本地（`unity/Assets/`）：
+
+- `Assets/Fonts/NotoSansCJKsc-Regular.ttf`（16MB，中文字体源文件）
+- `Assets/TextMesh Pro/Fonts/LiberationSans.ttf`、`Assets/TextMesh Pro/Sprites/EmojiOne.png`
+- `Assets/Art/` 全部 20 个文件（8 张立绘 + 11 张表情差分 + 1 张 CG）
+
+从 GitHub 全新检出后，先把上面这些文件放回对应位置，再跑
+`GenerateFontAsset`（需要 `NotoSansCJKsc-Regular.ttf`），否则字体生成会失败。
+`Assets/Art/` 的文件目前还没接入场景（占位色块），缺了也不影响编译和运行。
