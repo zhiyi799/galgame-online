@@ -1,0 +1,23 @@
+{
+  "description": "GalgameOnline API on Cloudflare Workers \u2014 the only business entry for the Unity/HTML clients. Auth via Supabase Auth, game state in Supabase Postgres (writes only through security-definer RPC).",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261113.1",
+    "@types/node": "^26.6.6",
+    "libpg-query": "^18.2.4",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.162.0"
+  },
+  "name": "galgame-online-workers",
+  "private": true,
+  "scripts": {
+    "build": "tsc --noEmit",
+    "check-sql": "node scripts/check-sql.mjs",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "type": "module",
+  "version": "0.1.0"
+}

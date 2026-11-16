@@ -1,0 +1,23 @@
+name = "galgame-online-api"
+main = "src/index.ts"
+compatibility_date = "2025-11-16"
+compatibility_flags = ["nodejs_compat"]
+
+# Workers are the ONLY business entry. The Unity client and the HTML client
+# both call this Worker over HTTPS; neither ever talks to Supabase directly.
+
+[vars]
+# Public defaults; secrets (keys, JWT secret) are set via `wrangler secret put`
+# and never appear here.
+AUTH_EMAIL_DOMAIN = "players.galgame.local"
+ALLOW_DEV_MAIL_SEND = "false"
+
+# Per-IP fixed-window rate limiting for the auth routes (10 req/min, mirroring
+# the C# prototype). Create once and paste the id here:
+#   wrangler kv namespace create RATE_LIMIT_KV
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "PASTE-KV-NAMESPACE-ID-HERE"
+
+[observability]
+enabled = true

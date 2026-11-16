@@ -25,3 +25,8 @@ client/galgame-maker/
 
 # SQLite WAL sidecars
 **/data/
+
+# Cloudflare Workers (cloud/workers/)
+node_modules/
+.dev.vars
+.wrangler/

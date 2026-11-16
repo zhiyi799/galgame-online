@@ -1,0 +1,21 @@
+# GalgameOnline — Cloudflare Workers
+# Copy to .dev.vars for local `wrangler dev`. NEVER commit real values.
+# Production values are set with `wrangler secret put <NAME>`.
+
+# Supabase project URL, e.g. https://abcdefghijklm.supabase.co
+SUPABASE_URL=https://YOUR-PROJECT-REF.supabase.co
+# Supabase anon (public) key — used only for Auth signup/sign-in calls.
+SUPABASE_ANON_KEY=YOUR-ANON-KEY
+# Supabase service_role key — SERVER ONLY. Bypasses RLS; never ship to a client.
+SUPABASE_SERVICE_ROLE_KEY=YOUR-SERVICE-ROLE-KEY
+# Supabase JWT secret (Dashboard > Settings > API > JWT Secret). HS256 key
+# used to verify the access tokens Supabase Auth issues.
+SUPABASE_JWT_SECRET=YOUR-JWT-SECRET
+# Synthetic email domain for username-only auth.
+# Supabase Auth needs an email; username "alice" signs up as
+# "alice@players.galgame.local". Must be a domain you control conceptually;
+# no mail is ever sent to it (email confirmation must be OFF, see README).
+AUTH_EMAIL_DOMAIN=players.galgame.local
+# Dev helper: allow POST /api/game/mail/send (lets a user mail themselves).
+# Keep "false" in production.
+ALLOW_DEV_MAIL_SEND=true
