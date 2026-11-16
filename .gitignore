@@ -1,0 +1,27 @@
+# .NET build outputs
+bin/
+obj/
+out/
+
+# SQLite test databases
+**/*.db
+*.db
+
+# Reference clones (not part of this project)
+ref/
+
+# Nested git checkouts (the client clone keeps its own .git)
+client/galgame-maker/.git
+
+# .NET SDK install (if ever placed here)
+.dotnet/
+
+# Temp
+.tmp/
+*.log
+
+# Pristine upstream clone (reference only; the deliverable is galgame-online-studio.html)
+client/galgame-maker/
+
+# SQLite WAL sidecars
+**/data/

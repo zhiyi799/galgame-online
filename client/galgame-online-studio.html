@@ -1,0 +1,3819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GalgameMaker Studio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  --bg-deep:#0a0810;--bg-mid:#110e1a;--bg-panel:#16121f;--bg-card:#1c1728;--bg-hover:#221d30;
+  --accent-rose:#e8a0b4;--accent-pink:#d4648a;--accent-purple:#9b6db5;--accent-lavender:#b89fd8;
+  --accent-gold:#d4af6a;--accent-cyan:#6ab4c8;--accent-green:#6ac896;
+  --text-primary:#f0e6f0;--text-secondary:#a89ab8;--text-dim:#6b5e7a;
+  --border:rgba(184,159,216,0.15);--border-hover:rgba(184,159,216,0.35);
+  --shadow-glow:0 0 30px rgba(155,109,181,0.2);--transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg-deep);color:var(--text-primary);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* TITLEBAR */
+.titlebar{height:52px;background:linear-gradient(90deg,#0d0a16,#130f1e,#0d0a16);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;position:relative;flex-shrink:0;}
+.titlebar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent-purple),var(--accent-rose),var(--accent-purple),transparent);}
+.logo{display:flex;align-items:center;gap:8px;}
+.logo-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--accent-purple),var(--accent-pink));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.logo-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--accent-lavender);}
+.logo-ver{font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
+.menu-bar{display:flex;gap:2px;margin-left:16px;}
+.menu-btn{padding:5px 12px;font-size:12px;color:var(--text-secondary);cursor:pointer;border-radius:4px;transition:var(--transition);border:none;background:none;font-family:'Noto Sans SC',sans-serif;}
+.menu-btn:hover{background:var(--bg-hover);color:var(--text-primary);}
+.tb-actions{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.project-name{font-size:12px;color:var(--text-dim);padding:0 12px;}
+.btn{padding:6px 16px;border-radius:6px;font-size:12px;font-family:'Noto Sans SC',sans-serif;cursor:pointer;transition:var(--transition);border:none;}
+.btn-ghost{background:transparent;border:1px solid var(--border-hover);color:var(--accent-lavender);}
+.btn-ghost:hover{background:var(--bg-hover);}
+.btn-primary{background:linear-gradient(135deg,var(--accent-purple),var(--accent-pink));color:white;}
+.btn-primary:hover{opacity:0.85;transform:translateY(-1px);box-shadow:0 4px 16px rgba(155,109,181,0.4);}
+.btn-success{background:linear-gradient(135deg,#2d8a5a,#1a6a3a);color:white;}
+.btn-success:hover{opacity:0.85;}
+
+/* LAYOUT */
+.main{display:flex;flex:1;overflow:hidden;}
+
+/* LEFT NAV */
+.sidenav{width:68px;background:var(--bg-mid);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:6px;flex-shrink:0;}
+.nav-btn{width:50px;height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;cursor:pointer;transition:var(--transition);border:1px solid transparent;position:relative;}
+.nav-btn:hover{background:var(--bg-hover);}
+.nav-btn.active{background:linear-gradient(135deg,rgba(155,109,181,0.2),rgba(212,100,138,0.1));border-color:rgba(155,109,181,0.4);}
+.nav-btn.active::before{content:'';position:absolute;left:-1px;top:25%;bottom:25%;width:3px;background:linear-gradient(to bottom,var(--accent-purple),var(--accent-pink));border-radius:0 2px 2px 0;}
+.nav-icon{font-size:18px;}
+.nav-label{font-size:9px;color:var(--text-dim);}
+.nav-btn.active .nav-label{color:var(--accent-lavender);}
+.nav-sep{width:36px;height:1px;background:var(--border);margin:2px 0;}
+
+/* OUTLINE PANEL */
+.outline{width:260px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
+.panel-hdr{padding:14px 16px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.panel-hdr-title{font-family:'Noto Serif SC',serif;font-size:14px;color:var(--accent-lavender);}
+.panel-hdr-badge{font-size:10px;padding:2px 7px;background:rgba(155,109,181,0.15);border:1px solid rgba(155,109,181,0.3);border-radius:20px;color:var(--accent-purple);margin-left:auto;}
+.outline-body{flex:1;overflow-y:auto;padding:8px 0;}
+.outline-body::-webkit-scrollbar{width:3px;}
+.outline-body::-webkit-scrollbar-thumb{background:var(--border);}
+.ch-item{cursor:pointer;transition:var(--transition);}
+.ch-header{display:flex;align-items:center;gap:7px;padding:8px 14px;}
+.ch-header:hover{background:var(--bg-hover);}
+.ch-header.active{background:linear-gradient(90deg,rgba(155,109,181,0.12),transparent);}
+.ch-arrow{font-size:9px;color:var(--text-dim);transition:transform 0.2s;width:10px;}
+.ch-item.open .ch-arrow{transform:rotate(90deg);}
+.ch-dot{width:7px;height:7px;border-radius:50%;border:2px solid var(--text-dim);}
+.ch-header.active .ch-dot{background:var(--accent-purple);border-color:var(--accent-purple);box-shadow:0 0 6px var(--accent-purple);}
+.ch-name{font-size:12px;color:var(--text-secondary);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ch-header.active .ch-name{color:var(--text-primary);}
+.ch-meta{font-size:10px;color:var(--text-dim);}
+.ch-scenes{margin-left:22px;border-left:1px solid var(--border);display:none;padding-left:0;}
+.ch-item.open .ch-scenes{display:block;}
+.scene-item{display:flex;align-items:center;gap:6px;padding:5px 10px;cursor:pointer;border-radius:4px;margin:1px 6px;transition:var(--transition);}
+.scene-item:hover{background:rgba(255,255,255,0.04);}
+.scene-item.active{background:rgba(232,160,180,0.1);}
+.scene-dot{width:4px;height:4px;border-radius:50%;background:var(--text-dim);}
+.scene-item.active .scene-dot{background:var(--accent-rose);}
+.scene-name{font-size:11px;color:var(--text-dim);}
+.scene-item.active .scene-name{color:var(--accent-rose);}
+.scene-flag{font-size:9px;color:var(--accent-gold);margin-left:auto;}
+.add-ch-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;cursor:pointer;color:var(--text-dim);font-size:11px;transition:var(--transition);background:none;border:none;width:100%;font-family:'Noto Sans SC',sans-serif;}
+.add-ch-btn:hover{color:var(--accent-lavender);}
+
+/* EDITOR AREA */
+.editor{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.tabs{display:flex;align-items:center;border-bottom:1px solid var(--border);background:var(--bg-mid);padding:0 14px;gap:2px;flex-shrink:0;}
+.tab{padding:11px 16px 10px;font-size:12px;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;transition:var(--transition);white-space:nowrap;}
+.tab:hover{color:var(--text-secondary);}
+.tab.active{color:var(--accent-lavender);border-bottom-color:var(--accent-purple);}
+.tab-close{margin-left:5px;font-size:10px;color:var(--text-dim);opacity:0;}
+.tab:hover .tab-close{opacity:1;}
+
+/* MODULE VIEWS */
+.view{display:none;flex:1;overflow:hidden;}
+.view.active{display:flex;flex-direction:column;}
+
+/* ===================== SCRIPT MODULE ===================== */
+.script-wrap{display:flex;flex:1;overflow:hidden;}
+.toolbar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg-panel);flex-shrink:0;flex-wrap:wrap;}
+.tb-btn{padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);font-size:11px;cursor:pointer;transition:var(--transition);font-family:'Noto Sans SC',sans-serif;}
+.tb-btn:hover{background:var(--bg-hover);border-color:var(--border-hover);color:var(--text-primary);}
+.tb-btn.hi{background:rgba(155,109,181,0.12);border-color:rgba(155,109,181,0.35);color:var(--accent-lavender);}
+.tb-sep{width:1px;height:18px;background:var(--border);margin:0 2px;}
+.char-sel{padding:3px 8px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);font-size:11px;font-family:'Noto Sans SC',sans-serif;}
+.char-sel:focus{outline:none;border-color:var(--accent-purple);}
+.line-info{margin-left:auto;font-size:10px;color:var(--text-dim);}
+
+.editor-cols{display:flex;flex:1;overflow:hidden;}
+.line-nums{width:44px;background:var(--bg-mid);padding:14px 6px;font-size:11px;color:var(--text-dim);font-family:'Courier New',monospace;line-height:1.9;text-align:right;overflow:hidden;border-right:1px solid var(--border);user-select:none;flex-shrink:0;}
+.script-ta{flex:1;padding:14px 14px;background:var(--bg-deep);border:none;color:var(--text-primary);font-family:'Noto Sans SC',sans-serif;font-size:13px;line-height:1.9;resize:none;outline:none;overflow-y:auto;}
+.script-ta::-webkit-scrollbar{width:3px;}
+.script-ta::-webkit-scrollbar-thumb{background:var(--border);}
+
+/* Inspector */
+.inspector{width:230px;background:var(--bg-panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.inspector::-webkit-scrollbar{width:3px;}
+.insp-sec{border-bottom:1px solid var(--border);padding:12px 14px;}
+.insp-title{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.insp-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.insp-lbl{font-size:11px;color:var(--text-secondary);}
+.insp-val{font-size:11px;color:var(--accent-lavender);font-family:'Courier New',monospace;}
+.insp-input{width:100%;padding:4px 7px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-size:11px;font-family:'Noto Sans SC',sans-serif;margin-top:4px;}
+.insp-input:focus{outline:none;border-color:var(--accent-purple);}
+.char-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.chip{padding:2px 8px;border-radius:20px;font-size:10px;cursor:pointer;transition:var(--transition);border:1px solid;}
+.chip-r{color:#e8a0b4;border-color:rgba(232,160,180,0.3);background:rgba(232,160,180,0.07);}
+.chip-b{color:#b89fd8;border-color:rgba(184,159,216,0.3);background:rgba(184,159,216,0.07);}
+.chip-c{color:#6ab4c8;border-color:rgba(106,180,200,0.3);background:rgba(106,180,200,0.07);}
+.chip-n{color:#a0a0a0;border-color:rgba(160,160,160,0.3);background:rgba(160,160,160,0.07);}
+.chip:hover{opacity:0.75;}
+.choice-builder{margin-top:6px;}
+.ci{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.ci-num{width:16px;height:16px;border-radius:50%;background:rgba(155,109,181,0.2);border:1px solid rgba(155,109,181,0.35);font-size:9px;color:var(--accent-lavender);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ci-in{flex:1;padding:3px 6px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-size:10px;font-family:'Noto Sans SC',sans-serif;}
+.ci-in:focus{outline:none;border-color:var(--accent-purple);}
+.add-ci{width:100%;padding:4px;background:transparent;border:1px dashed var(--border);border-radius:4px;color:var(--text-dim);font-size:10px;cursor:pointer;transition:var(--transition);font-family:'Noto Sans SC',sans-serif;margin-top:3px;}
+.add-ci:hover{border-color:var(--accent-purple);color:var(--accent-lavender);}
+.jump-link{padding:4px 7px;background:var(--bg-card);border-radius:4px;cursor:pointer;font-size:10px;color:var(--accent-lavender);margin-bottom:4px;transition:var(--transition);}
+.jump-link:hover{background:var(--bg-hover);}
+
+/* ===================== CHARACTER MODULE ===================== */
+.char-module{flex:1;display:flex;overflow:hidden;}
+.char-list-panel{width:200px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.char-list{flex:1;overflow-y:auto;padding:8px;}
+.char-entry{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;transition:var(--transition);margin-bottom:2px;}
+.char-entry:hover{background:var(--bg-hover);}
+.char-entry.active{background:rgba(155,109,181,0.12);border:1px solid rgba(155,109,181,0.25);}
+.char-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.char-info-sm{flex:1;min-width:0;}
+.char-name-sm{font-size:12px;color:var(--text-secondary);}
+.char-entry.active .char-name-sm{color:var(--text-primary);}
+.char-route{font-size:10px;color:var(--text-dim);}
+.add-char-btn{padding:10px;text-align:center;font-size:11px;color:var(--text-dim);cursor:pointer;border-top:1px solid var(--border);transition:var(--transition);}
+.add-char-btn:hover{color:var(--accent-lavender);}
+
+.char-editor{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.char-editor-top{padding:20px;border-bottom:1px solid var(--border);display:flex;gap:20px;flex-shrink:0;}
+.char-big-avatar{width:80px;height:80px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:40px;background:linear-gradient(135deg,#2a1f3d,#3d1f2d);border:2px solid var(--border-hover);flex-shrink:0;}
+.char-fields{flex:1;display:flex;flex-direction:column;gap:8px;}
+.field-row{display:flex;align-items:center;gap:10px;}
+.field-lbl{font-size:11px;color:var(--text-dim);width:60px;flex-shrink:0;}
+.field-in{flex:1;padding:5px 8px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-size:12px;font-family:'Noto Sans SC',sans-serif;}
+.field-in:focus{outline:none;border-color:var(--accent-purple);}
+.color-picker-row{display:flex;gap:6px;align-items:center;}
+.color-swatch{width:20px;height:20px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:var(--transition);}
+.color-swatch.selected{border-color:white;}
+
+.char-editor-body{flex:1;display:flex;overflow:hidden;}
+.expr-panel{flex:1;padding:16px;overflow-y:auto;}
+.expr-panel-title{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.expr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;}
+.expr-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:var(--transition);}
+.expr-card:hover{border-color:var(--accent-purple);transform:translateY(-2px);}
+.expr-card.active{border-color:var(--accent-rose);}
+.expr-thumb{aspect-ratio:9/14;display:flex;align-items:center;justify-content:center;font-size:32px;background:linear-gradient(180deg,#1f1428,#2d1f3d);}
+.expr-lbl{padding:4px 6px;font-size:9px;color:var(--text-dim);text-align:center;}
+.expr-card.active .expr-lbl{color:var(--accent-rose);}
+.expr-add{border:1px dashed var(--border);cursor:pointer;}
+.expr-add:hover{border-color:var(--accent-purple);}
+
+/* Affection */
+.affection-panel{width:220px;border-left:1px solid var(--border);padding:14px;overflow-y:auto;flex-shrink:0;}
+.aff-title{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.aff-bar-wrap{margin-bottom:14px;}
+.aff-char{font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:flex;justify-content:space-between;}
+.aff-char span{color:var(--accent-gold);font-family:'Courier New',monospace;}
+.aff-bar{height:6px;background:var(--bg-hover);border-radius:3px;overflow:hidden;}
+.aff-fill{height:100%;border-radius:3px;transition:width 0.5s ease;}
+.aff-milestones{margin-top:8px;}
+.milestone{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);}
+.milestone:last-child{border:none;}
+.ms-val{font-size:10px;font-family:'Courier New',monospace;color:var(--accent-lavender);width:24px;}
+.ms-name{font-size:10px;color:var(--text-secondary);}
+.ms-route{font-size:9px;color:var(--text-dim);margin-left:auto;}
+.flag-list{margin-top:10px;}
+.flag-item{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:4px;margin-bottom:3px;background:var(--bg-card);}
+.flag-name{font-size:10px;color:var(--text-secondary);font-family:'Courier New',monospace;flex:1;}
+.flag-toggle{width:28px;height:14px;border-radius:7px;background:var(--bg-hover);border:1px solid var(--border);cursor:pointer;position:relative;transition:var(--transition);}
+.flag-toggle.on{background:rgba(106,200,150,0.2);border-color:var(--accent-green);}
+.flag-toggle::after{content:'';position:absolute;top:1px;left:1px;width:10px;height:10px;border-radius:50%;background:var(--text-dim);transition:var(--transition);}
+.flag-toggle.on::after{left:15px;background:var(--accent-green);}
+
+/* ===================== IMAGE MODULE ===================== */
+.img-module{flex:1;display:flex;overflow:hidden;}
+.img-sidebar{width:180px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.img-cat{display:flex;border-bottom:1px solid var(--border);}
+.img-cat-btn{flex:1;padding:9px 0;text-align:center;font-size:10px;color:var(--text-dim);cursor:pointer;transition:var(--transition);border-bottom:2px solid transparent;}
+.img-cat-btn.active{color:var(--accent-lavender);border-bottom-color:var(--accent-purple);}
+.img-list{flex:1;overflow-y:auto;padding:6px;}
+.img-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;transition:var(--transition);margin-bottom:2px;}
+.img-item:hover{background:var(--bg-hover);}
+.img-item.active{background:rgba(155,109,181,0.12);}
+.img-thumb-sm{width:36px;height:24px;border-radius:3px;object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--bg-card);}
+.img-name-sm{font-size:10px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.img-item.active .img-name-sm{color:var(--text-primary);}
+.img-add-row{padding:8px;border-top:1px solid var(--border);}
+
+.img-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.img-toolbar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg-panel);flex-shrink:0;}
+.img-canvas{flex:1;display:flex;align-items:center;justify-content:center;background:#000;position:relative;overflow:hidden;}
+.img-preview-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:60px;background:linear-gradient(180deg,#1a0a24,#0a0510);}
+.img-preview-char{position:absolute;bottom:80px;font-size:100px;filter:drop-shadow(0 0 20px rgba(232,160,180,0.3));}
+.img-textbox{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(10,5,20,0.95),rgba(10,5,20,0.8));border-top:1px solid rgba(184,159,216,0.2);padding:14px 20px;}
+.img-speaker{font-size:13px;color:var(--accent-rose);font-family:'Noto Serif SC',serif;margin-bottom:6px;}
+.img-text{font-size:12px;color:var(--text-primary);line-height:1.8;font-family:'Noto Serif SC',serif;}
+.blink{display:inline-block;width:5px;height:5px;background:var(--accent-rose);border-radius:50%;margin-left:3px;animation:blink 1s step-end infinite;vertical-align:middle;}
+@keyframes blink{50%{opacity:0;}}
+
+.layer-panel{width:200px;background:var(--bg-panel);border-left:1px solid var(--border);padding:14px;flex-shrink:0;}
+.layer-title{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.layer-item{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--bg-card);border-radius:6px;margin-bottom:4px;cursor:pointer;border:1px solid transparent;transition:var(--transition);}
+.layer-item:hover{border-color:var(--border);}
+.layer-item.active{border-color:rgba(155,109,181,0.3);}
+.layer-icon{font-size:12px;}
+.layer-name{font-size:11px;color:var(--text-secondary);flex:1;}
+.layer-vis{font-size:10px;color:var(--text-dim);cursor:pointer;}
+.layer-pos{margin-top:10px;}
+.pos-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.pos-lbl{font-size:10px;color:var(--text-dim);width:20px;}
+.pos-in{flex:1;padding:3px 6px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-size:10px;font-family:'Courier New',monospace;}
+.pos-in:focus{outline:none;border-color:var(--accent-purple);}
+
+/* ===================== AUDIO MODULE ===================== */
+.audio-module{flex:1;display:flex;overflow:hidden;}
+.audio-list-panel{width:240px;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.audio-cats{display:flex;border-bottom:1px solid var(--border);}
+.acat{flex:1;padding:9px 0;text-align:center;font-size:10px;color:var(--text-dim);cursor:pointer;transition:var(--transition);border-bottom:2px solid transparent;}
+.acat.active{color:var(--accent-lavender);border-bottom-color:var(--accent-purple);}
+.audio-items{flex:1;overflow-y:auto;padding:8px;}
+.aitem{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;transition:var(--transition);margin-bottom:2px;}
+.aitem:hover{background:var(--bg-hover);}
+.aitem.playing{background:rgba(212,100,138,0.1);}
+.aplay{width:24px;height:24px;border-radius:50%;border:1px solid rgba(155,109,181,0.3);color:var(--accent-purple);display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0;}
+.aitem.playing .aplay{border-color:var(--accent-pink);color:var(--accent-pink);}
+.ainfo{flex:1;min-width:0;}
+.aname{font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.aitem.playing .aname{color:var(--accent-rose);}
+.adur{font-size:9px;color:var(--text-dim);}
+.wave-mini{display:flex;align-items:center;gap:1px;height:14px;}
+.wb{width:2px;border-radius:1px;background:var(--text-dim);}
+.aitem.playing .wb{background:var(--accent-pink);animation:wa 0.8s ease-in-out infinite;}
+.wb:nth-child(2){animation-delay:0.1s;}
+.wb:nth-child(3){animation-delay:0.2s;}
+.wb:nth-child(4){animation-delay:0.15s;}
+@keyframes wa{0%,100%{transform:scaleY(0.4);}50%{transform:scaleY(1);}}
+
+.audio-editor{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.audio-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-shrink:0;background:var(--bg-panel);}
+.audio-cover{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#2a1f3d,#3d1f2d);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.audio-detail{flex:1;}
+.audio-title-big{font-size:14px;color:var(--text-primary);font-family:'Noto Serif SC',serif;}
+.audio-meta{font-size:10px;color:var(--text-dim);margin-top:2px;}
+.audio-ctrls{display:flex;align-items:center;gap:8px;}
+.ctrl{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center;font-size:10px;}
+.ctrl:hover{border-color:var(--accent-purple);color:var(--accent-lavender);}
+.ctrl.main-play{width:38px;height:38px;background:linear-gradient(135deg,var(--accent-purple),var(--accent-pink));border:none;color:white;font-size:12px;}
+.waveform-area{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow:hidden;}
+.waveform{flex:1;background:var(--bg-card);border-radius:8px;border:1px solid var(--border);position:relative;overflow:hidden;cursor:pointer;min-height:60px;}
+.wf-bars{display:flex;align-items:center;gap:1.5px;height:100%;padding:8px;}
+.wf-b{flex:1;border-radius:1px;}
+.playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--accent-pink);box-shadow:0 0 6px var(--accent-pink);}
+.atimeline{display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim);font-family:'Courier New',monospace;}
+.audio-settings{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.aset-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px;}
+.aset-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.aslider{width:100%;-webkit-appearance:none;height:3px;background:linear-gradient(90deg,var(--accent-purple) var(--v,70%),var(--bg-hover) var(--v,70%));border-radius:2px;cursor:pointer;}
+.aslider::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:var(--accent-lavender);}
+.aset-val{font-size:10px;color:var(--accent-lavender);text-align:right;margin-top:3px;font-family:'Courier New',monospace;}
+
+/* ===================== STORY TREE ===================== */
+.tree-module{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:14px;}
+.tree-controls{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.tree-canvas{flex:1;background:var(--bg-mid);border-radius:10px;border:1px solid var(--border);overflow:auto;padding:40px 50px;position:relative;}
+.tree-canvas::-webkit-scrollbar{width:5px;height:5px;}
+.tree-canvas::-webkit-scrollbar-thumb{background:var(--border);}
+.tc-nodes{display:flex;flex-direction:column;gap:0;min-width:900px;}
+.tc-row{display:flex;align-items:center;position:relative;}
+.tc-node{display:flex;flex-direction:column;align-items:center;}
+.node{padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:var(--transition);min-width:130px;text-align:center;}
+.node:hover{border-color:var(--accent-purple);background:var(--bg-hover);transform:translateY(-2px);box-shadow:0 6px 20px rgba(155,109,181,0.2);}
+.node-type{font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:3px;}
+.node-title{font-size:11px;color:var(--text-primary);font-weight:500;}
+.node-info{font-size:9px;color:var(--text-dim);margin-top:2px;}
+.node.n-main{border-color:rgba(155,109,181,0.4);background:rgba(155,109,181,0.08);}
+.node.n-branch{border-color:rgba(212,175,106,0.4);background:rgba(212,175,106,0.06);}
+.node.n-a{border-color:rgba(232,160,180,0.4);background:rgba(232,160,180,0.06);}
+.node.n-b{border-color:rgba(106,180,200,0.4);background:rgba(106,180,200,0.06);}
+.node.n-end{border-color:rgba(106,200,150,0.4);background:rgba(106,200,150,0.06);}
+.tc-conn{display:flex;align-items:center;padding:0 10px;}
+.conn-line{width:36px;height:1px;background:var(--border);}
+.conn-arrow{color:var(--text-dim);font-size:10px;}
+.branch-col{display:flex;flex-direction:column;gap:8px;}
+.branch-row{display:flex;align-items:center;}
+.branch-sep{width:1px;background:var(--border);margin:0 10px;align-self:stretch;}
+.branch-tag{font-size:9px;color:var(--text-dim);writing-mode:vertical-rl;transform:rotate(180deg);padding:4px 0;}
+
+/* ===================== EXPORT MODULE ===================== */
+.export-view{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:20px;}
+.export-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;overflow-y:auto;}
+.export-card{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px;transition:var(--transition);}
+.export-card:hover{border-color:var(--border-hover);}
+.exp-icon{font-size:28px;margin-bottom:10px;}
+.exp-title{font-size:15px;color:var(--text-primary);font-family:'Noto Serif SC',serif;margin-bottom:6px;}
+.exp-desc{font-size:11px;color:var(--text-secondary);line-height:1.7;margin-bottom:12px;}
+.exp-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;}
+.exp-tag{padding:2px 8px;border-radius:20px;font-size:9px;border:1px solid;text-transform:uppercase;letter-spacing:0.5px;}
+.tag-html{color:#e8a0b4;border-color:rgba(232,160,180,0.3);}
+.tag-json{color:#b89fd8;border-color:rgba(184,159,216,0.3);}
+.tag-steam{color:#6ab4c8;border-color:rgba(106,180,200,0.3);}
+.tag-mobile{color:#d4af6a;border-color:rgba(212,175,106,0.3);}
+.exp-btn{width:100%;padding:8px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;border:none;background:linear-gradient(135deg,var(--accent-purple),var(--accent-pink));color:white;transition:var(--transition);}
+.exp-btn:hover{opacity:0.85;}
+.exp-btn.ghost{background:transparent;border:1px solid var(--border-hover);color:var(--accent-lavender);}
+.exp-btn.ghost:hover{background:var(--bg-hover);}
+.export-progress{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:20px;display:none;}
+.export-progress.show{display:block;}
+.prog-title{font-size:14px;color:var(--text-primary);margin-bottom:14px;font-family:'Noto Serif SC',serif;}
+.prog-step{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.prog-icon{font-size:14px;width:20px;text-align:center;}
+.prog-txt{font-size:12px;color:var(--text-secondary);}
+.prog-bar-wrap{background:var(--bg-hover);border-radius:4px;height:4px;margin-top:4px;overflow:hidden;}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--accent-purple),var(--accent-pink));border-radius:4px;transition:width 0.5s ease;}
+
+/* ===================== STATUS BAR ===================== */
+.statusbar{height:26px;background:var(--bg-mid);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:16px;flex-shrink:0;}
+.si{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-dim);}
+.sdot{width:5px;height:5px;border-radius:50%;background:#4ade80;}
+.si.warn .sdot{background:var(--accent-gold);}
+.si.err .sdot{background:#f87171;}
+
+/* MODALS */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--bg-panel);border:1px solid var(--border-hover);border-radius:12px;padding:24px;max-width:520px;width:90vw;box-shadow:var(--shadow-glow);}
+.modal-title{font-family:'Noto Serif SC',serif;font-size:17px;color:var(--accent-lavender);margin-bottom:16px;}
+.drop-zone{border:2px dashed var(--border);border-radius:8px;padding:28px;text-align:center;cursor:pointer;transition:var(--transition);margin-bottom:14px;}
+.drop-zone:hover{border-color:var(--accent-purple);background:rgba(155,109,181,0.05);}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;}
+.syntax-ref{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:14px;}
+.syn-title{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.syn-row{display:flex;gap:8px;margin-bottom:5px;}
+.syn-code{font-family:'Courier New',monospace;font-size:10px;color:var(--accent-cyan);min-width:160px;}
+.syn-desc{font-size:10px;color:var(--text-dim);}
+
+/* NOTIFICATION */
+.notif{position:fixed;bottom:36px;right:18px;padding:10px 18px;background:var(--bg-card);border:1px solid var(--border-hover);border-radius:8px;font-size:12px;color:var(--text-primary);box-shadow:var(--shadow-glow);display:flex;align-items:center;gap:7px;transform:translateX(140%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);z-index:2000;}
+.notif.show{transform:translateX(0);}
+
+/* PETALS */
+.petal{position:fixed;top:-20px;font-size:11px;opacity:0;pointer-events:none;z-index:9999;animation:fall linear forwards;}
+@keyframes fall{0%{opacity:0.7;transform:translateX(0) rotate(0deg);}100%{opacity:0;transform:translateX(50px) rotate(360deg) translateY(100vh);}}
+
+
+/* ===================== UI DESIGNER ===================== */
+.uid-layout{display:flex;flex:1;overflow:hidden;}
+.uid-sidebar{width:300px;background:var(--bg-panel);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;}
+.uid-sidebar::-webkit-scrollbar{width:3px;}
+.uid-sidebar::-webkit-scrollbar-thumb{background:var(--border);}
+.uid-sec{padding:14px 16px;border-bottom:1px solid var(--border);}
+.uid-sec-title{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+.uid-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.uid-lbl{font-size:11px;color:var(--text-secondary);width:80px;flex-shrink:0;}
+.uid-slider{flex:1;-webkit-appearance:none;height:3px;background:linear-gradient(90deg,var(--accent-purple) 50%,rgba(184,159,216,0.2) 50%);border-radius:2px;cursor:pointer;}
+.uid-slider::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--accent-lavender);}
+.uid-val{font-size:10px;color:var(--accent-lavender);font-family:'Courier New',monospace;width:34px;text-align:right;flex-shrink:0;}
+.uid-sel{flex:1;padding:4px 6px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);font-size:11px;font-family:'Noto Sans SC',sans-serif;}
+.uid-sel:focus{outline:none;border-color:var(--accent-purple);}
+.uid-color{width:36px;height:24px;border:none;border-radius:4px;cursor:pointer;background:none;padding:0;}
+.uid-presets{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.uid-preset{padding:8px;border-radius:6px;cursor:pointer;border:1px solid transparent;transition:var(--transition);text-align:center;}
+.uid-preset:hover{border-color:var(--border-hover);}
+.uid-preset.active{border-color:var(--accent-purple);}
+.uid-preset-swatch{height:20px;border-radius:4px;margin-bottom:4px;}
+.uid-preset-name{font-size:10px;color:var(--text-secondary);}
+
+.uid-preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:var(--bg-deep);}
+.uid-preview-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;}
+.uid-game-wrap{border:2px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow-glow);}
+.uid-game{width:720px;height:405px;position:relative;background:#0a0510;overflow:hidden;font-family:'Noto Sans SC',sans-serif;}
+.uid-bg{position:absolute;inset:0;background:linear-gradient(180deg,#1a0a24,#0a0510);display:flex;align-items:center;justify-content:center;font-size:60px;color:rgba(255,255,255,0.08);}
+.uid-char{position:absolute;bottom:90px;right:18%;font-size:90px;filter:drop-shadow(0 0 12px rgba(232,160,180,0.3));animation:ufloat 3s ease-in-out infinite;}
+@keyframes ufloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+.uid-textbox{position:absolute;bottom:0;left:0;right:0;padding:0 28px 16px;background:linear-gradient(0deg,rgba(4,1,10,0.95),rgba(8,3,18,0.0));}
+.uid-textbox-inner{border:1px solid rgba(184,159,216,0.18);border-radius:10px;background:rgba(4,1,10,0.88);backdrop-filter:blur(6px);padding:12px 18px 14px;}
+.uid-speaker{font-size:14px;font-family:'Noto Serif SC',serif;font-weight:500;letter-spacing:2px;margin-bottom:6px;padding:2px 10px;border-radius:14px;display:inline-block;background:rgba(0,0,0,0.3);border-left:3px solid currentColor;}
+.uid-dialog{font-size:13px;line-height:2;color:#f0e6f0;font-family:'Noto Serif SC',serif;}
+.uid-choices{position:absolute;bottom:130px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:8px;display:none;}
+.uid-choice-btn{padding:9px 28px;background:rgba(8,4,16,0.88);border:1px solid rgba(184,159,216,0.3);border-radius:8px;color:#f0e6f0;font-size:12px;font-family:'Noto Serif SC',serif;cursor:pointer;transition:all 0.2s;min-width:300px;text-align:center;}
+.uid-choice-btn:hover{background:rgba(155,109,181,0.2);border-color:rgba(155,109,181,0.6);}
+.uid-menu-btns{position:absolute;bottom:16px;right:14px;display:flex;gap:5px;}
+.uid-mbtn{width:28px;height:28px;background:rgba(8,4,18,0.75);border:1px solid rgba(184,159,216,0.2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#6b5e7a;}
+.uid-preview-note{font-size:10px;color:var(--text-dim);margin-top:10px;text-align:center;}
+
+/* ===================== HELP / DOCS ===================== */
+.help-layout{display:flex;flex:1;overflow:hidden;}
+.help-toc{width:220px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
+.help-toc-title{padding:14px 16px 10px;font-family:'Noto Serif SC',serif;font-size:13px;color:var(--accent-lavender);border-bottom:1px solid var(--border);}
+.help-toc-items{flex:1;overflow-y:auto;padding:8px 0;}
+.help-toc-items::-webkit-scrollbar{width:3px;}
+.help-toc-items::-webkit-scrollbar-thumb{background:var(--border);}
+.help-toc-ch{padding:7px 14px;cursor:pointer;transition:var(--transition);}
+.help-toc-ch:hover{background:var(--bg-hover);}
+.help-toc-ch.active{background:linear-gradient(90deg,rgba(155,109,181,0.12),transparent);}
+.help-toc-ch-title{font-size:12px;color:var(--text-secondary);}
+.help-toc-ch.active .help-toc-ch-title{color:var(--accent-lavender);}
+.help-toc-sec{padding:5px 14px 5px 26px;cursor:pointer;transition:var(--transition);font-size:11px;color:var(--text-dim);}
+.help-toc-sec:hover{color:var(--text-secondary);}
+.help-toc-sec.active{color:var(--accent-rose);}
+
+.help-content{flex:1;overflow-y:auto;padding:28px 36px;background:var(--bg-deep);}
+.help-content::-webkit-scrollbar{width:5px;}
+.help-content::-webkit-scrollbar-thumb{background:var(--border);}
+.help-ch-title{font-family:'Noto Serif SC',serif;font-size:22px;color:var(--accent-lavender);margin-bottom:6px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.help-ch-sub{font-size:11px;color:var(--text-dim);margin-bottom:24px;letter-spacing:1px;}
+.help-sec{margin-bottom:28px;}
+.help-sec-title{font-size:15px;color:var(--text-primary);font-family:'Noto Serif SC',serif;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.help-sec-title::before{content:'';width:3px;height:15px;background:var(--accent-purple);border-radius:2px;display:inline-block;}
+.help-body{font-size:13px;color:var(--text-secondary);line-height:1.9;}
+.help-body p{margin-bottom:10px;}
+.help-code-block{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:10px 0;font-family:'Courier New',monospace;font-size:12px;color:var(--accent-cyan);line-height:1.9;overflow-x:auto;}
+.help-table{width:100%;border-collapse:collapse;margin:10px 0;}
+.help-table th{padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);font-size:11px;color:var(--text-dim);text-align:left;font-weight:500;}
+.help-table td{padding:8px 12px;border:1px solid var(--border);font-size:12px;color:var(--text-secondary);vertical-align:top;}
+.help-table td:first-child{font-family:'Courier New',monospace;font-size:11px;color:var(--accent-cyan);white-space:nowrap;}
+.help-table tr:hover td{background:rgba(255,255,255,0.02);}
+.help-tip{background:rgba(212,175,106,0.07);border:1px solid rgba(212,175,106,0.2);border-radius:6px;padding:10px 14px;font-size:12px;color:rgba(212,175,106,0.85);margin:10px 0;display:flex;gap:8px;}
+.help-tip::before{content:'💡';flex-shrink:0;}
+.help-warn{background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);border-radius:6px;padding:10px 14px;font-size:12px;color:rgba(248,113,113,0.85);margin:10px 0;display:flex;gap:8px;}
+.help-warn::before{content:'⚠️';flex-shrink:0;}
+.help-tag{display:inline-block;padding:1px 7px;background:rgba(155,109,181,0.12);border:1px solid rgba(155,109,181,0.3);border-radius:4px;font-size:10px;font-family:'Courier New',monospace;color:var(--accent-lavender);margin:1px;}
+.help-kbd{display:inline-block;padding:1px 6px;background:var(--bg-card);border:1px solid var(--border);border-radius:3px;font-size:10px;font-family:'Courier New',monospace;color:var(--text-secondary);}
+
+/* FADE */
+.fade-in{animation:fi 0.3s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<!-- TITLEBAR -->
+<div class="titlebar">
+  <div class="logo">
+    <div class="logo-icon">🌸</div>
+    <div>
+      <div class="logo-name">GalgameMaker Studio</div>
+      <div class="logo-ver">v1.0 — Steam Edition</div>
+    </div>
+  </div>
+  <div class="menu-bar">
+    <button class="menu-btn" onclick="showModal('import-text')">文件</button>
+    <button class="menu-btn" onclick="showNotif('编辑功能')">编辑</button>
+    <button class="menu-btn" onclick="showNotif('项目设置')">项目</button>
+    <button class="menu-btn" onclick="switchMod('export')">构建&amp;发布</button>
+    <button class="menu-btn" onclick="showHelp()">帮助</button>
+  </div>
+  <div class="tb-actions">
+    <span class="project-name">我的视觉小说</span>
+    <button class="btn btn-ghost" onclick="openPreview()">▶ 预览</button>
+    <button class="btn btn-success" onclick="quickExport()">⬇ 导出游戏</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDENAV -->
+  <div class="sidenav">
+    <div class="nav-btn active" onclick="switchMod('script')" title="剧本编辑">
+      <div class="nav-icon">📝</div><div class="nav-label">剧本</div>
+    </div>
+    <div class="nav-btn" onclick="switchMod('character')" title="角色管理">
+      <div class="nav-icon">👤</div><div class="nav-label">角色</div>
+    </div>
+    <div class="nav-btn" onclick="switchMod('image')" title="画面素材">
+      <div class="nav-icon">🖼️</div><div class="nav-label">画面</div>
+    </div>
+    <div class="nav-btn" onclick="switchMod('audio')" title="音频管理">
+      <div class="nav-icon">🎵</div><div class="nav-label">音频</div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-btn" onclick="switchMod('tree')" title="剧情树">
+      <div class="nav-icon">🌿</div><div class="nav-label">剧情树</div>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-btn" onclick="switchMod('export')" title="导出发布">
+      <div class="nav-icon">🚀</div><div class="nav-label">发布</div>
+    </div>
+    <div class="nav-btn" onclick="switchMod('uidesign')" title="UI 设计器">
+      <div class="nav-icon">🎨</div><div class="nav-label">UI</div>
+    </div>
+    <div class="nav-btn" onclick="switchMod('help')" title="帮助文档">
+      <div class="nav-icon">📖</div><div class="nav-label">文档</div>
+    </div>
+  </div>
+
+  <!-- OUTLINE / STORY TREE LEFT -->
+  <div class="outline">
+    <div class="panel-hdr">
+      <span>🌸</span>
+      <div class="panel-hdr-title">剧情大纲</div>
+      <div class="panel-hdr-badge" id="scene-badge">9 场景</div>
+    </div>
+    <div class="outline-body" id="outlineBody"></div>
+  </div>
+
+  <!-- EDITOR -->
+  <div class="editor">
+
+    <!-- ======= SCRIPT VIEW ======= -->
+    <div class="view active fade-in" id="view-script">
+      <div class="toolbar">
+        <button class="tb-btn hi" onclick="showModal('import-text')">📥 导入文本</button>
+        <div class="tb-sep"></div>
+        <select class="char-sel" id="charSel" onchange="insertChar(this.value)">
+          <option value="">插入角色对话…</option>
+        </select>
+        <button class="tb-btn" onclick="ins('[bg: 背景名称]')">🌄背景</button>
+        <button class="tb-btn" onclick="ins('[char: 角色名_表情 pos:center]')">👤立绘</button>
+        <button class="tb-btn" onclick="ins('[bgm: 音乐文件名]')">🎵BGM</button>
+        <button class="tb-btn" onclick="ins('[se: 音效名]')">🔔音效</button>
+        <button class="tb-btn" onclick="ins('[voice: 角色名_scene01]')">🎙语音</button>
+        <button class="tb-btn" onclick="insChoice()">⑂ 选项分支</button>
+        <button class="tb-btn" onclick="ins('[jump: 标签名]')">↗ 跳转</button>
+        <button class="tb-btn" onclick="ins('[flag: set 变量名 true]')">🚩 标志</button>
+        <button class="tb-btn" onclick="ins('[aff: 角色名 +10]')">💗 好感度</button>
+        <div class="tb-sep"></div>
+        <span class="line-info" id="lineInfo">第1行 / 共1行</span>
+      </div>
+      <div class="script-wrap">
+        <div class="editor-cols">
+          <div class="line-nums" id="lineNums">1</div>
+          <textarea class="script-ta" id="scriptTa" spellcheck="false"
+            oninput="onScript()" onkeydown="handleTab(event)" onclick="onScript()"
+            placeholder="在此编写您的游戏剧本…&#10;&#10;支持语法：&#10;[label: 场景标签名]   ← 定义锚点&#10;角色名: 对话内容     ← 对话&#10;旁白: 旁白文字       ← 旁白&#10;[bg: 背景名]         ← 切换背景&#10;[char: 角色_表情 pos:left|center|right]&#10;[bgm: 音乐文件名]    ← 播放BGM&#10;[se: 音效名]         ← 音效&#10;[aff: 角色名 +10]    ← 好感度&#10;[flag: set 变量 值]  ← 设置标志&#10;[if: flag=变量 eq true]…[/if]  ← 条件&#10;[choice]&#10;- 选项文字 → 跳转标签&#10;[/choice]&#10;[jump: 标签名]       ← 跳转"
+          >[label: prologue_start]
+[title: 序章 · 樱之约定]
+[bg: school_gate_morning]
+[bgm: spring_breeze]
+
+旁白: 四月的最后一个星期一，我带着崭新的学生证走进了向阳高中的校门。
+旁白: 樱花的花期已近尾声，偶有花瓣随风而落，像是在为某段故事写下序言。
+
+[char: rinka_smile pos:center]
+凛夏: 哎——！你就是新转学来的同学吧？
+
+主角: ……是的，请多关照。
+
+凛夏: 我叫宫下凛夏！你一个人站在这里，是不是迷路了？
+
+[aff: rinka +5]
+
+[choice]
+- 有一点，可以帮我吗？ → prologue_ask_help
+- 没有，我在欣赏樱花。 → prologue_sakura
+[/choice]
+
+[label: prologue_ask_help]
+[aff: rinka +10]
+[flag: set first_impression warm]
+凛夏: 哈哈，当然可以啊！来，跟我走！
+
+旁白: 她一把拉住我的手腕，脚步轻快地带我穿过人群。
+
+[jump: prologue_classroom]
+
+[label: prologue_sakura]
+[flag: set first_impression cool]
+凛夏: 哦……也对，今天是最后几天了。
+
+旁白: 她抬起头，和我一起看了一会儿落花，然后轻声说——
+
+凛夏: 那我陪你看一会儿吧，反正还早。
+
+[aff: rinka +7]
+
+[label: prologue_classroom]
+[bg: classroom_afternoon]
+[char: rinka_smile pos:left]
+
+旁白: 凛夏把我带到了3年A班的教室。
+旁白: 窗边第三排，那是我的座位。
+
+[char: yuki_neutral pos:right]
+雪绘: ……你就是新同学。
+
+主角: 是，我叫……
+
+雪绘: 我知道了。我叫白坂雪绘，你的同桌。请不要随便和我说话。
+
+[aff: yuki -3]
+
+凛夏: 雪绘又来这套！别理她，她对谁都这样！
+
+[se: bell]
+旁白: 上课铃声响起，序章就此落幕。
+
+[label: ch1_start]
+[title: 第一章 · 放学后的路口]
+[bg: school_gate_morning]
+[bgm: melancholy_rain]
+
+旁白: 一周后。
+旁白: 我渐渐熟悉了这里的一切——除了同桌白坂雪绘。
+
+[char: rinka_shy pos:center]
+凛夏: 诶，今天放学要一起回家吗？我家在站前那边。
+
+[aff: rinka +5]
+
+[choice]
+- 好，正好顺路。 → ch1_walk_rinka
+- 不了，我有事。 → ch1_alone
+[/choice]
+
+[label: ch1_walk_rinka]
+[flag: set ch1_with_rinka true]
+[bg: sakura_park_day]
+[bgm: heart_flutter]
+
+[char: rinka_happy pos:center]
+旁白: 我们穿过樱花公园，暮色把她的侧脸染成金色。
+
+凛夏: 你觉得雪绘怎么样？
+
+[choice]
+- 有点难相处，但感觉不坏。 → ch1_yuki_kind
+- 说实话，有点害怕她。 → ch1_yuki_fear
+[/choice]
+
+[label: ch1_yuki_kind]
+[aff: yuki +8]
+[flag: set yuki_impression good]
+凛夏: 对吧！其实她只是不擅长表达而已。
+
+凛夏: 上次班级旅行，她偷偷帮我整理了落下的笔记，但什么都没说。
+
+旁白: 原来如此……
+
+[jump: ch1_park_end]
+
+[label: ch1_yuki_fear]
+凛夏: 哈哈，她的眼神确实厉害……但你放心，她咬人的。
+
+[se: laugh]
+凛夏: 开玩笑！不过真的，多接触就好了。
+
+[label: ch1_park_end]
+[char: rinka_smile pos:center]
+凛夏: 好了，我家到了。明天见！
+
+旁白: 她向我挥了挥手，消失在路口的转角。
+旁白: 我站在原地，感到胸口有什么东西在轻轻颤动。
+
+[jump: ch1_end]
+
+[label: ch1_alone]
+[flag: set ch1_with_rinka false]
+[bg: rooftop_sunset]
+
+旁白: 我独自走上了天台。
+旁白: 夕阳把整个城市染成橙红色，风里带着一点凉意。
+
+[char: yuki_neutral pos:center]
+旁白: 没想到，白坂雪绘也在这里。
+
+雪绘: ……你怎么来了。
+
+主角: 随便走走。你呢？
+
+雪绘: 同样。
+
+旁白: 我们沉默地并排站了大约十分钟。
+旁白: 出乎意料的是，那段沉默并不令人难受。
+
+[aff: yuki +12]
+[flag: set rooftop_event true]
+
+[label: ch1_end]
+[title: 第二章 · 文化祭前夜]
+[bg: classroom_afternoon]
+[bgm: spring_breeze]
+
+旁白: 文化祭距今还有三天。全班都在忙碌准备，我也被卷入其中。
+
+[char: rinka_happy pos:left]
+凛夏: 我们班做咖啡厅！你来负责布置！
+
+[if: flag=ch1_with_rinka eq true]
+凛夏: 上次公园散步的时候我就在想，你一定有好品味！
+[/if]
+
+[char: yuki_neutral pos:right]
+雪绘: 你擅长这种事吗。
+
+主角: 说不上擅长，但可以试试。
+
+雪绘: ……好。我负责食材，你负责空间。别拖累我。
+
+[aff: yuki +5]
+
+旁白: 这大概是她说过最长的合作宣言了。
+
+[label: ch2_festival_night]
+[title: 第二章 · 文化祭当天]
+[bg: festival_night]
+[bgm: summer_festival]
+
+旁白: 文化祭当天，教室被布置成了昏黄的暖光咖啡厅。
+旁白: 走廊里传来吆喝声、笑声、音乐声，整个学校都沸腾了。
+
+[char: rinka_smile pos:left]
+凛夏: 你看你看！大家都夸好看！
+
+[char: yuki_neutral pos:right]
+雪绘: ……。
+
+凛夏: 雪绘！说点什么嘛！
+
+雪绘: 还可以。
+
+[se: crowd]
+凛夏: 哈——这就是满分称赞了！
+
+旁白: 傍晚，人潮渐散。
+
+[char: hide pos:left]
+[char: yuki_neutral pos:center]
+
+旁白: 雪绘来找我，手里端着两杯咖啡。
+
+雪绘: 喝。
+
+主角: ……谢谢。
+
+[aff: yuki +15]
+
+雪绘: 你做的空间……不难看。
+
+旁白: 她转过脸去，但我好像看到了她耳尖微微泛红。
+
+[label: ch2_end]
+[title: 第三章 · 选择的时刻]
+[bg: rooftop_sunset]
+[bgm: melancholy_rain]
+
+旁白: 文化祭结束后的第三天，我在天台上想了很久。
+旁白: 我清楚地感受到，自己对她们两个人的心意都已经不再普通。
+
+[if: flag=rooftop_event eq true]
+旁白: 和雪绘并肩站在天台的那段沉默，我时常回想起来。
+[/if]
+
+[if: flag=yuki_impression eq good]
+旁白: 凛夏说的话让我开始重新认识雪绘。
+[/if]
+
+旁白: 夕阳沉入地平线的瞬间，我做出了决定。
+
+[label: ch3_choice]
+[choice]
+- 去找凛夏，告诉她我的心意。 → route_a_start
+- 去找雪绘，在天台等她。 → route_b_start
+[/choice]
+
+[label: route_a_start]
+[title: 凛夏路线 · 一直都在]
+[flag: set chosen_route a]
+[bg: sakura_park_day]
+[bgm: heart_flutter]
+
+[char: rinka_smile pos:center]
+旁白: 我在公园的入口等到了下课后的凛夏。
+
+凛夏: 咦？你在等我？
+
+主角: 嗯……有话想说。
+
+[aff: rinka +20]
+
+凛夏: ……我听着。
+
+旁白: 樱花的嫩叶在风中轻轻摇曳，我深吸一口气。
+
+[label: route_a_confession]
+主角: 我喜欢你。从第一天你拉着我在校园里跑的时候，就开始了。
+
+[char: rinka_shy pos:center]
+凛夏: ……
+
+凛夏: 哎……你，你认真的？
+
+[aff: rinka +30]
+
+[choice]
+- 非常认真。 → route_a_good_end
+- 开玩笑的…… → route_a_bad_end
+[/choice]
+
+[label: route_a_good_end]
+[title: 凛夏路线 · GOOD END ✨]
+[bg: sakura_park_day]
+[bgm: ending_theme]
+
+[char: rinka_happy pos:center]
+凛夏: 太好了……！我也是！从你说想看樱花那天开始！
+
+旁白: 她跳起来，差点撞上我，然后笑着抱住了我的手臂。
+旁白: 樱叶沙沙，像是在为我们鼓掌。
+
+凛夏: 以后要一直在我身边哦！
+
+旁白: 这一天，在樱花公园，在夕阳的余晖里，我们的故事开始了新的一页。
+
+旁白: ——END  宫下凛夏 True End「一直都在」
+
+[jump: credits]
+
+[label: route_a_bad_end]
+[title: 凛夏路线 · BAD END]
+[char: rinka_angry pos:center]
+凛夏: ……开玩笑？你……！
+
+[se: door_open]
+旁白: 她转身快步离开，没有回头。
+旁白: 我站在原地，只剩风声。
+
+旁白: ——BAD END  下次要认真一点。
+
+[jump: credits]
+
+[label: route_b_start]
+[title: 雪绘路线 · 沉默之间]
+[flag: set chosen_route b]
+[bg: rooftop_sunset]
+[bgm: melancholy_rain]
+
+[char: yuki_neutral pos:center]
+旁白: 天台上，雪绘准时出现，像是早就知道我会在这里等她。
+
+雪绘: ……你又来了。
+
+主角: 嗯，有话想说。
+
+雪绘: 说。
+
+[aff: yuki +20]
+
+旁白: 夕阳将她的轮廓描成金色，我开口了。
+
+[label: route_b_confession]
+主角: 我喜欢你。不知道从什么时候开始——可能是第一次在这里遇见你的时候。
+
+[char: yuki_neutral pos:center]
+雪绘: ……
+
+旁白: 她沉默了很久，久到我以为她不会回答。
+
+[choice]
+- 继续等待她的回答。 → route_b_good_end
+- 说：没关系，当我没说。 → route_b_neutral_end
+[/choice]
+
+[label: route_b_good_end]
+[title: 雪绘路线 · GOOD END ✨]
+[bg: rooftop_sunset]
+[bgm: ending_theme]
+
+雪绘: ……我不擅长这种事。
+
+雪绘: 但是……
+
+[char: yuki_neutral pos:center]
+雪绘: 文化祭那天，我第一次觉得，和某个人在同一个空间里不难受。
+
+[aff: yuki +40]
+
+旁白: 她没有说「我也喜欢你」。
+旁白: 但她把咖啡杯放到我手心里，手指轻轻触碰了一下，然后迅速缩回去。
+旁白: 那就够了。
+
+雪绘: 下次……也可以，和我说话。
+
+旁白: ——END  白坂雪绘 True End「沉默之间」
+
+[jump: credits]
+
+[label: route_b_neutral_end]
+[title: 雪绘路线 · NORMAL END]
+雪绘: ……我知道了。
+
+旁白: 她什么也没说，只是点了点头，然后从我身边走过去。
+旁白: 下楼梯的脚步声越来越远。
+旁白: 我还不能进入她的世界——至少现在还不行。
+
+旁白: ——NORMAL END  故事还没有结束。
+
+[label: credits]
+[title: ～ 完 ～]
+[bg: sakura_park_day]
+[bgm: ending_theme]
+[hide]
+
+旁白: 感谢游玩《樱之约定》
+旁白: 制作：GalgameMaker Studio v1.0</textarea>
+        </div>
+        <div class="inspector">
+          <div class="insp-sec">
+            <div class="insp-title">当前场景</div>
+            <div class="insp-row"><span class="insp-lbl">标签</span><span class="insp-val" id="curLabel">prologue_start</span></div>
+            <div class="insp-row"><span class="insp-lbl">字数</span><span class="insp-val" id="charCount">—</span></div>
+            <div class="insp-row"><span class="insp-lbl">分支</span><span class="insp-val" id="branchCount">—</span></div>
+          </div>
+          <div class="insp-sec">
+            <div class="insp-title">角色插入</div>
+            <div class="char-chips" id="charChips"></div>
+          </div>
+          <div class="insp-sec">
+            <div class="insp-title">选项编辑器</div>
+            <div class="choice-builder" id="choiceBuilder">
+              <div class="ci"><div class="ci-num">1</div><input class="ci-in" value="主动靠近凛夏"></div>
+              <div class="ci"><div class="ci-num">2</div><input class="ci-in" value="保持距离观察"></div>
+              <button class="add-ci" onclick="addCI()">＋ 添加选项</button>
+            </div>
+          </div>
+          <div class="insp-sec" style="flex:1;overflow-y:auto;">
+            <div class="insp-title">跳转标签</div>
+            <div id="jumpLinks"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= CHARACTER VIEW ======= -->
+    <div class="view fade-in" id="view-character">
+      <div class="char-module">
+        <div class="char-list-panel">
+          <div class="panel-hdr" style="padding:12px 14px 10px;">
+            <span>👥</span><div class="panel-hdr-title">角色列表</div>
+          </div>
+          <div class="char-list" id="charList"></div>
+          <div class="add-char-btn" onclick="addCharacter()">＋ 新建角色</div>
+        </div>
+        <div class="char-editor">
+          <div class="char-editor-top">
+            <div class="char-big-avatar" id="charAvatar">🌸</div>
+            <div class="char-fields">
+              <div class="field-row">
+                <span class="field-lbl">角色名</span>
+                <input class="field-in" id="charNameIn" value="宫下凛夏" oninput="updateChar()">
+              </div>
+              <div class="field-row">
+                <span class="field-lbl">脚本ID</span>
+                <input class="field-in" id="charIdIn" value="rinka" style="font-family:'Courier New',monospace;font-size:11px;">
+              </div>
+              <div class="field-row">
+                <span class="field-lbl">路线</span>
+                <input class="field-in" id="charRouteIn" value="A路线 · 凛夏Route">
+              </div>
+              <div class="field-row">
+                <span class="field-lbl">对话色</span>
+                <div class="color-picker-row">
+                  <div class="color-swatch selected" style="background:#e8a0b4;" onclick="setCharColor('#e8a0b4',this)"></div>
+                  <div class="color-swatch" style="background:#b89fd8;" onclick="setCharColor('#b89fd8',this)"></div>
+                  <div class="color-swatch" style="background:#6ab4c8;" onclick="setCharColor('#6ab4c8',this)"></div>
+                  <div class="color-swatch" style="background:#d4af6a;" onclick="setCharColor('#d4af6a',this)"></div>
+                  <div class="color-swatch" style="background:#6ac896;" onclick="setCharColor('#6ac896',this)"></div>
+                  <div class="color-swatch" style="background:#f87171;" onclick="setCharColor('#f87171',this)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="char-editor-body">
+            <div class="expr-panel">
+              <div class="expr-panel-title">表情立绘管理</div>
+              <div class="expr-grid" id="exprGrid"></div>
+            </div>
+            <div class="affection-panel">
+              <div class="aff-title">好感度系统</div>
+              <div id="affBars"></div>
+              <div style="margin-top:14px;">
+                <div class="aff-title">里程碑事件</div>
+                <div class="aff-milestones" id="milestones"></div>
+              </div>
+              <div style="margin-top:14px;">
+                <div class="aff-title">剧情标志 Flags</div>
+                <div class="flag-list" id="flagList"></div>
+                <button class="add-ci" style="margin-top:6px;" onclick="addFlag()">＋ 添加Flag</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= IMAGE VIEW ======= -->
+    <div class="view fade-in" id="view-image">
+      <div class="img-module">
+        <div class="img-sidebar">
+          <div class="img-cat">
+            <div class="img-cat-btn active" onclick="switchImgCat('bg',this)">背景</div>
+            <div class="img-cat-btn" onclick="switchImgCat('char',this)">立绘</div>
+            <div class="img-cat-btn" onclick="switchImgCat('ui',this)">界面</div>
+          </div>
+          <div class="img-list" id="imgList"></div>
+          <div class="img-add-row">
+            <button class="tb-btn" style="width:100%;" onclick="showModal('import-image')">＋ 导入图片</button>
+          </div>
+        </div>
+        <div class="img-main">
+          <div class="img-toolbar">
+            <button class="tb-btn" onclick="showNotif('切换背景')">切换背景</button>
+            <button class="tb-btn" onclick="showNotif('添加立绘')">添加立绘</button>
+            <div class="tb-sep"></div>
+            <button class="tb-btn" onclick="showNotif('对齐：左')">左</button>
+            <button class="tb-btn" onclick="showNotif('对齐：中')">中</button>
+            <button class="tb-btn" onclick="showNotif('对齐：右')">右</button>
+            <div class="tb-sep"></div>
+            <button class="tb-btn" onclick="showNotif('缩放调整')">缩放</button>
+            <button class="tb-btn" onclick="showNotif('翻转立绘')">翻转</button>
+          </div>
+          <div class="img-canvas" id="imgCanvas">
+            <div class="img-preview-bg" id="imgBg">🏫</div>
+            <div class="img-preview-char" id="imgChar" style="right:30%;">🌸</div>
+            <div class="img-textbox">
+              <div class="img-speaker" id="previewSpeaker">凛夏</div>
+              <div class="img-text" id="previewText">哎，你就是新转来的同学吧？<span class="blink"></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="layer-panel">
+          <div class="layer-title">图层</div>
+          <div class="layer-item active">
+            <div class="layer-icon">🌄</div>
+            <div class="layer-name">背景</div>
+            <div class="layer-vis">👁</div>
+          </div>
+          <div class="layer-item">
+            <div class="layer-icon">🌸</div>
+            <div class="layer-name">rinka_smile</div>
+            <div class="layer-vis">👁</div>
+          </div>
+          <div class="layer-item">
+            <div class="layer-icon">💬</div>
+            <div class="layer-name">文字框</div>
+            <div class="layer-vis">👁</div>
+          </div>
+          <div class="layer-pos">
+            <div class="layer-title" style="margin-top:10px;">位置</div>
+            <div class="pos-row"><span class="pos-lbl">X</span><input class="pos-in" value="640"></div>
+            <div class="pos-row"><span class="pos-lbl">Y</span><input class="pos-in" value="360"></div>
+            <div class="pos-row"><span class="pos-lbl">缩放</span><input class="pos-in" value="1.00"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= AUDIO VIEW ======= -->
+    <div class="view fade-in" id="view-audio">
+      <div class="audio-module">
+        <div class="audio-list-panel">
+          <div class="audio-cats">
+            <div class="acat active" onclick="switchAcat(this,'bgm')">BGM</div>
+            <div class="acat" onclick="switchAcat(this,'se')">音效</div>
+            <div class="acat" onclick="switchAcat(this,'voice')">语音</div>
+          </div>
+          <div class="audio-items" id="audioItems"></div>
+          <div style="padding:8px;border-top:1px solid var(--border);">
+            <button class="tb-btn" style="width:100%;" onclick="showModal('import-audio')">＋ 导入音频</button>
+          </div>
+        </div>
+        <div class="audio-editor">
+          <div class="audio-hdr">
+            <div class="audio-cover">🎵</div>
+            <div class="audio-detail">
+              <div class="audio-title-big" id="audioTitle">spring_breeze.ogg</div>
+              <div class="audio-meta">OGG · 44100Hz · 立体声 · 3:24 · BGM</div>
+            </div>
+            <div class="audio-ctrls">
+              <button class="ctrl" onclick="showNotif('上一首')">⏮</button>
+              <button class="ctrl main-play" id="mainPlay" onclick="togglePlay(this)">⏸</button>
+              <button class="ctrl" onclick="showNotif('下一首')">⏭</button>
+              <button class="ctrl" onclick="toggleLoop(this)">🔁</button>
+            </div>
+          </div>
+          <div class="waveform-area">
+            <div class="waveform" id="waveform" onclick="seekWave(event)">
+              <div class="wf-bars" id="wfBars"></div>
+              <div class="playhead" id="playhead" style="left:28%"></div>
+            </div>
+            <div class="atimeline"><span>0:00</span><span>0:51</span><span>1:42</span><span>2:33</span><span>3:24</span></div>
+            <div class="audio-settings">
+              <div class="aset-card">
+                <div class="aset-lbl">主音量</div>
+                <input type="range" class="aslider" value="80" style="--v:80%" oninput="this.style.setProperty('--v',this.value+'%');this.nextElementSibling.textContent=this.value+'%'">
+                <div class="aset-val">80%</div>
+              </div>
+              <div class="aset-card">
+                <div class="aset-lbl">淡入</div>
+                <input type="range" class="aslider" value="30" style="--v:30%" oninput="this.style.setProperty('--v',this.value+'%');this.nextElementSibling.textContent=(this.value/10).toFixed(1)+'s'">
+                <div class="aset-val">3.0s</div>
+              </div>
+              <div class="aset-card">
+                <div class="aset-lbl">淡出</div>
+                <input type="range" class="aslider" value="20" style="--v:20%" oninput="this.style.setProperty('--v',this.value+'%');this.nextElementSibling.textContent=(this.value/10).toFixed(1)+'s'">
+                <div class="aset-val">2.0s</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= STORY TREE VIEW ======= -->
+    <div class="view fade-in" id="view-tree">
+      <div class="tree-module">
+        <div class="tree-controls">
+          <button class="tb-btn" onclick="showNotif('添加主线节点')">＋ 主线节点</button>
+          <button class="tb-btn" onclick="showNotif('添加分支节点')">⑂ 分支节点</button>
+          <button class="tb-btn" onclick="showNotif('添加结局')">🏁 结局节点</button>
+          <div class="tb-sep"></div>
+          <button class="tb-btn" onclick="showNotif('自动排列完成')">自动排列</button>
+          <span style="font-size:11px;color:var(--text-dim);margin-left:auto;">点击节点可跳转剧本编辑</span>
+        </div>
+        <div class="tree-canvas">
+          <div class="tc-nodes" id="treeNodes"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= EXPORT VIEW ======= -->
+    <div class="view fade-in" id="view-export">
+      <div class="export-view">
+        <div style="margin-bottom:16px;">
+          <div style="font-family:'Noto Serif SC',serif;font-size:18px;color:var(--accent-lavender);margin-bottom:4px;">构建 & 发布</div>
+          <div style="font-size:12px;color:var(--text-dim);">将您的视觉小说导出为可发布的游戏包</div>
+        </div>
+        <div class="export-grid">
+          <!-- HTML5 Web -->
+          <div class="export-card">
+            <div class="exp-icon">🌐</div>
+            <div class="exp-title">Web 版（HTML5）</div>
+            <div class="exp-desc">导出为完整的 HTML5 游戏，可直接在浏览器运行，支持 itch.io 发布。包含完整游戏引擎、存档系统、设置菜单。</div>
+            <div class="exp-tags">
+              <span class="exp-tag tag-html">HTML5</span>
+              <span class="exp-tag tag-json">JSON</span>
+            </div>
+            <button class="exp-btn" onclick="startExport('web')">导出 Web 版</button>
+          </div>
+          <!-- Steam / PC -->
+          <div class="export-card">
+            <div class="exp-icon">🎮</div>
+            <div class="exp-title">Steam / PC 包</div>
+            <div class="exp-desc">导出为 Electron 封装的桌面应用，支持 Windows/Mac/Linux。包含 Steam SDK 集成点、成就系统接口、云存档接口。</div>
+            <div class="exp-tags">
+              <span class="exp-tag tag-steam">Steam</span>
+              <span class="exp-tag tag-html">Electron</span>
+            </div>
+            <button class="exp-btn" onclick="startExport('steam')">导出 Steam 包</button>
+          </div>
+          <!-- Engine Only -->
+          <div class="export-card">
+            <div class="exp-icon">⚙️</div>
+            <div class="exp-title">导出游戏引擎源码</div>
+            <div class="exp-desc">仅导出引擎代码 + 您的剧本/素材数据，用于自定义修改或集成到其他项目中。</div>
+            <div class="exp-tags">
+              <span class="exp-tag tag-json">JSON</span>
+              <span class="exp-tag tag-html">JS</span>
+            </div>
+            <button class="exp-btn ghost" onclick="startExport('engine')">导出引擎源码</button>
+          </div>
+          <!-- Script Only -->
+          <div class="export-card">
+            <div class="exp-icon">📄</div>
+            <div class="exp-title">导出剧本数据</div>
+            <div class="exp-desc">将剧本解析为结构化 JSON，包含场景树、角色、好感度事件、Flag、选项分支等完整数据。</div>
+            <div class="exp-tags">
+              <span class="exp-tag tag-json">JSON</span>
+            </div>
+            <button class="exp-btn ghost" onclick="exportScriptJSON()">导出 JSON</button>
+          </div>
+        </div>
+
+        <!-- Online -->
+        <div class="export-card" style="margin-top:16px;">
+          <div class="exp-icon">🌐</div>
+          <div class="exp-title">联网服务（GalgameOnline）</div>
+          <div class="exp-desc">导出时把这两个地址写进游戏。玩家打开游戏先登录账号，才能抽卡、用云存档；不登录也可以点“离线游玩”。留空则用默认值。</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+            <label style="font-size:11px;color:var(--text-dim);">SdkServer 地址
+              <input id="onlineSdkUrl" type="text" value="http://127.0.0.1:5000" style="width:100%;margin-top:4px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:12px;">
+            </label>
+            <label style="font-size:11px;color:var(--text-dim);">GameServer 地址
+              <input id="onlineGameUrl" type="text" value="http://127.0.0.1:5100" style="width:100%;margin-top:4px;padding:8px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:12px;">
+            </label>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="export-progress" id="exportProgress" style="margin-top:16px;">
+          <div class="prog-title" id="progTitle">正在构建 Web 版…</div>
+          <div id="progSteps"></div>
+          <div class="prog-bar-wrap" style="margin-top:12px;">
+            <div class="prog-bar" id="progBar" style="width:0%"></div>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:6px;" id="progPct">0%</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ======= UI DESIGNER VIEW ======= -->
+    <div class="view fade-in" id="view-uidesign">
+      <div class="uid-layout">
+        <!-- LEFT: THEME PRESETS + CONTROLS -->
+        <div class="uid-sidebar">
+          <div class="uid-sec">
+            <div class="uid-sec-title">🎨 主题预设</div>
+            <div class="uid-presets" id="uidPresets"></div>
+          </div>
+          <div class="uid-sec">
+            <div class="uid-sec-title">🖼️ 文本框样式</div>
+            <div class="uid-row"><span class="uid-lbl">背景透明度</span>
+              <input type="range" class="uid-slider" min="0" max="100" value="88" oninput="applyUID('tbAlpha',this.value/100);updateUIDLabel(this,'%')"><span class="uid-val">88%</span></div>
+            <div class="uid-row"><span class="uid-lbl">文本框圆角</span>
+              <input type="range" class="uid-slider" min="0" max="24" value="10" oninput="applyUID('tbRadius',this.value+'px');updateUIDLabel(this,'px')"><span class="uid-val">10px</span></div>
+            <div class="uid-row"><span class="uid-lbl">边框透明度</span>
+              <input type="range" class="uid-slider" min="0" max="100" value="18" oninput="applyUID('tbBorderAlpha',this.value/100);updateUIDLabel(this,'%')"><span class="uid-val">18%</span></div>
+            <div class="uid-row"><span class="uid-lbl">文本框位置</span>
+              <select class="uid-sel" onchange="applyUID('tbPos',this.value)">
+                <option value="bottom">底部（默认）</option>
+                <option value="top">顶部</option>
+                <option value="float-left">悬浮左</option>
+                <option value="float-right">悬浮右</option>
+              </select>
+            </div>
+            <div class="uid-row"><span class="uid-lbl">框体模糊</span>
+              <input type="range" class="uid-slider" min="0" max="20" value="6" oninput="applyUID('tbBlur',this.value+'px');updateUIDLabel(this,'px')"><span class="uid-val">6px</span></div>
+          </div>
+          <div class="uid-sec">
+            <div class="uid-sec-title">✍️ 字体设置</div>
+            <div class="uid-row"><span class="uid-lbl">对话字体</span>
+              <select class="uid-sel" onchange="applyUID('dialogFont',this.value)">
+                <option value="'Noto Serif SC',serif">衬线中文（默认）</option>
+                <option value="'Noto Sans SC',sans-serif">无衬线中文</option>
+                <option value="'Playfair Display',serif">Playfair（英文）</option>
+                <option value="'Georgia',serif">Georgia</option>
+                <option value="monospace">等宽体</option>
+              </select>
+            </div>
+            <div class="uid-row"><span class="uid-lbl">对话字号</span>
+              <input type="range" class="uid-slider" min="12" max="22" value="15" oninput="applyUID('dialogFontSize',this.value+'px');updateUIDLabel(this,'px')"><span class="uid-val">15px</span></div>
+            <div class="uid-row"><span class="uid-lbl">行高</span>
+              <input type="range" class="uid-slider" min="14" max="30" value="20" oninput="applyUID('dialogLineH',(this.value/10).toFixed(1));updateUIDLabel(this,'')"><span class="uid-val">2.0</span></div>
+            <div class="uid-row"><span class="uid-lbl">角色名字号</span>
+              <input type="range" class="uid-slider" min="10" max="22" value="16" oninput="applyUID('speakerSize',this.value+'px');updateUIDLabel(this,'px')"><span class="uid-val">16px</span></div>
+          </div>
+          <div class="uid-sec">
+            <div class="uid-sec-title">🎭 选项按钮</div>
+            <div class="uid-row"><span class="uid-lbl">按钮圆角</span>
+              <input type="range" class="uid-slider" min="0" max="40" value="8" oninput="applyUID('choiceRadius',this.value+'px');updateUIDLabel(this,'px')"><span class="uid-val">8px</span></div>
+            <div class="uid-row"><span class="uid-lbl">按钮宽度</span>
+              <input type="range" class="uid-slider" min="30" max="90" value="60" oninput="applyUID('choiceWidth',this.value+'%');updateUIDLabel(this,'%')"><span class="uid-val">60%</span></div>
+            <div class="uid-row"><span class="uid-lbl">按钮间距</span>
+              <input type="range" class="uid-slider" min="4" max="24" value="10" oninput="applyUID('choiceGap',this.value+'px');updateUIDLabel(this,'px')"><span class="uid-val">10px</span></div>
+          </div>
+          <div class="uid-sec">
+            <div class="uid-sec-title">🎨 颜色方案</div>
+            <div class="uid-row"><span class="uid-lbl">文字颜色</span>
+              <input type="color" class="uid-color" value="#f0e6f0" oninput="applyUID('textColor',this.value)"></div>
+            <div class="uid-row"><span class="uid-lbl">框体背景色</span>
+              <input type="color" class="uid-color" value="#040208" oninput="applyUID('tbBg',this.value)"></div>
+            <div class="uid-row"><span class="uid-lbl">选项高亮色</span>
+              <input type="color" class="uid-color" value="#9b6db5" oninput="applyUID('choiceHover',this.value)"></div>
+            <div class="uid-row"><span class="uid-lbl">光标颜色</span>
+              <input type="color" class="uid-color" value="#e8a0b4" oninput="applyUID('cursorColor',this.value)"></div>
+          </div>
+          <div class="uid-sec">
+            <div class="uid-sec-title">🖼️ 导入自定义背景</div>
+            <div class="uid-row" style="flex-direction:column;gap:6px;">
+              <div style="font-size:10px;color:var(--text-dim);">文本框背景图（PNG/JPG）</div>
+              <button class="tb-btn" style="width:100%;" onclick="document.getElementById('tbBgFile').click()">选择图片</button>
+              <input type="file" id="tbBgFile" accept="image/*" style="display:none" onchange="loadTbBg(event)">
+            </div>
+          </div>
+          <div class="uid-sec">
+            <button class="btn btn-primary" style="width:100%;margin-bottom:8px;" onclick="exportTheme()">💾 导出主题 JSON</button>
+            <button class="btn btn-ghost" style="width:100%;" onclick="document.getElementById('themeFile').click()">📂 导入主题</button>
+            <input type="file" id="themeFile" accept=".json" style="display:none" onchange="importTheme(event)">
+          </div>
+        </div>
+        <!-- RIGHT: LIVE PREVIEW -->
+        <div class="uid-preview-area">
+          <div class="uid-preview-label">实时预览</div>
+          <div class="uid-game-wrap">
+            <div class="uid-game" id="uidGame">
+              <div class="uid-bg">🌸</div>
+              <div class="uid-char">🌸</div>
+              <div class="uid-textbox" id="uidTextbox">
+                <div class="uid-textbox-inner" id="uidTbInner">
+                  <div class="uid-speaker" id="uidSpeaker" style="color:#e8a0b4;">宫下凛夏</div>
+                  <div class="uid-dialog" id="uidDialog">哎，你就是新转来的同学吧？我叫宫下凛夏，以后是同班同学了♪</div>
+                </div>
+              </div>
+              <div class="uid-choices" id="uidChoices">
+                <button class="uid-choice-btn">① 谢谢你主动来找我</button>
+                <button class="uid-choice-btn">② 我只是有点内向</button>
+              </div>
+              <div class="uid-menu-btns">
+                <div class="uid-mbtn">💾</div>
+                <div class="uid-mbtn">AUTO</div>
+                <div class="uid-mbtn">FF</div>
+                <div class="uid-mbtn">🌿</div>
+              </div>
+            </div>
+          </div>
+          <div class="uid-preview-note">↑ 调整左侧参数，预览实时更新 · 导出主题后在「发布」模块中可嵌入游戏</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= HELP / DOCS VIEW ======= -->
+    <div class="view fade-in" id="view-help">
+      <div class="help-layout">
+        <!-- Sidebar TOC -->
+        <div class="help-toc">
+          <div class="help-toc-title">📖 开发者文档</div>
+          <div class="help-toc-items" id="helpToc"></div>
+        </div>
+        <!-- Content -->
+        <div class="help-content" id="helpContent"></div>
+      </div>
+    </div>
+
+  </div><!-- end editor -->
+</div><!-- end main -->
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <div class="si"><div class="sdot"></div><span>项目正常</span></div>
+  <div class="si" id="sb-words"><span>📝 字数: —</span></div>
+  <div class="si" id="sb-chars"><span>👤 角色: 3</span></div>
+  <div class="si" id="sb-assets"><span>🖼️ 素材: 8</span></div>
+  <div class="si warn" id="sb-warn"><span>⚠️ 检查剧本中的未定义标签</span></div>
+  <div style="margin-left:auto;font-size:10px;color:var(--text-dim);">GalgameMaker Studio v1.0 · Steam Ready</div>
+</div>
+
+<!-- ======= MODALS ======= -->
+<div class="modal-bg" id="modal-import-text">
+  <div class="modal">
+    <div class="modal-title">📥 导入剧本文件</div>
+    <div class="syntax-ref">
+      <div class="syn-title">脚本语法速查</div>
+      <div class="syn-row"><span class="syn-code">[label: name]</span><span class="syn-desc">场景锚点（用于跳转）</span></div>
+      <div class="syn-row"><span class="syn-code">角色名: 对话</span><span class="syn-desc">显示角色对话</span></div>
+      <div class="syn-row"><span class="syn-code">[bg: filename]</span><span class="syn-desc">切换背景图</span></div>
+      <div class="syn-row"><span class="syn-code">[char: id_expr pos:x]</span><span class="syn-desc">显示立绘（pos: left/center/right）</span></div>
+      <div class="syn-row"><span class="syn-code">[bgm: file] / [se: file]</span><span class="syn-desc">播放音乐/音效</span></div>
+      <div class="syn-row"><span class="syn-code">[aff: 角色 +N / -N]</span><span class="syn-desc">好感度增减</span></div>
+      <div class="syn-row"><span class="syn-code">[flag: set 变量 值]</span><span class="syn-desc">设置Flag变量</span></div>
+      <div class="syn-row"><span class="syn-code">[if: flag=变量 eq 值]</span><span class="syn-desc">条件判断</span></div>
+      <div class="syn-row"><span class="syn-code">[choice]…[/choice]</span><span class="syn-desc">选项分支块</span></div>
+      <div class="syn-row"><span class="syn-code">[jump: label]</span><span class="syn-desc">无条件跳转</span></div>
+    </div>
+    <div class="drop-zone" onclick="document.getElementById('txtFile').click()">
+      <div style="font-size:28px;margin-bottom:6px;">📄</div>
+      <div style="font-size:12px;color:var(--text-dim);">拖放 .txt / .gls 文件，或点击选择</div>
+      <input type="file" id="txtFile" accept=".txt,.gls,.md" style="display:none" onchange="importText(event)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('import-text')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('import-text');showNotif('✅ 文本已就绪')">确认</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-import-image">
+  <div class="modal">
+    <div class="modal-title">🖼️ 导入图片素材</div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.7;">
+      支持 PNG / JPG / WEBP。背景建议 1280×720px，立绘建议透明底 PNG（任意高度）。<br>
+      文件名即素材ID，脚本中直接用文件名（不含扩展名）引用。
+    </div>
+    <div class="drop-zone" onclick="document.getElementById('imgFile').click()">
+      <div style="font-size:28px;margin-bottom:6px;">🖼️</div>
+      <div style="font-size:12px;color:var(--text-dim);">支持批量拖放多张图片</div>
+      <input type="file" id="imgFile" accept="image/*" multiple style="display:none" onchange="importImages(event)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('import-image')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('import-image')">确认</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-import-audio">
+  <div class="modal">
+    <div class="modal-title">🎵 导入音频文件</div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.7;">
+      BGM 推荐 OGG（循环无缝），音效推荐 WAV，语音推荐 OGG/MP3。<br>
+      文件名即音频ID，脚本中直接用文件名引用。
+    </div>
+    <div class="drop-zone" onclick="document.getElementById('audFile').click()">
+      <div style="font-size:28px;margin-bottom:6px;">🎵</div>
+      <div style="font-size:12px;color:var(--text-dim);">支持批量导入 OGG / MP3 / WAV</div>
+      <input type="file" id="audFile" accept="audio/*" multiple style="display:none" onchange="importAudio(event)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('import-audio')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('import-audio')">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"><span id="notifTxt">操作完成</span></div>
+
+<script>
+// ========== STATE ==========
+const STATE = {
+  currentMod: 'script',
+  characters: [
+    { id:'rinka', name:'宫下凛夏', emoji:'🌸', color:'#e8a0b4', route:'A路线', affection:45,
+      expressions:['smile','shy','happy','angry','cry','surprised','normal','blush'],
+      flags:['met_rinka','rinka_lunch','rinka_confession'] },
+    { id:'yuki', name:'白坂雪绘', emoji:'❄️', color:'#b89fd8', route:'B路线', affection:20,
+      expressions:['neutral','smile','cold','sad','flustered','normal'],
+      flags:['met_yuki','library_event'] },
+    { id:'hana', name:'春日花音', emoji:'🌺', color:'#6ab4c8', route:'C路线', affection:10,
+      expressions:['cheerful','normal','shy'],
+      flags:['met_hana'] }
+  ],
+  selectedChar: 0,
+  bgImages:['school_gate_morning','sakura_park_day','rooftop_sunset','classroom_afternoon','festival_night','bedroom_morning'],
+  charImages:['rinka_smile','rinka_shy','rinka_happy','rinka_angry','yuki_neutral','yuki_smile','hana_cheerful'],
+  bgmList:['spring_breeze','melancholy_rain','summer_festival','heart_flutter','ending_theme','title_bgm'],
+  assetFiles:{},
+  seList:['click','laugh','door_open','wind','crowd','thunder'],
+  chapters:[
+    { name:'序章 · 樱花之约', scenes:['邂逅','转学第一天','屋顶午餐'], open:true },
+    { name:'第一章 · 选择的代价', scenes:['放学后','两难之选 ⟨分支⟩','夏日前夕'], open:false },
+    { name:'└ 凛夏路线', scenes:['夏日祭','秘密告白','GOOD END ✨'], open:false, route:'A', color:'var(--accent-rose)' },
+    { name:'└ 雪绘路线', scenes:['图书馆事件','雪夜的秘密','GOOD END ✨'], open:false, route:'B', color:'var(--accent-cyan)' },
+  ],
+  playing: true,
+  playheadPct: 28,
+  playInterval: null,
+};
+
+// ========== MODULE SWITCHING ==========
+function switchMod(name) {
+  STATE.currentMod = name;
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>{
+    const mods=['script','character','image','audio','tree','','export',''];
+    b.classList.toggle('active', mods[i]===name||mods[i+1]===name);
+  });
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const navMap={script:0,character:1,image:2,audio:3,tree:4,export:5,uidesign:6,help:7};
+  const ni=navMap[name];
+  if(ni!==undefined) document.querySelectorAll('.nav-btn')[ni]?.classList.add('active');
+
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const v=document.getElementById('view-'+name);
+  if(v){v.classList.add('active');v.classList.remove('fade-in');void v.offsetWidth;v.classList.add('fade-in');}
+}
+
+// ========== OUTLINE ==========
+function buildOutline() {
+  const body = document.getElementById('outlineBody');
+  body.innerHTML = '';
+  const ta = document.getElementById('scriptTa');
+  const script = ta ? ta.value : '';
+  const lines = script.split('\n');
+
+  // Parse [label:] nodes directly from the live script
+  const parsedNodes = [];
+  lines.forEach((line, lineIdx) => {
+    const m = line.trim().match(/^\[label:\s*(\S+)\]/);
+    if (m) {
+      const labelName = m[1];
+      const ln = labelName.toLowerCase();
+      let icon = '📄', color = '';
+      if (ln.includes('good_end') || (ln.includes('end') && ln.includes('good')))
+        { icon = '✨'; color = '#6ac896'; }
+      else if (ln.includes('bad_end') || (ln.includes('end') && ln.includes('bad')))
+        { icon = '💔'; color = '#f87171'; }
+      else if (ln.includes('_end') || ln.includes('ending') || ln === 'credits')
+        { icon = '🏁'; color = '#d4af6a'; }
+      else if (ln.includes('route_a') || (ln.includes('_a') && !ln.includes('_a_')))
+        { icon = '🌸'; color = 'var(--accent-rose)'; }
+      else if (ln.includes('route_b') || (ln.includes('_b') && !ln.includes('_b_')))
+        { icon = '❄️'; color = 'var(--accent-cyan)'; }
+      else if (ln.startsWith('ch') || ln.startsWith('chapter'))
+        { icon = '📖'; color = ''; }
+      else if (ln.startsWith('prologue'))
+        { icon = '🌸'; color = ''; }
+      else if (ln.includes('choice') || ln.includes('branch'))
+        { icon = '⑂'; color = 'var(--accent-gold)'; }
+      parsedNodes.push({ label: labelName, lineIdx, icon, color });
+    }
+  });
+
+  if (parsedNodes.length === 0) {
+    body.innerHTML = '<div style="padding:16px;font-size:11px;color:var(--text-dim);text-align:center;">在脚本中使用 [label: 名称]<br>来添加场景节点</div>';
+    const badge = document.getElementById('scene-badge');
+    if (badge) badge.textContent = '0 节点';
+    return;
+  }
+
+  parsedNodes.forEach(node => {
+    const div = document.createElement('div');
+    div.className = 'scene-item';
+    const isRoute = /route_|_a$|_b$/.test(node.label.toLowerCase());
+    const isEnd   = /_end|ending|credits/.test(node.label.toLowerCase());
+    div.style.paddingLeft = isEnd ? '28px' : isRoute ? '20px' : '8px';
+
+    div.innerHTML =
+      '<div class="scene-dot" style="' + (node.color ? 'background:'+node.color+';border-color:'+node.color : '') + '"></div>' +
+      '<div class="scene-name" style="' + (node.color ? 'color:'+node.color : '') + '">' + node.icon + ' ' + node.label.replace(/_/g,' ') + '</div>' +
+      '<span style="font-size:9px;color:var(--text-dim);margin-left:auto;font-family:monospace;flex-shrink:0;">' + (node.lineIdx+1) + '</span>';
+
+    div.onclick = () => {
+      document.querySelectorAll('.scene-item').forEach(x => x.classList.remove('active'));
+      div.classList.add('active');
+      if (STATE.currentMod !== 'script') switchMod('script');
+
+      const ta2 = document.getElementById('scriptTa');
+      if (!ta2) return;
+      const scriptLines = ta2.value.split('\n');
+      let charOffset = 0;
+      for (let i = 0; i < node.lineIdx; i++) charOffset += scriptLines[i].length + 1;
+      const lineLen = (scriptLines[node.lineIdx] || '').length;
+      ta2.focus();
+      ta2.setSelectionRange(charOffset, charOffset + lineLen);
+      // Scroll textarea to center the target line
+      const totalLines = scriptLines.length;
+      const ratio = node.lineIdx / Math.max(totalLines - 1, 1);
+      ta2.scrollTop = ratio * (ta2.scrollHeight - ta2.clientHeight);
+      showNotif('🎯 跳转: ' + node.label + '  第 ' + (node.lineIdx+1) + ' 行');
+      onScript();
+    };
+    body.appendChild(div);
+  });
+
+  const badge = document.getElementById('scene-badge');
+  if (badge) badge.textContent = parsedNodes.length + ' 节点';
+}
+
+
+function onScript() {
+  const ta = document.getElementById('scriptTa');
+  const lines = ta.value.split('\n');
+  const n = lines.length;
+  document.getElementById('lineNums').innerHTML = Array.from({length:n},(_,i)=>i+1).join('<br>');
+  const pos = ta.value.substring(0,ta.selectionStart).split('\n').length;
+  document.getElementById('lineInfo').textContent = `第${pos}行 / 共${n}行`;
+  document.getElementById('charCount').textContent = ta.value.replace(/\[.*?\]/g,'').replace(/\n/g,'').length;
+  const branches = (ta.value.match(/\[choice\]/g)||[]).length;
+  document.getElementById('branchCount').textContent = branches;
+  // extract labels for jump links
+  const labels = [...ta.value.matchAll(/\[label:\s*(\S+)\]/g)].map(m=>m[1]);
+  const jl = document.getElementById('jumpLinks');
+  jl.innerHTML = '';
+  labels.forEach(l=>{
+    const d=document.createElement('div');
+    d.className='jump-link';
+    d.textContent='→ '+l;
+    d.onclick=()=>jumpToLabel(l);
+    jl.appendChild(d);
+  });
+  // update status bar
+  const wc = ta.value.replace(/\[.*?\]/g,'').replace(/\s+/g,' ').trim().length;
+  document.getElementById('sb-words').querySelector('span').textContent = `📝 字数: ${wc}`;
+  // Rebuild outline from live script
+  buildOutline();
+}
+
+function handleTab(e) {
+  if(e.key==='Tab'){e.preventDefault();const ta=e.target,s=ta.selectionStart;ta.value=ta.value.substring(0,s)+'  '+ta.value.substring(ta.selectionEnd);ta.selectionStart=ta.selectionEnd=s+2;}
+}
+
+function ins(tag) {
+  const ta = document.getElementById('scriptTa');
+  const s = ta.selectionStart;
+  ta.value = ta.value.substring(0,s)+'\n'+tag+'\n'+ta.value.substring(s);
+  ta.focus();ta.selectionStart=ta.selectionEnd=s+tag.length+2;onScript();
+}
+
+function insChoice() {
+  ins('[choice]\n- 选项一文字 → label_a\n- 选项二文字 → label_b\n[/choice]');
+}
+
+function insertChar(val) {
+  if(!val) return;
+  const ta = document.getElementById('scriptTa');
+  const s = ta.selectionStart;
+  const t = '\n'+val+': ';
+  ta.value = ta.value.substring(0,s)+t+ta.value.substring(s);
+  ta.focus(); ta.selectionStart=ta.selectionEnd=s+t.length;
+  document.getElementById('charSel').value='';
+  onScript();
+}
+
+function jumpToLabel(label) {
+  const ta = document.getElementById('scriptTa');
+  const idx = ta.value.indexOf('[label: '+label+']');
+  if(idx>=0){ta.focus();ta.selectionStart=ta.selectionEnd=idx;showNotif('🔍 已跳转到: '+label);}
+  else showNotif('⚠️ 标签不存在: '+label);
+}
+
+let ciCount = 2;
+function addCI() {
+  ciCount++;
+  const cb = document.getElementById('choiceBuilder');
+  const btn = cb.querySelector('.add-ci');
+  const ci = document.createElement('div');
+  ci.className='ci';
+  ci.innerHTML=`<div class="ci-num">${ciCount}</div><input class="ci-in" placeholder="选项文字">`;
+  cb.insertBefore(ci,btn);
+}
+
+// ========== CHARACTERS ==========
+function buildCharList() {
+  const list = document.getElementById('charList');
+  list.innerHTML = '';
+  STATE.characters.forEach((ch,i)=>{
+    const el = document.createElement('div');
+    el.className='char-entry'+(i===STATE.selectedChar?' active':'');
+    el.innerHTML=`<div class="char-avatar" style="background:${ch.color}22;">${ch.emoji}</div>
+      <div class="char-info-sm"><div class="char-name-sm">${ch.name}</div>
+      <div class="char-route">${ch.route}</div></div>`;
+    el.onclick=()=>{STATE.selectedChar=i;buildCharList();loadChar(i);};
+    list.appendChild(el);
+  });
+  // update char select and chips
+  const sel = document.getElementById('charSel');
+  sel.innerHTML='<option value="">插入角色对话…</option>';
+  const chips = document.getElementById('charChips');
+  chips.innerHTML='';
+  STATE.characters.forEach(ch=>{
+    const opt=document.createElement('option');
+    opt.value=ch.name; opt.textContent=ch.name;
+    sel.appendChild(opt);
+    const chip=document.createElement('span');
+    chip.className='chip chip-r';
+    chip.style.color=ch.color; chip.style.borderColor=ch.color+'50'; chip.style.background=ch.color+'12';
+    chip.textContent=ch.name;
+    chip.onclick=()=>insertChar(ch.name);
+    chips.appendChild(chip);
+  });
+}
+
+function loadChar(i) {
+  const ch = STATE.characters[i];
+  document.getElementById('charAvatar').textContent=ch.emoji;
+  document.getElementById('charNameIn').value=ch.name;
+  document.getElementById('charIdIn').value=ch.id;
+  document.getElementById('charRouteIn').value=ch.route;
+  buildExprGrid(ch);
+  buildAffBars();
+  buildMilestones(ch);
+  buildFlags(ch);
+}
+
+function buildExprGrid(ch) {
+  const grid = document.getElementById('exprGrid');
+  grid.innerHTML='';
+  const emojis={'smile':'😊','shy':'😳','happy':'😄','angry':'😤','cry':'😢','surprised':'😲','normal':'😐','blush':'🥰','neutral':'😑','cold':'🥶','sad':'😟','flustered':'😅','cheerful':'😁'};
+  ch.expressions.forEach(expr=>{
+    const card=document.createElement('div');
+    card.className='expr-card';
+    card.innerHTML=`<div class="expr-thumb">${emojis[expr]||'😐'}</div><div class="expr-lbl">${ch.id}_${expr}</div>`;
+    card.onclick=()=>{document.querySelectorAll('.expr-card').forEach(c=>c.classList.remove('active'));card.classList.add('active');showNotif(`表情: ${ch.id}_${expr}`);};
+    grid.appendChild(card);
+  });
+  // add btn
+  const add=document.createElement('div');
+  add.className='expr-card expr-add';
+  add.innerHTML='<div class="expr-thumb" style="font-size:20px;color:var(--text-dim);">＋</div><div class="expr-lbl">添加表情</div>';
+  add.onclick=()=>{ const name=prompt('表情名称（如 smile2）:'); if(name){ch.expressions.push(name);buildExprGrid(ch);showNotif(`✅ 已添加: ${ch.id}_${name}`);}};
+  grid.appendChild(add);
+}
+
+function buildAffBars() {
+  const container=document.getElementById('affBars');
+  container.innerHTML='';
+  const colors=['#e8a0b4','#b89fd8','#6ab4c8'];
+  STATE.characters.forEach((ch,i)=>{
+    const pct=Math.min(ch.affection,100);
+    container.innerHTML+=`<div class="aff-bar-wrap">
+      <div class="aff-char">${ch.name}<span>${ch.affection}</span></div>
+      <div class="aff-bar"><div class="aff-fill" style="width:${pct}%;background:${colors[i]||'#9b6db5'};"></div></div>
+    </div>`;
+  });
+}
+
+function buildMilestones(ch) {
+  const ms=document.getElementById('milestones');
+  const data=[{v:10,name:'初次相遇',route:'共通'},{v:30,name:'午餐约定',route:ch.route},{v:60,name:'秘密告白',route:ch.route},{v:80,name:'True End 解锁',route:ch.route}];
+  ms.innerHTML='';
+  data.forEach(m=>{
+    const reached=ch.affection>=m.v;
+    ms.innerHTML+=`<div class="milestone">
+      <span class="ms-val" style="${reached?'color:var(--accent-gold)':''}">${m.v}</span>
+      <span class="ms-name" style="${reached?'color:var(--text-primary)':''}">${m.name}</span>
+      <span class="ms-route">${reached?'✓':'○'} ${m.route}</span>
+    </div>`;
+  });
+}
+
+function buildFlags(ch) {
+  const fl=document.getElementById('flagList');
+  fl.innerHTML='';
+  ch.flags.forEach(f=>{
+    const on=Math.random()>0.4;
+    const item=document.createElement('div');
+    item.className='flag-item';
+    item.innerHTML=`<span class="flag-name">${f}</span><div class="flag-toggle${on?' on':''}" onclick="this.classList.toggle('on')"></div>`;
+    fl.appendChild(item);
+  });
+}
+
+function addCharacter() {
+  const name=prompt('角色名:'); if(!name) return;
+  const id=prompt('脚本ID（英文）:'); if(!id) return;
+  STATE.characters.push({id,name,emoji:'👤',color:'#9b6db5',route:'新路线',affection:0,expressions:['normal'],flags:[]});
+  buildCharList(); loadChar(STATE.characters.length-1); showNotif(`✅ 角色 ${name} 已创建`);
+}
+
+function updateChar() {
+  const ch=STATE.characters[STATE.selectedChar];
+  ch.name=document.getElementById('charNameIn').value;
+  ch.id=document.getElementById('charIdIn').value;
+  ch.route=document.getElementById('charRouteIn').value;
+  buildCharList();
+}
+
+function setCharColor(color,el) {
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+  STATE.characters[STATE.selectedChar].color=color;
+}
+
+function addFlag() {
+  const name=prompt('Flag变量名（英文）:'); if(!name) return;
+  STATE.characters[STATE.selectedChar].flags.push(name);
+  buildFlags(STATE.characters[STATE.selectedChar]);
+}
+
+// ========== IMAGE MODULE ==========
+function buildImgList(cat) {
+  const list=document.getElementById('imgList');
+  list.innerHTML='';
+  const items = cat==='bg'?STATE.bgImages:cat==='char'?STATE.charImages:['ui_textbox','ui_menu'];
+  const emojiMap={school_gate_morning:'🏫',sakura_park_day:'🌸',rooftop_sunset:'🌅',classroom_afternoon:'🏫',festival_night:'🎆',bedroom_morning:'🛏',rinka_smile:'🌸',rinka_shy:'🌸',rinka_happy:'🌸',rinka_angry:'🌸',yuki_neutral:'❄️',yuki_smile:'❄️',hana_cheerful:'🌺'};
+  items.forEach((name,i)=>{
+    const asset = STATE.assetFiles[name];
+    const el=document.createElement('div');
+    el.className='img-item'+(i===0?' active':'');
+    let thumbHTML;
+    if (asset && asset.dataUrl) {
+      thumbHTML = `<img src="${asset.dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">`;
+    } else {
+      thumbHTML = `<span style="font-size:24px">${emojiMap[name]||'🖼️'}</span>`;
+    }
+    el.innerHTML=`<div class="img-thumb-sm" style="display:flex;align-items:center;justify-content:center;overflow:hidden;">${thumbHTML}</div><div class="img-name-sm">${name}</div>`;
+    el.onclick=()=>{document.querySelectorAll('.img-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');showNotif('🖼️ 已选: '+name);};
+    list.appendChild(el);
+  });
+}
+
+function switchImgCat(cat,btn) {
+  document.querySelectorAll('.img-cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildImgList(cat);
+}
+
+// ========== AUDIO MODULE ==========
+function buildAudioList(cat) {
+  const items=cat==='bgm'?STATE.bgmList:cat==='se'?STATE.seList:['rinka_hello','rinka_shy','yuki_greeting'];
+  const container=document.getElementById('audioItems');
+  container.innerHTML='';
+  items.forEach((name,i)=>{
+    const asset = STATE.assetFiles[name];
+    const loaded = !!(asset && asset.dataUrl);
+    const el=document.createElement('div');
+    el.className='audio-item'+(i===0?' active':'');
+    el.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;">
+        <div style="font-size:22px">${loaded?'🎵':'🎶'}</div>
+        <div style="flex:1;">
+          <div class="audio-name" style="font-size:12px;color:var(--text-primary);">${name}</div>
+          <div style="font-size:10px;color:${loaded?'var(--accent-green)':'var(--text-dim)'};">${loaded?'✓ 已加载 · '+asset.fname:'未加载 · 占位符'}</div>
+        </div>
+        ${loaded?`<button style="padding:3px 10px;background:rgba(106,200,150,0.15);border:1px solid rgba(106,200,150,0.3);border-radius:4px;color:#6ac896;font-size:10px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;" onclick="previewAudio('${name}')">▶ 试听</button>`:''}
+      </div>`;
+    el.onclick=()=>{document.querySelectorAll('.audio-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');};
+    container.appendChild(el);
+  });
+}
+
+function previewAudio(name) {
+  const asset = STATE.assetFiles[name];
+  if (!asset) return;
+  const audio = new Audio(asset.dataUrl);
+  audio.volume = 0.6;
+  audio.play().catch(()=>{});
+  showNotif('▶ 试听: ' + name);
+}
+
+function switchAcat(btn,cat) {
+  document.querySelectorAll('.acat').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildAudioList(cat);
+}
+
+// Waveform
+function buildWaveform() {
+  const bars=document.getElementById('wfBars');
+  bars.innerHTML='';
+  for(let i=0;i<100;i++){
+    const h=Math.random()*55+8;
+    const past=(i/100*100)<STATE.playheadPct;
+    const b=document.createElement('div');
+    b.className='wf-b';
+    b.style.height=h+'px';
+    b.style.background=past?'var(--accent-pink)':'rgba(184,159,216,0.22)';
+    bars.appendChild(b);
+  }
+}
+
+function seekWave(e) {
+  const rect=e.currentTarget.getBoundingClientRect();
+  STATE.playheadPct=((e.clientX-rect.left)/rect.width)*100;
+  document.getElementById('playhead').style.left=STATE.playheadPct+'%';
+  buildWaveform();
+}
+
+function togglePlay(btn) {
+  STATE.playing=!STATE.playing;
+  btn.textContent=STATE.playing?'⏸':'▶';
+  if(STATE.playing) startPlayhead(); else { clearInterval(STATE.playInterval); STATE.playInterval=null; }
+}
+
+function toggleLoop(btn) { btn.style.color=btn.style.color?'':'var(--accent-rose)'; }
+
+function startPlayhead() {
+  clearInterval(STATE.playInterval);
+  STATE.playInterval=setInterval(()=>{
+    STATE.playheadPct=(STATE.playheadPct+0.15)%100;
+    document.getElementById('playhead').style.left=STATE.playheadPct+'%';
+  },100);
+}
+
+// ========== STORY TREE ==========
+function buildTree() {
+  const nodes=document.getElementById('treeNodes');
+  nodes.innerHTML=`
+  <div class="tc-row" style="margin-bottom:24px;">
+    <div class="tc-node"><div class="node n-main" onclick="switchMod('script');showNotif('序章: 樱花之约')"><div class="node-type">开始</div><div class="node-title">序章 · 樱花之约</div><div class="node-info">4场景 · 680字</div></div></div>
+    <div class="tc-conn"><div class="conn-line"></div><div class="conn-arrow">→</div></div>
+    <div class="tc-node"><div class="node n-main" onclick="switchMod('script');showNotif('第一章: 选择的代价')"><div class="node-type">主线</div><div class="node-title">选择的代价</div><div class="node-info">3场景</div></div></div>
+    <div class="tc-conn"><div class="conn-line"></div><div class="conn-arrow">→</div></div>
+    <div class="tc-node"><div class="node n-branch" onclick="showNotif('分支: 两难之选')"><div class="node-type" style="color:var(--accent-gold);">⟨分支点⟩</div><div class="node-title">两难之选</div><div class="node-info">2选项</div></div></div>
+  </div>
+  <div class="tc-row" style="margin-left:380px;align-items:flex-start;gap:32px;">
+    <div class="branch-col">
+      <div style="font-size:10px;color:var(--accent-rose);text-align:center;margin-bottom:6px;letter-spacing:1px;">── 凛夏路线 ──</div>
+      <div class="tc-node"><div class="node n-a" onclick="switchMod('script');showNotif('凛夏路线: 夏日祭')"><div class="node-type">路线A</div><div class="node-title">夏日祭</div><div class="node-info">2场景</div></div></div>
+      <div style="text-align:center;color:var(--text-dim);font-size:14px;padding:4px 0;">↓</div>
+      <div class="tc-node"><div class="node n-a" onclick="showNotif('凛夏路线: 秘密告白')"><div class="node-type">高潮</div><div class="node-title">秘密告白</div><div class="node-info">1场景</div></div></div>
+      <div style="text-align:center;color:var(--text-dim);font-size:14px;padding:4px 0;">↓</div>
+      <div class="tc-node"><div class="node n-end" onclick="showNotif('凛夏 Good End')"><div class="node-type" style="color:var(--accent-green);">✨ GOOD END</div><div class="node-title">永远在一起</div><div class="node-info">凛夏 True End</div></div></div>
+    </div>
+    <div class="branch-col">
+      <div style="font-size:10px;color:var(--accent-cyan);text-align:center;margin-bottom:6px;letter-spacing:1px;">── 雪绘路线 ──</div>
+      <div class="tc-node"><div class="node n-b" onclick="switchMod('script');showNotif('雪绘路线: 图书馆')"><div class="node-type">路线B</div><div class="node-title">图书馆的秘密</div><div class="node-info">2场景</div></div></div>
+      <div style="text-align:center;color:var(--text-dim);font-size:14px;padding:4px 0;">↓</div>
+      <div class="tc-node"><div class="node n-b" onclick="showNotif('雪绘路线: 雪夜')"><div class="node-type">高潮</div><div class="node-title">雪夜的秘密</div><div class="node-info">1场景</div></div></div>
+      <div style="text-align:center;color:var(--text-dim);font-size:14px;padding:4px 0;">↓</div>
+      <div class="tc-node"><div class="node n-end" onclick="showNotif('雪绘 Good End')"><div class="node-type" style="color:var(--accent-green);">✨ GOOD END</div><div class="node-title">初雪之约</div><div class="node-info">雪绘 True End</div></div></div>
+    </div>
+  </div>`;
+}
+
+// ========== EXPORT ==========
+function startExport(type) {
+  const titles={web:'构建 Web 版游戏…',steam:'打包 Steam 版本…',engine:'导出引擎源码…'};
+  const steps={
+    web:['解析剧本脚本','处理角色数据','打包素材资源','生成游戏引擎','写入 HTML / JS / CSS','压缩输出包'],
+    steam:['解析游戏数据','生成 Electron 壳','注入 Steam SDK 接口','打包 Windows / Mac 包','生成安装程序'],
+    engine:['提取引擎核心','序列化游戏数据','生成 README 文档','打包源码']
+  };
+  const prog=document.getElementById('exportProgress');
+  prog.classList.add('show');
+  document.getElementById('progTitle').textContent=titles[type]||'构建中…';
+  const stepsEl=document.getElementById('progSteps');
+  stepsEl.innerHTML='';
+  const ss=steps[type]||steps.web;
+  ss.forEach((s,i)=>{
+    stepsEl.innerHTML+=`<div class="prog-step" id="ps${i}"><div class="prog-icon">⏳</div><div class="prog-txt">${s}</div></div>`;
+  });
+  let done=0;
+  const total=ss.length;
+  const iv=setInterval(()=>{
+    if(done<total){
+      document.getElementById('ps'+done).querySelector('.prog-icon').textContent='✅';
+      done++;
+      const pct=Math.round(done/total*100);
+      document.getElementById('progBar').style.width=pct+'%';
+      document.getElementById('progPct').textContent=pct+'%';
+    } else {
+      clearInterval(iv);
+      showNotif(`🎉 ${type==='web'?'Web版':'Steam版'}已导出成功！`);
+      if(type==='web') generateAndDownloadGame();
+    }
+  },600);
+  prog.scrollIntoView({behavior:'smooth'});
+}
+
+function exportScriptJSON() {
+  const ta=document.getElementById('scriptTa');
+  const script=ta.value;
+  const labels=[...script.matchAll(/\[label:\s*(\S+)\]/g)].map(m=>m[1]);
+  const choices=[...script.matchAll(/\[choice\]([\s\S]*?)\[\/choice\]/g)].map(m=>m[1].trim().split('\n').filter(l=>l.startsWith('-')).map(l=>l.slice(1).trim()));
+  const affs=[...script.matchAll(/\[aff:\s*(\S+)\s+([+-]\d+)\]/g)].map(m=>({char:m[1],delta:parseInt(m[2])}));
+  const data={project:'我的视觉小说',version:'1.0',characters:STATE.characters,labels,choices,affectionEvents:affs,script};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='game_data.json';a.click();URL.revokeObjectURL(url);
+  showNotif('✅ 剧本JSON已导出');
+}
+
+function quickExport() { switchMod('export'); setTimeout(()=>startExport('web'),300); }
+
+function generateAndDownloadGame() {
+  const script=document.getElementById('scriptTa').value;
+  const online={
+    sdkUrl:(document.getElementById('onlineSdkUrl')?.value||'').trim()||'http://127.0.0.1:5000',
+    gameUrl:(document.getElementById('onlineGameUrl')?.value||'').trim()||'http://127.0.0.1:5100'
+  };
+  const gameHTML=buildGameHTML(script, online);
+  const blob=new Blob([gameHTML],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='my_visual_novel.html';a.click();URL.revokeObjectURL(url);
+}
+
+function buildGameHTML(script, onlineCfg) {
+  onlineCfg = onlineCfg || { sdkUrl:'http://127.0.0.1:5000', gameUrl:'http://127.0.0.1:5100' };
+  const chars = STATE.characters;
+  const charColors = Object.fromEntries(chars.map(c => [c.name, c.color]));
+  const charData = JSON.stringify(chars.map(c => ({id:c.id, name:c.name, color:c.color, emoji:c.emoji||'👤'})));
+
+  // Encode script as base64 to avoid ALL template/escaping issues
+  const scriptB64 = btoa(unescape(encodeURIComponent(script)));
+
+  // Embed all imported assets as base64 data URLs
+  const assetFiles = STATE.assetFiles || {};
+  const embeddedAssets = JSON.stringify(assetFiles);
+
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>我的视觉小说</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;}
+body{display:flex;align-items:center;justify-content:center;font-family:'Noto Sans SC',sans-serif;}
+#game{width:1280px;max-width:100vw;height:720px;max-height:56.25vw;position:relative;overflow:hidden;background:#0a0510;user-select:none;}
+@media(max-aspect-ratio:16/9){#game{width:177.78vh;height:100vh;max-width:100vw;max-height:100vh;}}
+
+/* BG */
+#bg{position:absolute;inset:0;background:linear-gradient(180deg,#1a0a24,#0a0510);transition:opacity 0.8s;display:flex;align-items:center;justify-content:center;font-size:80px;}
+#bg img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+
+/* CHARS */
+#chars{position:absolute;inset:0;pointer-events:none;}
+.char-sprite{position:absolute;bottom:130px;font-size:160px;line-height:1;transition:all 0.45s cubic-bezier(0.4,0,0.2,1);filter:brightness(0.55) saturate(0.8);}
+.char-sprite img{height:520px;width:auto;object-fit:contain;}
+.char-sprite.active-char{filter:brightness(1) saturate(1);}
+.char-left{left:6%;}
+.char-center{left:50%;transform:translateX(-50%);}
+.char-center.active-char{transform:translateX(-50%) scale(1.02);}
+.char-right{right:6%;}
+
+/* TEXTBOX */
+#textbox{position:absolute;bottom:0;left:0;right:0;padding:0 60px 28px;cursor:pointer;transition:opacity 0.3s;min-height:180px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(0deg,rgba(4,1,10,0.97) 0%,rgba(8,3,18,0.9) 70%,transparent 100%);}
+#textbox.hidden{opacity:0;pointer-events:none;}
+#textbox-inner{border:1px solid rgba(184,159,216,0.18);border-radius:10px;background:rgba(8,4,16,0.72);backdrop-filter:blur(6px);padding:16px 24px 20px;position:relative;}
+#speaker-wrap{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+#speaker{font-size:16px;font-family:'Noto Serif SC',serif;font-weight:500;letter-spacing:2px;padding:3px 14px;border-radius:20px;border-left:3px solid currentColor;background:rgba(0,0,0,0.3);}
+#text{font-size:15px;line-height:2;color:#f0e6f0;font-family:'Noto Serif SC',serif;min-height:50px;letter-spacing:0.5px;}
+#cursor{display:inline-block;width:6px;height:6px;background:var(--sc,#e8a0b4);border-radius:50%;animation:bk 0.9s step-end infinite;vertical-align:middle;margin-left:3px;}
+@keyframes bk{50%{opacity:0;}}
+#next-arrow{position:absolute;right:16px;bottom:14px;font-size:10px;color:rgba(184,159,216,0.5);animation:bounce 1.2s ease-in-out infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(3px);}}
+
+/* CHOICES */
+#choices{position:absolute;bottom:170px;left:0;right:0;display:none;flex-direction:column;align-items:center;gap:10px;padding:0 20%;}
+.choice-btn{width:100%;padding:13px 36px;background:rgba(8,4,16,0.88);border:1px solid rgba(184,159,216,0.3);border-radius:8px;color:#f0e6f0;font-size:14px;font-family:'Noto Serif SC',serif;cursor:pointer;transition:all 0.2s;text-align:center;letter-spacing:0.5px;}
+.choice-btn:hover{background:rgba(155,109,181,0.18);border-color:rgba(155,109,181,0.6);transform:scale(1.015);box-shadow:0 4px 20px rgba(155,109,181,0.25);}
+.choice-num{display:inline-block;width:20px;height:20px;border-radius:50%;background:rgba(155,109,181,0.2);border:1px solid rgba(155,109,181,0.4);font-size:10px;color:#b89fd8;text-align:center;line-height:20px;margin-right:10px;}
+
+/* TOP BAR */
+#topbar{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:linear-gradient(180deg,rgba(0,0,0,0.6),transparent);pointer-events:none;}
+#chapter-title{font-family:'Noto Serif SC',serif;font-size:12px;color:rgba(184,159,216,0.7);letter-spacing:2px;}
+
+/* MENU */
+#menu{position:absolute;bottom:28px;right:18px;display:flex;gap:6px;z-index:5;}
+.mbtn{width:34px;height:34px;background:rgba(8,4,18,0.75);border:1px solid rgba(184,159,216,0.2);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:#6b5e7a;transition:all 0.2s;backdrop-filter:blur(4px);}
+.mbtn:hover{background:rgba(155,109,181,0.25);border-color:rgba(155,109,181,0.5);color:#b89fd8;}
+.mbtn.on{background:rgba(155,109,181,0.3);border-color:rgba(155,109,181,0.5);color:#e8a0b4;}
+#fast-indicator{position:absolute;bottom:70px;right:18px;padding:3px 10px;border-radius:20px;background:rgba(155,109,181,0.2);border:1px solid rgba(155,109,181,0.4);font-size:10px;color:#b89fd8;letter-spacing:1px;opacity:0;transition:opacity 0.3s;pointer-events:none;}
+#fast-indicator.show{opacity:1;}
+
+/* AFF TOAST */
+.aff-toast{position:absolute;top:18px;left:50%;transform:translateX(-50%) translateY(-8px);padding:5px 14px;background:rgba(8,4,18,0.9);border:1px solid;border-radius:20px;font-size:12px;opacity:0;transition:all 0.35s;pointer-events:none;z-index:20;white-space:nowrap;}
+.aff-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* OVERLAYS */
+.overlay{position:absolute;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(4,1,10,0.88);backdrop-filter:blur(8px);}
+.overlay.show{display:flex;}
+.overlay-panel{background:rgba(18,12,28,0.98);border:1px solid rgba(184,159,216,0.2);border-radius:14px;box-shadow:0 0 60px rgba(155,109,181,0.2);overflow:hidden;max-height:90vh;}
+.ov-header{padding:18px 24px 14px;border-bottom:1px solid rgba(184,159,216,0.12);display:flex;align-items:center;gap:10px;}
+.ov-title{font-family:'Noto Serif SC',serif;font-size:17px;color:#b89fd8;letter-spacing:1px;flex:1;}
+.ov-close{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all 0.2s;}
+.ov-close:hover{background:rgba(155,109,181,0.2);color:#b89fd8;}
+
+/* SAVE/LOAD */
+#saveload-panel{width:680px;}
+.save-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:18px 24px 24px;}
+.slot{padding:14px;background:rgba(28,20,42,0.8);border:1px solid rgba(184,159,216,0.12);border-radius:8px;cursor:pointer;transition:all 0.2s;}
+.slot:hover{border-color:rgba(155,109,181,0.45);background:rgba(155,109,181,0.08);}
+.slot.has-save{border-color:rgba(155,109,181,0.2);}
+.slot-num{font-size:10px;color:#6b5e7a;margin-bottom:6px;letter-spacing:1px;}
+.slot-scene{font-size:12px;color:#a89ab8;margin-bottom:3px;}
+.slot-date{font-size:10px;color:#4a3e5a;}
+.slot-thumb{font-size:22px;margin-bottom:5px;}
+.slot-actions{display:flex;gap:5px;margin-top:8px;}
+.slot-act-btn{flex:1;padding:4px;border-radius:4px;font-size:10px;cursor:pointer;border:1px solid rgba(184,159,216,0.15);background:transparent;color:#6b5e7a;font-family:'Noto Sans SC',sans-serif;transition:all 0.2s;}
+.slot-act-btn:hover{border-color:rgba(155,109,181,0.4);color:#b89fd8;}
+
+/* TREE */
+#tree-panel{width:900px;max-height:85vh;display:flex;flex-direction:column;}
+.tree-body{flex:1;overflow:auto;padding:28px 32px;scrollbar-width:thin;scrollbar-color:rgba(155,109,181,0.3) transparent;}
+.tree-row{display:flex;align-items:center;margin-bottom:0;}
+.tree-node-wrap{display:flex;flex-direction:column;align-items:center;}
+.tree-node{padding:10px 16px;min-width:136px;background:rgba(22,16,34,0.9);border:1px solid rgba(184,159,216,0.18);border-radius:8px;cursor:pointer;transition:all 0.2s;text-align:center;position:relative;}
+.tree-node:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(155,109,181,0.2);}
+.tree-node.visited{border-color:rgba(155,109,181,0.35);}
+.tree-node.current{border-color:#e8a0b4;box-shadow:0 0 16px rgba(232,160,180,0.25);}
+.tree-node.locked{opacity:0.4;cursor:default;}
+.tree-node.locked:hover{transform:none;box-shadow:none;}
+.n-type{font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:#4a3e5a;margin-bottom:3px;}
+.n-title{font-size:11px;color:#c8b8d8;font-family:'Noto Serif SC',serif;}
+.n-meta{font-size:9px;color:#4a3e5a;margin-top:2px;}
+.n-badge{position:absolute;top:-6px;right:-6px;width:14px;height:14px;border-radius:50%;font-size:8px;display:flex;align-items:center;justify-content:center;}
+.tree-node.n-main{border-color:rgba(155,109,181,0.35);background:rgba(155,109,181,0.07);}
+.tree-node.n-branch{border-color:rgba(212,175,106,0.4);background:rgba(212,175,106,0.06);}
+.tree-node.n-a{border-color:rgba(232,160,180,0.35);background:rgba(232,160,180,0.06);}
+.tree-node.n-b{border-color:rgba(106,180,200,0.35);background:rgba(106,180,200,0.06);}
+.tree-node.n-end{border-color:rgba(106,200,150,0.35);background:rgba(106,200,150,0.05);}
+.tree-node.n-end .n-type{color:#6ac896;}
+.tree-node.n-branch .n-type{color:#d4af6a;}
+.tree-node.current .n-type{color:#e8a0b4;}
+.tree-conn{display:flex;align-items:center;padding:0 8px;}
+.conn-h{height:1px;width:32px;background:rgba(184,159,216,0.2);}
+.conn-v-wrap{display:flex;flex-direction:column;align-items:center;padding:0 10px;}
+.conn-v{width:1px;height:24px;background:rgba(184,159,216,0.2);}
+.conn-arrow{color:rgba(184,159,216,0.35);font-size:10px;}
+.branch-split{display:flex;align-items:flex-start;gap:16px;padding:0 10px;}
+.branch-col{display:flex;flex-direction:column;align-items:center;}
+.branch-label{font-size:9px;color:rgba(168,154,184,0.5);margin-bottom:10px;padding:2px 8px;border-radius:10px;border:1px solid rgba(184,159,216,0.1);letter-spacing:1px;white-space:nowrap;}
+.tree-legend{display:flex;gap:16px;padding:12px 24px;border-top:1px solid rgba(184,159,216,0.1);flex-shrink:0;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:10px;color:#6b5e7a;}
+.legend-dot{width:8px;height:8px;border-radius:50%;border:1px solid;}
+
+/* LOG */
+#logBody{flex:1;overflow-y:auto;padding:14px 24px 20px;scrollbar-width:thin;}
+
+/* SETTINGS */
+.settings-body{padding:16px 24px 24px;}
+.setting-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(184,159,216,0.08);}
+.setting-row:last-child{border:none;}
+.setting-label{font-size:12px;color:#a89ab8;flex:1;}
+.vol-slider{width:120px;-webkit-appearance:none;height:3px;background:linear-gradient(90deg,#9b6db5 var(--v,70%),rgba(184,159,216,0.2) var(--v,70%));border-radius:2px;cursor:pointer;}
+.vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#b89fd8;}
+.speed-btns{display:flex;gap:4px;}
+.speed-btn{padding:3px 10px;border-radius:4px;font-size:11px;background:transparent;border:1px solid rgba(184,159,216,0.2);color:#6b5e7a;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans SC',sans-serif;}
+.speed-btn.active,.speed-btn:hover{background:rgba(155,109,181,0.2);border-color:rgba(155,109,181,0.4);color:#b89fd8;}
+.toggle-sw{width:36px;height:18px;border-radius:9px;background:rgba(184,159,216,0.15);border:1px solid rgba(184,159,216,0.2);cursor:pointer;position:relative;transition:background 0.3s;}
+.toggle-sw.on{background:rgba(155,109,181,0.4);border-color:rgba(155,109,181,0.5);}
+.toggle-sw::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#6b5e7a;transition:all 0.3s;}
+.toggle-sw.on::after{left:20px;background:#b89fd8;}
+
+/* MUSIC */
+#music-loader{position:absolute;top:10px;left:10px;padding:5px 10px;background:rgba(8,4,18,0.8);border:1px solid rgba(184,159,216,0.15);border-radius:6px;font-size:10px;color:#6b5e7a;cursor:pointer;transition:all 0.2s;z-index:10;}
+#music-loader:hover{border-color:rgba(155,109,181,0.4);color:#b89fd8;}
+#now-playing{position:absolute;top:10px;left:120px;padding:4px 12px;background:rgba(8,4,18,0.7);border:1px solid rgba(155,109,181,0.2);border-radius:20px;font-size:10px;color:rgba(184,159,216,0.6);display:none;z-index:10;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;}
+#now-playing.show{display:block;}
+/* ONLINE (GalgameOnline) */
+.ol-input{width:100%;padding:10px 12px;margin-bottom:10px;background:rgba(8,4,16,0.8);border:1px solid rgba(184,159,216,0.25);border-radius:8px;color:#f0e6f0;font-size:14px;font-family:'Noto Sans SC',sans-serif;outline:none;}
+.ol-input:focus{border-color:rgba(155,109,181,0.6);}
+.ol-btn{width:100%;padding:11px;border:none;border-radius:8px;background:linear-gradient(90deg,#9b6db5,#e8a0b4);color:#fff;font-size:14px;font-family:'Noto Serif SC',serif;letter-spacing:2px;cursor:pointer;margin-bottom:8px;}
+.ol-btn:hover{opacity:0.9;}
+.ol-btn-ghost{width:100%;padding:10px;border:1px solid rgba(184,159,216,0.3);border-radius:8px;background:transparent;color:#b89fd8;font-size:13px;cursor:pointer;}
+.ol-btn-ghost:hover{background:rgba(155,109,181,0.12);}
+.ol-msg{font-size:12px;color:#f87171;min-height:18px;margin:4px 0 8px;text-align:center;}
+.ol-link{display:block;text-align:center;font-size:12px;color:#6b5e7a;cursor:pointer;margin-top:10px;text-decoration:underline;}
+.ol-link:hover{color:#b89fd8;}
+.gacha-banner{border:1px solid rgba(184,159,216,0.18);border-radius:10px;padding:14px;margin-bottom:12px;background:rgba(28,20,42,0.6);}
+.gacha-banner h3{font-size:15px;color:#e8d8f0;font-family:'Noto Serif SC',serif;margin-bottom:4px;}
+.gacha-banner p{font-size:11px;color:#a89ab8;margin-bottom:10px;}
+.gacha-btns{display:flex;gap:8px;}
+.gacha-btn{flex:1;padding:9px;border-radius:8px;border:1px solid rgba(155,109,181,0.45);background:rgba(155,109,181,0.15);color:#e8d8f0;font-size:13px;cursor:pointer;font-family:'Noto Serif SC',serif;}
+.gacha-btn:hover{background:rgba(155,109,181,0.3);}
+.gacha-btn:disabled{opacity:0.4;cursor:default;}
+.pull-result{margin-top:6px;}
+.pull-item{display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid rgba(184,159,216,0.07);font-size:13px;color:#f0e6f0;}
+.pull-item .stars{color:#f5c542;letter-spacing:1px;}
+.pull-item.r5 .stars{color:#ffd700;}
+.wallet-line{font-size:12px;color:#b89fd8;margin-bottom:12px;text-align:center;}
+#skip-flash{position:absolute;inset:0;background:rgba(155,109,181,0.08);pointer-events:none;opacity:0;z-index:90;}
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="bg"><span id="bgEmoji">🌅</span></div>
+  <div id="chars">
+    <div class="char-sprite char-left"  id="cl"></div>
+    <div class="char-sprite char-center" id="cc"></div>
+    <div class="char-sprite char-right" id="cr"></div>
+  </div>
+  <div id="topbar"><div id="chapter-title"></div></div>
+  <div id="music-loader" onclick="document.getElementById('music-input').click()">🎵 加载音乐</div>
+  <input type="file" id="music-input" accept=".mp3,.ogg,.wav,.m4a,.flac" multiple style="display:none">
+  <div id="now-playing"></div>
+  <div id="textbox" onclick="advance()">
+    <div id="textbox-inner">
+      <div id="speaker-wrap"><span id="speaker"></span></div>
+      <div id="text"><span id="cursor" style="--sc:#e8a0b4"></span></div>
+      <div id="next-arrow">▼</div>
+    </div>
+  </div>
+  <div id="choices"></div>
+  <div id="menu">
+    <div class="mbtn" onclick="openOverlay('saveload')" title="存档 F5">💾</div>
+    <div class="mbtn" id="btn-auto" onclick="toggleAuto()" title="自动 A">AUTO</div>
+    <div class="mbtn" id="btn-ff" onclick="toggleFF()" title="快进 Ctrl">FF</div>
+    <div class="mbtn" id="btn-skip" onclick="skipToChoice()" title="跳过 Tab">SKIP</div>
+    <div class="mbtn" onclick="openOverlay('tree')" title="剧情树 T">🌿</div>
+    <div class="mbtn" onclick="openOverlay('log')" title="记录 L">📜</div>
+    <div class="mbtn" onclick="openGacha()" title="抽卡">🎰</div>
+    <div class="mbtn" onclick="openOverlay('settings')" title="设置 Esc">⚙️</div>
+  </div>
+  <div id="fast-indicator">⏩ 快进中</div>
+  <div id="skip-flash"></div>
+  <div class="aff-toast" id="affToast"></div>
+
+  <!-- ONLINE LOGIN -->
+  <div class="overlay" id="ov-login">
+    <div class="overlay-panel" style="width:380px;">
+      <div class="ov-header"><div class="ov-title">🌐 联网登录</div></div>
+      <div class="settings-body">
+        <input class="ol-input" id="olUser" type="text" placeholder="用户名" autocomplete="username" onkeydown="if(event.key==='Enter')olLogin()">
+        <input class="ol-input" id="olPass" type="password" placeholder="密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')olLogin()">
+        <div class="ol-msg" id="olMsg"></div>
+        <button class="ol-btn" onclick="olLogin()">登录</button>
+        <button class="ol-btn-ghost" onclick="olSignup()">注册新账号</button>
+        <span class="ol-link" onclick="olOffline()">▶ 离线游玩（不联网）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GACHA -->
+  <div class="overlay" id="ov-gacha">
+    <div class="overlay-panel" style="width:560px;max-height:85vh;display:flex;flex-direction:column;">
+      <div class="ov-header"><div class="ov-title">🎰 抽卡</div><div class="ov-close" onclick="closeOverlay('gacha')">✕</div></div>
+      <div class="settings-body" style="overflow-y:auto;">
+        <div class="wallet-line" id="gachaWallet">钱包加载中…</div>
+        <div id="gachaBanners"></div>
+        <div class="ol-msg" id="gachaMsg"></div>
+        <div class="pull-result" id="gachaResults"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVE/LOAD -->
+  <div class="overlay" id="ov-saveload">
+    <div class="overlay-panel" id="saveload-panel">
+      <div class="ov-header"><div class="ov-title">💾 存档 / 读档</div><div class="ov-close" onclick="closeOverlay('saveload')">✕</div></div>
+      <div class="save-grid" id="saveGrid"></div>
+    </div>
+  </div>
+
+  <!-- STORY TREE -->
+  <div class="overlay" id="ov-tree">
+    <div class="overlay-panel" id="tree-panel">
+      <div class="ov-header"><div class="ov-title">🌿 剧情树</div><div style="font-size:10px;color:#4a3e5a;flex:1;margin-left:8px;">点击已访问节点可跳转</div><div class="ov-close" onclick="closeOverlay('tree')">✕</div></div>
+      <div class="tree-body" id="treeBody"></div>
+      <div class="tree-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#9b6db5;border-color:#9b6db5"></div>主线</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#d4af6a;border-color:#d4af6a"></div>分支点</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e8a0b4;border-color:#e8a0b4"></div>路线A</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#6ab4c8;border-color:#6ab4c8"></div>路线B</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#6ac896;border-color:#6ac896"></div>结局</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="overlay" id="ov-log">
+    <div class="overlay-panel" style="width:600px;max-height:80vh;display:flex;flex-direction:column;">
+      <div class="ov-header"><div class="ov-title">📜 对话记录</div><div class="ov-close" onclick="closeOverlay('log')">✕</div></div>
+      <div id="logBody"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="overlay" id="ov-settings">
+    <div class="overlay-panel" style="width:460px;">
+      <div class="ov-header"><div class="ov-title">⚙️ 设置</div><div class="ov-close" onclick="closeOverlay('settings')">✕</div></div>
+      <div class="settings-body">
+        <div class="setting-row"><span class="setting-label">文字速度</span>
+          <div class="speed-btns">
+            <button class="speed-btn" onclick="setSpeed(50,this)">慢</button>
+            <button class="speed-btn active" onclick="setSpeed(25,this)">普通</button>
+            <button class="speed-btn" onclick="setSpeed(10,this)">快</button>
+            <button class="speed-btn" onclick="setSpeed(0,this)">即时</button>
+          </div>
+        </div>
+        <div class="setting-row"><span class="setting-label">自动播放间隔</span>
+          <input class="vol-slider" type="range" min="5" max="40" value="18" style="--v:52%"
+            oninput="autoDelay=this.value*100;this.style.setProperty('--v',((this.value-5)/35*100)+'%');document.getElementById('autoDelayLbl').textContent=(this.value/10).toFixed(1)+'s'">
+          <span style="font-size:11px;color:#6b5e7a;width:32px;" id="autoDelayLbl">1.8s</span>
+        </div>
+        <div class="setting-row"><span class="setting-label">BGM 音量</span>
+          <input class="vol-slider" type="range" min="0" max="100" value="70" style="--v:70%"
+            oninput="setVolume(this.value/100);this.style.setProperty('--v',this.value+'%')">
+        </div>
+        <div class="setting-row"><span class="setting-label">全屏</span>
+          <div class="toggle-sw" id="fs-sw" onclick="this.classList.toggle('on');toggleFS()"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+//  GALGAME ENGINE  —  GalgameMaker Studio
+//  Robust script parsing using base64 encoding to avoid escaping
+// ================================================================
+
+const CHAR_COLORS = ${JSON.stringify(charColors)};
+const CHAR_DATA   = ${charData};
+// All imported images and audio embedded as base64 data URLs
+const ASSETS = ${embeddedAssets};
+const ONLINE = ${JSON.stringify(onlineCfg)};
+
+// ---- DECODE SCRIPT (base64 → original UTF-8 text with real newlines) ----
+const _B64 = "${scriptB64}";
+const SCRIPT_RAW = decodeURIComponent(escape(atob(_B64)));
+
+// ---- PARSER ----
+// Parses the plain-text script into an array of command objects.
+// All newlines are real \\n characters after decode, so split works correctly.
+function parseScript(raw) {
+  const lines = raw.split('\\n');
+  const cmds  = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (!line) { i++; continue; }
+
+    // [label: name]
+    if (/^\\[label:\\s*(\\S+)\\]/.test(line)) {
+      const m = line.match(/^\\[label:\\s*(\\S+)\\]/);
+      cmds.push({ type:'label', name:m[1] });
+    }
+    // [bg: name]
+    else if (/^\\[bg:/.test(line)) {
+      const m = line.match(/^\\[bg:\\s*([^\\]]+)\\]/);
+      if (m) cmds.push({ type:'bg', name:m[1].trim() });
+    }
+    // [char: id pos:x]
+    else if (/^\\[char:/.test(line)) {
+      const m = line.match(/^\\[char:\\s*(\\S+)(?:\\s+pos:(\\S+))?\\]/);
+      if (m) cmds.push({ type:'char', id:m[1].trim(), pos:(m[2]||'center').trim() });
+    }
+    // [bgm: name]
+    else if (/^\\[bgm:/.test(line)) {
+      const m = line.match(/^\\[bgm:\\s*([^\\]]+)\\]/);
+      if (m) cmds.push({ type:'bgm', name:m[1].trim() });
+    }
+    // [se: name]
+    else if (/^\\[se:/.test(line)) {
+      const m = line.match(/^\\[se:\\s*([^\\]]+)\\]/);
+      if (m) cmds.push({ type:'se', name:m[1].trim() });
+    }
+    // [aff: char +N / -N]
+    else if (/^\\[aff:/.test(line)) {
+      const m = line.match(/^\\[aff:\\s*(\\S+)\\s+([+-]?\\d+)\\]/);
+      if (m) cmds.push({ type:'aff', char:m[1], delta:parseInt(m[2]) });
+    }
+    // [flag: set key val]
+    else if (/^\\[flag:/.test(line)) {
+      const m = line.match(/^\\[flag:\\s*set\\s+(\\S+)\\s+(\\S+)\\]/);
+      if (m) cmds.push({ type:'flag', key:m[1], val:m[2] });
+    }
+    // [if: flag=key eq val]
+    else if (/^\\[if:/.test(line)) {
+      const m = line.match(/^\\[if:\\s*flag=(\\S+)\\s+eq\\s+(\\S+)\\]/);
+      if (m) cmds.push({ type:'if', key:m[1], val:m[2] });
+    }
+    // [/if]
+    else if (line === '[/if]') {
+      cmds.push({ type:'endif' });
+    }
+    // [jump: label]
+    else if (/^\\[jump:/.test(line)) {
+      const m = line.match(/^\\[jump:\\s*(\\S+)\\]/);
+      if (m) cmds.push({ type:'jump', label:m[1] });
+    }
+    // [title: text]
+    else if (/^\\[title:/.test(line)) {
+      const m = line.match(/^\\[title:\\s*([^\\]]+)\\]/);
+      if (m) cmds.push({ type:'title', text:m[1].trim() });
+    }
+    // [hide]
+    else if (line === '[hide]') {
+      cmds.push({ type:'hide' });
+    }
+    // [choice] ... [/choice]
+    else if (line === '[choice]') {
+      const choices = [];
+      let j = i + 1;
+      while (j < lines.length && lines[j].trim() !== '[/choice]') {
+        const cl = lines[j].trim();
+        if (cl.startsWith('-')) {
+          // Support both → (U+2192) and -> as separators
+          const sep = cl.includes('→') ? '→' : '->';
+          const parts = cl.slice(1).split(sep);
+          choices.push({ text: parts[0].trim(), label: (parts[1]||'').trim() });
+        }
+        j++;
+      }
+      cmds.push({ type:'choice', choices });
+      i = j; // skip past [/choice]
+    }
+    // dialogue:  "角色名: 文字"  (must not start with [)
+    else if (!line.startsWith('[') && line.includes(':')) {
+      const ci = line.indexOf(':');
+      const sp = line.substring(0, ci).trim();
+      const tx = line.substring(ci + 1).trim();
+      if (sp && tx) cmds.push({ type:'dialog', speaker:sp, text:tx });
+    }
+
+    i++;
+  }
+  return cmds;
+}
+
+const CMDS = parseScript(SCRIPT_RAW);
+
+// Build label→index lookup
+const LABELS = {};
+CMDS.forEach((c, i) => { if (c.type === 'label') LABELS[c.name] = i; });
+
+// ---- RUNTIME STATE ----
+let ptr      = 0;
+let gstate   = { affection:{}, flags:{}, currentLabel:'', visitedLabels:[] };
+let typing   = false, typeTO = null;
+let autoMode = false, autoTimer = null, autoDelay = 1800;
+let ffMode   = false, ffInterval = null;
+let typeSpeed = 25;  // ms per char; 0 = instant
+let dialogLog = [];
+const SAVES   = JSON.parse(localStorage.getItem('gmstudio_saves') || '{}');
+// ---- ONLINE (GalgameOnline) ----
+// Item id -> display name. Server only knows numbers; rename here freely.
+const ITEM_NAMES = {
+  101:'星夜·凛', 102:'星夜·雪', 103:'星夜·花', 104:'星夜·月', 105:'月下·凛',
+  201:'四星·凛', 202:'四星·雪', 203:'四星·花', 204:'四星·祭', 205:'四星·夜',
+  301:'三星·信物', 302:'三星·花瓣', 303:'三星·纸鹤', 304:'三星·月光'
+};
+let onlineToken = localStorage.getItem('gm_online_token') || null;
+let onlineMode = false;
+let bootDone = false;
+
+function olHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (onlineToken) h['Authorization'] = 'Bearer ' + onlineToken;
+  return h;
+}
+async function olApi(base, path, method, body) {
+  const res = await fetch(base + path, {
+    method: method || 'GET',
+    headers: olHeaders(),
+    body: body ? JSON.stringify(body) : undefined
+  });
+  let data = null;
+  try { data = await res.json(); } catch (e) { data = null; }
+  return { status: res.status, data: data };
+}
+function olSetMsg(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = msg || '';
+}
+function olItemName(id) { return ITEM_NAMES[id] || ('物品#' + id); }
+function olStars(r) { let s = ''; for (let i = 0; i < r; i++) s += '★'; return s; }
+
+async function olLogin() {
+  const u = document.getElementById('olUser').value.trim();
+  const p = document.getElementById('olPass').value;
+  if (!u || !p) { olSetMsg('olMsg', '请输入用户名和密码'); return; }
+  olSetMsg('olMsg', '登录中…');
+  try {
+    const r = await olApi(ONLINE.sdkUrl, '/api/sdk/login', 'POST', { username: u, password: p });
+    if (r.data && r.data.ok && r.data.token) {
+      onlineToken = r.data.token;
+      localStorage.setItem('gm_online_token', onlineToken);
+      onlineMode = true;
+      bootDone = true;
+      closeOverlay('login');
+      showToast('🌐 已登录 ' + u);
+      processNext();
+    } else {
+      olSetMsg('olMsg', (r.data && r.data.error) || ('登录失败（HTTP ' + r.status + '）'));
+    }
+  } catch (e) {
+    olSetMsg('olMsg', '连接服务器失败，请检查地址与网络');
+  }
+}
+async function olSignup() {
+  const u = document.getElementById('olUser').value.trim();
+  const p = document.getElementById('olPass').value;
+  if (!u || !p) { olSetMsg('olMsg', '请输入用户名和密码'); return; }
+  olSetMsg('olMsg', '注册中…');
+  try {
+    const r = await olApi(ONLINE.sdkUrl, '/api/sdk/signup', 'POST', { username: u, password: p });
+    if (r.data && r.data.ok) {
+      olSetMsg('olMsg', '注册成功，正在登录…');
+      await olLogin();
+    } else {
+      olSetMsg('olMsg', (r.data && r.data.error) || ('注册失败（HTTP ' + r.status + '）'));
+    }
+  } catch (e) {
+    olSetMsg('olMsg', '连接服务器失败，请检查地址与网络');
+  }
+}
+function olOffline() {
+  onlineMode = false;
+  bootDone = true;
+  closeOverlay('login');
+  showToast('▶ 离线模式');
+  processNext();
+}
+async function olBoot() {
+  if (!onlineToken) { openOverlay('login'); return; }
+  try {
+    const r = await olApi(ONLINE.sdkUrl, '/api/sdk/session', 'GET');
+    if (r.data && r.data.ok) {
+      onlineMode = true;
+      bootDone = true;
+      processNext();
+    } else {
+      localStorage.removeItem('gm_online_token');
+      onlineToken = null;
+      openOverlay('login');
+    }
+  } catch (e) {
+    olSetMsg('olMsg', '连接服务器失败，可先离线游玩');
+    openOverlay('login');
+  }
+}
+function openGacha() {
+  if (!onlineMode) { showToast('🎰 请先登录（联网模式）才能抽卡'); return; }
+  openOverlay('gacha');
+}
+async function renderGacha() {
+  const wEl = document.getElementById('gachaWallet');
+  const bEl = document.getElementById('gachaBanners');
+  olSetMsg('gachaMsg', '');
+  try {
+    const w = await olApi(ONLINE.gameUrl, '/api/game/wallet', 'GET');
+    if (w.data) wEl.textContent = '💰 高级货币 ' + w.data.premium + '  ·  免费货币 ' + w.data.free + '  ·  抽卡券 ' + w.data.tickets;
+    const bl = await olApi(ONLINE.gameUrl, '/api/game/banners', 'GET');
+    const banners = (bl.data && bl.data.banners) || [];
+    bEl.innerHTML = '';
+    for (const b of banners) {
+      let info = null;
+      try {
+        const ir = await olApi(ONLINE.gameUrl, '/api/game/banner/' + b.id, 'GET');
+        info = ir.data || null;
+      } catch (e) { info = null; }
+      const div = document.createElement('div');
+      div.className = 'gacha-banner';
+      const pity = info ? ('5星保底还剩 ' + info.fiveRemain + ' 抽 · 4星保底还剩 ' + info.fourRemain + ' 抽 · 已抽 ' + info.totalCount) : '保底信息加载失败';
+      div.innerHTML =
+        '<h3>' + b.name + '</h3>' +
+        '<p>UP 5星：' + olItemName(b.featuredFiveStar) + ' · 单抽 ' + b.costPerPull + ' 货币 · ' + pity + '</p>' +
+        '<div class="gacha-btns">' +
+          '<button class="gacha-btn" onclick="olPull(' + b.id + ',1)">单抽</button>' +
+          '<button class="gacha-btn" onclick="olPull(' + b.id + ',10)">十连</button>' +
+        '</div>';
+      bEl.appendChild(div);
+    }
+    if (!banners.length) bEl.innerHTML = '<p style="font-size:12px;color:#6b5e7a;">暂无卡池</p>';
+  } catch (e) {
+    wEl.textContent = '钱包加载失败：服务器连接失败';
+  }
+}
+async function olPull(bannerId, count) {
+  olSetMsg('gachaMsg', '抽卡中…');
+  document.getElementById('gachaResults').innerHTML = '';
+  try {
+    const r = await olApi(ONLINE.gameUrl, '/api/game/gacha/pull', 'POST', { bannerId: bannerId, count: count });
+    if (r.data && r.data.ok && r.data.pulls) {
+      const box = document.getElementById('gachaResults');
+      let html = '';
+      for (const p of r.data.pulls) {
+        html += '<div class="pull-item r' + p.rarity + '"><span>' + olItemName(p.itemId) + (p.isFeatured ? '（UP）' : '') + '</span><span class="stars">' + olStars(p.rarity) + '</span></div>';
+      }
+      box.innerHTML = html;
+      olSetMsg('gachaMsg', '');
+      renderGacha();
+    } else {
+      olSetMsg('gachaMsg', (r.data && r.data.error) || ('抽卡失败（HTTP ' + r.status + '）'));
+    }
+  } catch (e) {
+    olSetMsg('gachaMsg', '连接服务器失败，请检查地址与网络');
+  }
+}
+async function cloudUpload(slot) {
+  if (!onlineMode) { showToast('☁️ 请先登录（联网模式）才能用云存档'); return; }
+  const s = SAVES[slot];
+  if (!s) { showToast('☁️ 本地 SLOT ' + slot + ' 没有存档'); return; }
+  try {
+    const r = await olApi(ONLINE.gameUrl, '/api/game/save', 'POST', { slot: slot, dataJson: JSON.stringify(s) });
+    if (r.data && r.data.ok) showToast('☁️ 已上传 SLOT ' + slot);
+    else showToast('☁️ 上传失败：' + ((r.data && r.data.error) || r.status));
+  } catch (e) {
+    showToast('☁️ 上传失败：服务器连接失败');
+  }
+}
+async function cloudDownload(slot) {
+  if (!onlineMode) { showToast('☁️ 请先登录（联网模式）才能用云存档'); return; }
+  try {
+    const r = await olApi(ONLINE.gameUrl, '/api/game/save/' + slot, 'GET');
+    if (r.data && r.data.ok && r.data.dataJson) {
+      SAVES[slot] = JSON.parse(r.data.dataJson);
+      localStorage.setItem('gmstudio_saves', JSON.stringify(SAVES));
+      buildSaveGrid();
+      showToast('☁️ 已下载 SLOT ' + slot + '，正在读取…');
+      setTimeout(function() { loadGame(slot); }, 400);
+    } else {
+      showToast('☁️ 云端 SLOT ' + slot + ' 没有存档');
+    }
+  } catch (e) {
+    showToast('☁️ 下载失败：服务器连接失败');
+  }
+}
+
+let musicFiles = {}, bgmAudio = null, bgmVolume = 0.7;
+
+// Emoji fallbacks (used when no real image assets are loaded)
+const BG_EMOJI = {
+  school_gate_morning:'🏫', sakura_park_day:'🌸', rooftop_sunset:'🌅',
+  classroom_afternoon:'📚', festival_night:'🎆', bedroom_morning:'🛏', default:'🌄'
+};
+const CHAR_EMOJI_MAP = {};
+CHAR_DATA.forEach(c => { CHAR_EMOJI_MAP[c.id] = c.emoji || '👤'; });
+
+// ---- MAIN LOOP ----
+function advance() {
+  if (typing) { finishType(); return; }
+  processNext();
+}
+
+function processNext() {
+  clearTimeout(autoTimer);
+
+  while (ptr < CMDS.length) {
+    const cmd = CMDS[ptr++];
+
+    switch (cmd.type) {
+
+      case 'label':
+        gstate.currentLabel = cmd.name;
+        if (!gstate.visitedLabels.includes(cmd.name))
+          gstate.visitedLabels.push(cmd.name);
+        document.getElementById('chapter-title').textContent =
+          cmd.name.replace(/_/g, ' ');
+        break;
+
+      case 'title':
+        document.getElementById('chapter-title').textContent = cmd.text;
+        break;
+
+      case 'bg':
+        setBg(cmd.name);
+        break;
+
+      case 'char':
+        setChar(cmd.id, cmd.pos);
+        break;
+
+      case 'hide':
+        document.getElementById('textbox').classList.add('hidden');
+        break;
+
+      case 'bgm':
+        playBgm(cmd.name);
+        break;
+
+      case 'se':
+        // SE would play here if file is loaded
+        break;
+
+      case 'aff':
+        handleAff(cmd.char, cmd.delta);
+        break;
+
+      case 'flag':
+        gstate.flags[cmd.key] = cmd.val;
+        break;
+
+      case 'jump':
+        if (LABELS[cmd.label] !== undefined) {
+          ptr = LABELS[cmd.label];
+        } else {
+          console.warn('[GE] Unknown label:', cmd.label);
+        }
+        break;
+
+      case 'if': {
+        const pass = (gstate.flags[cmd.key] === cmd.val);
+        if (!pass) {
+          // skip forward to matching [/if]
+          let depth = 1;
+          while (ptr < CMDS.length) {
+            const nc = CMDS[ptr++];
+            if (nc.type === 'if')    depth++;
+            if (nc.type === 'endif') { depth--; if (depth === 0) break; }
+          }
+        }
+        break;
+      }
+
+      case 'endif':
+        break;
+
+      case 'dialog':
+        showDialog(cmd.speaker, cmd.text);
+        return;   // <-- stop the loop and wait for player input
+
+      case 'choice':
+        showChoices(cmd.choices);
+        return;   // <-- stop and wait for player choice
+    }
+  }
+
+  // Script finished
+  const tb = document.getElementById('textbox');
+  tb.classList.remove('hidden');
+  document.getElementById('speaker-wrap').style.display = 'none';
+  document.getElementById('text').innerHTML =
+    '<span style="color:#6b5e7a;font-size:13px;letter-spacing:2px;">— 完 —</span>';
+  document.getElementById('cursor').style.display = 'none';
+  tb.onclick = null;
+}
+
+// ---- DISPLAY ----
+function setBg(name) {
+  const bg    = document.getElementById('bg');
+  bg.style.transition = 'opacity 0.6s';
+  bg.style.opacity    = '0.3';
+  setTimeout(() => {
+    const asset = ASSETS[name];
+    if (asset && asset.dataUrl) {
+      // Use real image
+      let img = bg.querySelector('img');
+      if (!img) { img = document.createElement('img'); bg.appendChild(img); }
+      img.src = asset.dataUrl;
+      img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
+      document.getElementById('bgEmoji').style.display = 'none';
+    } else {
+      // Fallback to emoji
+      const img = bg.querySelector('img');
+      if (img) img.remove();
+      const emoji = BG_EMOJI[name] || BG_EMOJI.default;
+      document.getElementById('bgEmoji').style.display = '';
+      document.getElementById('bgEmoji').textContent = emoji;
+    }
+    bg.style.opacity = '1';
+  }, 300);
+}
+
+function setChar(id, pos) {
+  const key = pos.charAt(0); // l / c / r
+  const el  = document.getElementById('c' + key);
+  if (!el) return;
+  el.style.opacity = '0';
+
+  const asset = ASSETS[id];
+  if (asset && asset.dataUrl) {
+    // Use real sprite image
+    el.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = asset.dataUrl;
+    img.style.cssText = 'height:520px;max-height:70vh;width:auto;object-fit:contain;display:block;';
+    el.appendChild(img);
+  } else {
+    // Fallback emoji
+    el.innerHTML = '';
+    const baseId = id.split('_')[0];
+    el.textContent = CHAR_EMOJI_MAP[baseId] || CHAR_EMOJI_MAP[id] || '👤';
+    el.style.fontSize = '160px';
+  }
+
+  setTimeout(() => { el.style.opacity = '1'; }, 50);
+  document.querySelectorAll('.char-sprite').forEach(s => s.classList.remove('active-char'));
+  el.classList.add('active-char');
+}
+
+function showDialog(speaker, text) {
+  const tb  = document.getElementById('textbox');
+  const swEl = document.getElementById('speaker-wrap');
+  const spEl = document.getElementById('speaker');
+  const tx  = document.getElementById('text');
+  const cur = document.getElementById('cursor');
+
+  tb.classList.remove('hidden');
+  tb.onclick = advance;
+
+  const isNarrator = (speaker === '旁白' || speaker === 'narrator' || speaker === '');
+  const color = CHAR_COLORS[speaker] || '#b89fd8';
+
+  if (isNarrator) {
+    swEl.style.display = 'none';
+    tx.style.color     = 'rgba(220,210,235,0.78)';
+    tx.style.fontStyle = 'italic';
+  } else {
+    swEl.style.display = 'flex';
+    spEl.textContent   = speaker;
+    spEl.style.color   = color;
+    tx.style.color     = '#f0e6f0';
+    tx.style.fontStyle = 'normal';
+  }
+
+  cur.style.setProperty('--sc', color);
+  cur.style.display = 'inline-block';
+  tx.innerHTML = '';
+  tx.appendChild(cur);
+
+  dialogLog.push({ speaker, text, color });
+  if (dialogLog.length > 200) dialogLog.shift();
+
+  // Instant or typewriter
+  if (typeSpeed === 0 || ffMode) {
+    cur.insertAdjacentText('beforebegin', text);
+    typing = false;
+    if (ffMode)      { setTimeout(processNext, 40); }
+    else if (autoMode) { autoTimer = setTimeout(advance, autoDelay); }
+    return;
+  }
+
+  typing = true;
+  let i = 0;
+  function type() {
+    if (i < text.length) {
+      cur.insertAdjacentText('beforebegin', text[i++]);
+      typeTO = setTimeout(type, typeSpeed);
+    } else {
+      typing = false;
+      if (autoMode) autoTimer = setTimeout(advance, autoDelay);
+    }
+  }
+  type();
+}
+
+function finishType() {
+  clearTimeout(typeTO);
+  const lastCmd = CMDS[ptr - 1];
+  if (lastCmd && lastCmd.text) {
+    const tx  = document.getElementById('text');
+    const cur = document.getElementById('cursor');
+    tx.innerHTML = '';
+    tx.insertAdjacentText('beforeend', lastCmd.text);
+    tx.appendChild(cur);
+  }
+  typing = false;
+}
+
+function showChoices(choices) {
+  stopFF();
+  document.getElementById('textbox').classList.add('hidden');
+  const cc = document.getElementById('choices');
+  cc.style.display = 'flex';
+  cc.innerHTML = '';
+  choices.forEach((ch, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = '<span class="choice-num">' + (idx+1) + '</span>' + ch.text;
+    btn.onclick = () => {
+      cc.style.display = 'none';
+      document.getElementById('textbox').classList.remove('hidden');
+      // Jump to label if specified, otherwise just continue
+      if (ch.label && LABELS[ch.label] !== undefined) {
+        ptr = LABELS[ch.label];
+      }
+      processNext();
+    };
+    cc.appendChild(btn);
+  });
+}
+
+// ---- AFFECTION ----
+function handleAff(charName, delta) {
+  gstate.affection[charName] = (gstate.affection[charName] || 0) + delta;
+  const toast = document.getElementById('affToast');
+  const pos   = delta > 0;
+  toast.style.borderColor = pos ? 'rgba(106,200,150,0.5)' : 'rgba(248,113,113,0.5)';
+  toast.style.color       = pos ? '#6ac896' : '#f87171';
+  toast.textContent = (pos ? '💗 ' : '💔 ') + charName + (pos ? '+' : '') + delta;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+// ---- FAST FORWARD ----
+function toggleFF() {
+  ffMode ? stopFF() : startFF();
+}
+function startFF() {
+  if (ffMode) return;
+  ffMode = true;
+  autoMode = false;
+  document.getElementById('btn-ff').classList.add('on');
+  document.getElementById('btn-auto').classList.remove('on');
+  document.getElementById('fast-indicator').classList.add('show');
+  clearTimeout(typeTO); clearTimeout(autoTimer);
+  if (typing) finishType();
+  ffInterval = setInterval(() => {
+    if (document.getElementById('choices').style.display === 'flex') { stopFF(); return; }
+    processNext();
+  }, 55);
+}
+function stopFF() {
+  ffMode = false;
+  clearInterval(ffInterval); ffInterval = null;
+  document.getElementById('btn-ff').classList.remove('on');
+  document.getElementById('fast-indicator').classList.remove('show');
+}
+
+// ---- SKIP TO NEXT CHOICE ----
+function skipToChoice() {
+  stopFF();
+  clearTimeout(typeTO); clearTimeout(autoTimer);
+  if (typing) { finishType(); typing = false; }
+  // Flash effect
+  const fl = document.getElementById('skip-flash');
+  fl.style.opacity = '1'; setTimeout(() => fl.style.opacity = '0', 200);
+
+  let safety = 8000;
+  while (ptr < CMDS.length && safety-- > 0) {
+    const cmd = CMDS[ptr++];
+    switch (cmd.type) {
+      case 'label':
+        gstate.currentLabel = cmd.name;
+        if (!gstate.visitedLabels.includes(cmd.name))
+          gstate.visitedLabels.push(cmd.name);
+        break;
+      case 'bg':    setBg(cmd.name); break;
+      case 'char':  setChar(cmd.id, cmd.pos); break;
+      case 'bgm':   playBgm(cmd.name); break;
+      case 'aff':   gstate.affection[cmd.char]=(gstate.affection[cmd.char]||0)+cmd.delta; break;
+      case 'flag':  gstate.flags[cmd.key]=cmd.val; break;
+      case 'jump':
+        if (LABELS[cmd.label] !== undefined) ptr = LABELS[cmd.label];
+        break;
+      case 'if': {
+        const pass = (gstate.flags[cmd.key] === cmd.val);
+        if (!pass) {
+          let d = 1;
+          while (ptr < CMDS.length) {
+            const nc = CMDS[ptr++];
+            if (nc.type==='if') d++;
+            if (nc.type==='endif') { d--; if(d===0) break; }
+          }
+        }
+        break;
+      }
+      case 'dialog':
+        dialogLog.push({speaker:cmd.speaker, text:cmd.text, color:CHAR_COLORS[cmd.speaker]||'#b89fd8'});
+        break;
+      case 'choice':
+        showChoices(cmd.choices);
+        return;
+    }
+  }
+  processNext();
+}
+
+// ---- AUTO ----
+function toggleAuto() {
+  autoMode = !autoMode;
+  document.getElementById('btn-auto').classList.toggle('on', autoMode);
+  if (autoMode && !typing) autoTimer = setTimeout(advance, autoDelay);
+  else clearTimeout(autoTimer);
+}
+
+// ---- STORY TREE ----
+function renderTree() {
+  const body = document.getElementById('treeBody');
+  body.innerHTML = '';
+
+  const nodes = [];
+  CMDS.forEach((c, i) => {
+    if (c.type === 'label') {
+      let ntype = 'n-main';
+      const n = c.name.toLowerCase();
+      if (n.includes('end') || n.includes('ending')) ntype = 'n-end';
+      else if (n.includes('_a') || n.includes('route_a')) ntype = 'n-a';
+      else if (n.includes('_b') || n.includes('route_b')) ntype = 'n-b';
+      nodes.push({ label:c.name, display:c.name.replace(/_/g,' '), type:ntype, cmdIdx:i });
+    }
+  });
+
+  // Find branch point
+  const branchIdx = nodes.findIndex(n => n.type==='n-a' || n.type==='n-b' || n.type==='n-end');
+  const mainChain = branchIdx > 0 ? nodes.slice(0, branchIdx) : nodes;
+  const branches  = branchIdx > 0 ? nodes.slice(branchIdx)    : [];
+
+  // Render main chain
+  const row1 = document.createElement('div');
+  row1.className = 'tree-row';
+  row1.style.cssText = 'flex-wrap:wrap;gap:0;margin-bottom:20px;';
+  mainChain.forEach((node, idx) => {
+    const visited = gstate.visitedLabels.includes(node.label);
+    const current = gstate.currentLabel === node.label;
+    const nd = document.createElement('div');
+    nd.className = 'tree-node ' + node.type + (visited?' visited':'') + (current?' current':'');
+    nd.innerHTML =
+      '<div class="n-type">' + (node.type==='n-main'?'主线':'场景') + '</div>' +
+      '<div class="n-title">' + node.display + '</div>' +
+      '<div class="n-meta">' + (current?'▶ 当前':visited?'✓ 已访问':'') + '</div>';
+    if (current) {
+      const badge = document.createElement('div');
+      badge.className = 'n-badge'; badge.style.cssText='background:#e8a0b4;color:#000;';
+      badge.textContent='▶'; nd.appendChild(badge);
+    }
+    if (visited && !current) {
+      nd.onclick = () => {
+        if (confirm('跳转到：' + node.display + '？')) {
+          ptr = node.cmdIdx; gstate.currentLabel = node.label;
+          closeOverlay('tree'); processNext();
+        }
+      };
+    }
+    row1.appendChild(nd);
+    if (idx < mainChain.length - 1) {
+      const c = document.createElement('div');
+      c.className = 'tree-conn';
+      c.innerHTML = '<div class="conn-h"></div><div class="conn-arrow">›</div><div class="conn-h"></div>';
+      row1.appendChild(c);
+    }
+  });
+  body.appendChild(row1);
+
+  // Render branches
+  if (branches.length > 0) {
+    const br = document.createElement('div');
+    br.className = 'tree-row'; br.style.cssText='margin-left:40px;align-items:flex-start;';
+    const split = document.createElement('div');
+    split.className = 'branch-split';
+
+    const routeA = branches.filter(n=>n.type==='n-a'||n.label.includes('_a')||n.label.includes('prologue_a'));
+    const routeB = branches.filter(n=>n.type==='n-b'||n.label.includes('_b'));
+    const ends   = branches.filter(n=>n.type==='n-end');
+    const other  = branches.filter(n=>!routeA.includes(n)&&!routeB.includes(n)&&!ends.includes(n));
+
+    const groups = [];
+    if (routeA.length) groups.push({label:'路线 A',color:'#e8a0b4',nodes:routeA});
+    if (routeB.length) groups.push({label:'路线 B',color:'#6ab4c8',nodes:routeB});
+    if (ends.length)   groups.push({label:'结局',  color:'#6ac896', nodes:ends});
+    if (other.length)  groups.push({label:'其他',  color:'#b89fd8', nodes:other});
+
+    groups.forEach(g => {
+      const col = document.createElement('div'); col.className='branch-col';
+      const lbl = document.createElement('div'); lbl.className='branch-label';
+      lbl.style.color=g.color; lbl.textContent=g.label; col.appendChild(lbl);
+      g.nodes.forEach((node, ni) => {
+        const visited = gstate.visitedLabels.includes(node.label);
+        const current = gstate.currentLabel === node.label;
+        const nd = document.createElement('div');
+        nd.className = 'tree-node '+node.type+(visited?' visited':'')+(current?' current':'')+((!visited&&!current)?' locked':'');
+        nd.innerHTML =
+          '<div class="n-type">'+(node.type==='n-end'?'结局':node.type==='n-branch'?'分支点':'场景')+'</div>'+
+          '<div class="n-title">'+node.display+'</div>'+
+          '<div class="n-meta">'+(current?'▶ 当前':visited?'✓ 已访问':'🔒 未解锁')+'</div>';
+        if (visited && !current) {
+          nd.onclick = () => {
+            if (confirm('跳转到：'+node.display+'？')) {
+              ptr=node.cmdIdx; gstate.currentLabel=node.label;
+              closeOverlay('tree'); processNext();
+            }
+          };
+        }
+        col.appendChild(nd);
+        if (ni < g.nodes.length-1) {
+          const vc=document.createElement('div'); vc.className='conn-v-wrap';
+          vc.innerHTML='<div class="conn-v"></div><div class="conn-arrow">↓</div><div class="conn-v"></div>';
+          col.appendChild(vc);
+        }
+      });
+      split.appendChild(col);
+    });
+    br.appendChild(split);
+    body.appendChild(br);
+  }
+}
+
+// ---- AUDIO ----
+document.getElementById('music-input').addEventListener('change', function(e) {
+  Array.from(e.target.files).forEach(file => {
+    const name = file.name.replace(/\\.[^.]+$/, '');
+    musicFiles[name] = { url: URL.createObjectURL(file), name: file.name };
+  });
+  const first = e.target.files[0];
+  if (first) playBgm(first.name.replace(/\\.[^.]+$/,''));
+});
+
+function playBgm(name) {
+  // First check ASSETS (embedded at export time), then musicFiles (loaded at runtime)
+  const asset = ASSETS[name];
+  const track = musicFiles[name] || musicFiles[Object.keys(musicFiles)[0]];
+  const src   = asset ? asset.dataUrl : (track ? track.url : null);
+  const label = asset ? (asset.fname || name) : (track ? track.name : name);
+  if (!src) return;
+  if (bgmAudio) { bgmAudio.pause(); bgmAudio = null; }
+  bgmAudio = new Audio(src);
+  bgmAudio.volume = bgmVolume;
+  bgmAudio.loop   = true;
+  bgmAudio.play().catch(() => {});
+  const np = document.getElementById('now-playing');
+  np.textContent = '♪ ' + label;
+  np.classList.add('show');
+}
+
+function setVolume(v) {
+  bgmVolume = v;
+  if (bgmAudio) bgmAudio.volume = v;
+}
+
+// ---- SAVE / LOAD ----
+function buildSaveGrid() {
+  const grid = document.getElementById('saveGrid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= 9; i++) {
+    const s    = SAVES[i];
+    const slot = document.createElement('div');
+    slot.className = 'slot' + (s ? ' has-save' : '');
+    if (s) {
+      slot.innerHTML =
+        '<div class="slot-thumb">'+(s.bgEmoji||'🌄')+'</div>'+
+        '<div class="slot-num">SLOT '+i+'</div>'+
+        '<div class="slot-scene">'+(s.label||'—')+'</div>'+
+        '<div class="slot-date">'+s.date+'</div>'+
+        '<div class="slot-actions">'+
+          '<button class="slot-act-btn" onclick="loadGame('+i+')">读取</button>'+
+          '<button class="slot-act-btn" onclick="saveGame('+i+')">覆盖</button>'+
+          '<button class="slot-act-btn" style="color:#f87171aa;" onclick="delSave('+i+')">删除</button>'+
+          (i <= 3 ? '<button class="slot-act-btn" onclick="cloudUpload('+i+')">☁️上传</button><button class="slot-act-btn" onclick="cloudDownload('+i+')">☁️下载</button>' : '')+
+        '</div>';
+    } else {
+      slot.innerHTML =
+        '<div class="slot-thumb" style="opacity:0.2">💾</div>'+
+        '<div class="slot-num">SLOT '+i+'</div>'+
+        '<div style="font-size:11px;color:#3a2e4a;">— 空存档 —</div>';
+      slot.onclick = () => saveGame(i);
+    }
+    grid.appendChild(slot);
+  }
+}
+
+function saveGame(i) {
+  SAVES[i] = {
+    ptr, state: JSON.parse(JSON.stringify(gstate)),
+    date: new Date().toLocaleString(),
+    label: gstate.currentLabel,
+    bgEmoji: document.getElementById('bgEmoji').textContent
+  };
+  localStorage.setItem('gmstudio_saves', JSON.stringify(SAVES));
+  buildSaveGrid();
+  showToast('💾 已保存 SLOT ' + i);
+}
+
+function loadGame(i) {
+  const s = SAVES[i]; if (!s) return;
+  ptr    = s.ptr;
+  gstate = JSON.parse(JSON.stringify(s.state));
+  gstate.visitedLabels = s.state.visitedLabels || [];
+  closeOverlay('saveload');
+  processNext();
+}
+
+function delSave(i) {
+  delete SAVES[i];
+  localStorage.setItem('gmstudio_saves', JSON.stringify(SAVES));
+  buildSaveGrid();
+}
+
+// ---- LOG ----
+function renderLog() {
+  const body = document.getElementById('logBody');
+  body.innerHTML = '';
+  dialogLog.slice(-60).forEach(entry => {
+    const d = document.createElement('div');
+    d.style.cssText = 'padding:8px 0;border-bottom:1px solid rgba(184,159,216,0.07);';
+    const isNarrator = entry.speaker==='旁白'||!entry.speaker;
+    d.innerHTML =
+      (!isNarrator ? '<div style="font-size:11px;color:'+(entry.color||'#b89fd8')+';margin-bottom:3px;letter-spacing:1px;">'+entry.speaker+'</div>' : '') +
+      '<div style="font-size:13px;color:'+(isNarrator?'rgba(200,190,220,0.7)':'#f0e6f0')+';line-height:1.8;'+(isNarrator?'font-style:italic;':'')+'">'+entry.text+'</div>';
+    body.appendChild(d);
+  });
+  body.scrollTop = body.scrollHeight;
+}
+
+// ---- OVERLAYS ----
+function openOverlay(name) {
+  document.querySelectorAll('.overlay').forEach(o => o.classList.remove('show'));
+  const ov = document.getElementById('ov-' + name);
+  if (ov) {
+    ov.classList.add('show');
+    if (name === 'tree')     renderTree();
+    if (name === 'log')      renderLog();
+    if (name === 'saveload') buildSaveGrid();
+    if (name === 'gacha')    renderGacha();
+  }
+}
+function closeOverlay(name) {
+  document.getElementById('ov-' + name)?.classList.remove('show');
+}
+
+// ---- MISC ----
+function setSpeed(ms, btn) {
+  typeSpeed = ms;
+  document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function toggleFS() {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.getElementById('game').requestFullscreen?.().catch(() => {});
+}
+
+function showToast(msg) {
+  const t = document.getElementById('affToast');
+  t.style.color = '#b89fd8'; t.style.borderColor = 'rgba(155,109,181,0.4)';
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ---- KEYBOARD ----
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+  if (document.querySelector('.overlay.show')) {
+    if (e.key === 'Escape') {
+      const loginOpen = document.getElementById('ov-login') && document.getElementById('ov-login').classList.contains('show');
+      if (loginOpen && !bootDone) return;
+      document.querySelectorAll('.overlay.show').forEach(o => o.classList.remove('show'));
+    }
+    return;
+  }
+  switch (e.key) {
+    case ' ': case 'Enter': case 'ArrowRight': e.preventDefault(); advance(); break;
+    case 'Control': startFF(); break;
+    case 'Tab':     e.preventDefault(); skipToChoice(); break;
+    case 'a': case 'A': toggleAuto(); break;
+    case 't': case 'T': openOverlay('tree'); break;
+    case 'l': case 'L': openOverlay('log');  break;
+    case 'Escape':       openOverlay('settings'); break;
+    case 'F5':      e.preventDefault(); openOverlay('saveload'); break;
+  }
+});
+document.addEventListener('keyup', e => { if (e.key === 'Control') stopFF(); });
+
+// ---- DEBUG: log parse results to console ----
+console.log('[GE] Script parsed:', CMDS.length, 'commands');
+console.log('[GE] Labels found:', Object.keys(LABELS));
+
+// ---- START (online gate) ----
+olBoot();
+<\/script>
+</body>
+</html>`;
+}
+
+// ========== IMPORT ==========
+function importText(e) {
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    document.getElementById('scriptTa').value=ev.target.result;
+    onScript(); closeModal('import-text'); showNotif('✅ 已导入: '+file.name);
+  };
+  reader.readAsText(file,'utf-8');
+}
+
+function importImages(e) {
+  const files=[...e.target.files];
+  let loaded=0;
+  files.forEach(f=>{
+    const name=f.name.replace(/\.[^.]+$/,'');
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      // Store as base64 data URL for embedding in export
+      STATE.assetFiles = STATE.assetFiles||{};
+      STATE.assetFiles[name]={dataUrl:ev.target.result,type:f.type,fname:f.name};
+      if(!STATE.bgImages.includes(name)&&!STATE.charImages.includes(name)){
+        if(name.includes('_')) STATE.charImages.push(name);
+        else STATE.bgImages.push(name);
+      }
+      loaded++;
+      if(loaded===files.length){
+        buildImgList('bg');
+        closeModal('import-image');
+        showNotif(`✅ 导入 ${files.length} 张图片（已嵌入导出包）`);
+      }
+    };
+    reader.readAsDataURL(f);
+  });
+  if(files.length===0){buildImgList('bg');closeModal('import-image');}
+}
+
+function importAudio(e) {
+  const files=[...e.target.files];
+  let loaded=0;
+  files.forEach(f=>{
+    const name=f.name.replace(/\.[^.]+$/,'');
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      STATE.assetFiles=STATE.assetFiles||{};
+      STATE.assetFiles[name]={dataUrl:ev.target.result,type:f.type,fname:f.name};
+      if(!STATE.bgmList.includes(name)) STATE.bgmList.push(name);
+      loaded++;
+      if(loaded===files.length){
+        buildAudioList('bgm');
+        closeModal('import-audio');
+        showNotif(`✅ 导入 ${files.length} 个音频（已嵌入导出包）`);
+      }
+    };
+    reader.readAsDataURL(f);
+  });
+  if(files.length===0){buildAudioList('bgm');closeModal('import-audio');}
+}
+
+// ========== MODAL ==========
+function showModal(id){document.getElementById('modal-'+id)?.classList.add('show');}
+function closeModal(id){document.getElementById('modal-'+id)?.classList.remove('show');}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
+
+// ========== NOTIFICATION ==========
+let ntimer;
+function showNotif(msg){
+  const n=document.getElementById('notif');
+  document.getElementById('notifTxt').textContent=msg;
+  n.classList.add('show');
+  clearTimeout(ntimer);
+  ntimer=setTimeout(()=>n.classList.remove('show'),2800);
+}
+
+function openPreview(){
+  const script=document.getElementById('scriptTa').value;
+  const html=buildGameHTML(script);
+  const w=window.open('','_blank','width=1280,height=720');
+  w.document.write(html);w.document.close();
+  showNotif('▶ 已打开预览窗口');
+}
+
+function showHelp(){showNotif('📖 访问 galgamemaker.dev 获取完整文档');}
+
+function showHelp(){switchMod('help');}
+
+// ============================================================
+//  UI DESIGNER
+// ============================================================
+const UID_PRESETS = [
+  { name:'柚子社风', colors:{tbBg:'#040208',textColor:'#f0e6f0',choiceHover:'#9b6db5',cursorColor:'#e8a0b4'}, tbAlpha:0.88, tbRadius:'10px', tbBlur:'6px', dialogFont:"'Noto Serif SC',serif", dialogFontSize:'15px', dialogLineH:'2.0', speakerSize:'16px', choiceRadius:'8px', choiceWidth:'60%', choiceGap:'10px' },
+  { name:'极简白昼', colors:{tbBg:'#f8f4ff',textColor:'#2a1f3d',choiceHover:'#d4648a',cursorColor:'#d4648a'}, tbAlpha:0.95, tbRadius:'4px', tbBlur:'0px', dialogFont:"'Noto Sans SC',sans-serif", dialogFontSize:'14px', dialogLineH:'1.9', speakerSize:'14px', choiceRadius:'4px', choiceWidth:'55%', choiceGap:'8px' },
+  { name:'复古和风', colors:{tbBg:'#1a0f08',textColor:'#f5e6c8',choiceHover:'#c8844a',cursorColor:'#d4af6a'}, tbAlpha:0.92, tbRadius:'2px', tbBlur:'2px', dialogFont:"'Noto Serif SC',serif", dialogFontSize:'15px', dialogLineH:'2.2', speakerSize:'16px', choiceRadius:'2px', choiceWidth:'65%', choiceGap:'12px' },
+  { name:'赛博霓虹', colors:{tbBg:'#010812',textColor:'#b0f4ff',choiceHover:'#00d4ff',cursorColor:'#ff00aa'}, tbAlpha:0.9, tbRadius:'0px', tbBlur:'8px', dialogFont:"monospace", dialogFontSize:'13px', dialogLineH:'1.8', speakerSize:'13px', choiceRadius:'0px', choiceWidth:'70%', choiceGap:'6px' },
+  { name:'柔粉少女', colors:{tbBg:'#2a0a18',textColor:'#fce4f0',choiceHover:'#e8a0b4',cursorColor:'#ff8ab4'}, tbAlpha:0.85, tbRadius:'16px', tbBlur:'10px', dialogFont:"'Noto Serif SC',serif", dialogFontSize:'15px', dialogLineH:'2.0', speakerSize:'16px', choiceRadius:'20px', choiceWidth:'58%', choiceGap:'10px' },
+  { name:'古典哥特', colors:{tbBg:'#08040a',textColor:'#d4c4e4',choiceHover:'#6b3a8a',cursorColor:'#9944cc'}, tbAlpha:0.96, tbRadius:'6px', tbBlur:'4px', dialogFont:"'Playfair Display',serif", dialogFontSize:'14px', dialogLineH:'2.0', speakerSize:'15px', choiceRadius:'6px', choiceWidth:'62%', choiceGap:'8px' },
+];
+
+let currentTheme = JSON.parse(JSON.stringify(UID_PRESETS[0]));
+
+function buildUIDPresets(){
+  const container = document.getElementById('uidPresets');
+  if(!container) return;
+  container.innerHTML = '';
+  UID_PRESETS.forEach((p,i)=>{
+    const el = document.createElement('div');
+    el.className = 'uid-preset' + (i===0?' active':'');
+    el.innerHTML = `<div class="uid-preset-swatch" style="background:linear-gradient(135deg,${p.colors.tbBg},${p.colors.choiceHover});border:1px solid ${p.colors.cursorColor}44;"></div>
+      <div class="uid-preset-name">${p.name}</div>`;
+    el.onclick = ()=>{
+      document.querySelectorAll('.uid-preset').forEach(x=>x.classList.remove('active'));
+      el.classList.add('active');
+      applyPreset(p);
+    };
+    container.appendChild(el);
+  });
+}
+
+function applyPreset(p){
+  currentTheme = JSON.parse(JSON.stringify(p));
+  renderUIDPreview();
+  // sync slider values
+  const sliders = document.querySelectorAll('#view-uidesign .uid-slider');
+  const vals = [
+    p.tbAlpha*100, parseFloat(p.tbRadius), 18,
+    parseFloat(p.tbBlur), parseFloat(p.dialogFontSize),
+    parseFloat(p.dialogLineH)*10, parseFloat(p.speakerSize),
+    parseFloat(p.choiceRadius), parseFloat(p.choiceWidth),
+    parseFloat(p.choiceGap)
+  ];
+  sliders.forEach((s,i)=>{ if(vals[i]!==undefined){ s.value=vals[i]; const vEl=s.nextElementSibling; if(vEl&&vEl.classList.contains('uid-val')) vEl.textContent=vals[i]; } });
+}
+
+function applyUID(prop, val){
+  if(['tbBg','textColor','choiceHover','cursorColor'].includes(prop)){
+    if(!currentTheme.colors) currentTheme.colors={};
+    currentTheme.colors[prop]=val;
+  } else {
+    currentTheme[prop]=val;
+  }
+  renderUIDPreview();
+}
+
+function updateUIDLabel(slider, unit){
+  const vEl = slider.nextElementSibling;
+  if(vEl && vEl.classList.contains('uid-val')) vEl.textContent = slider.value + unit;
+}
+
+function renderUIDPreview(){
+  const t = currentTheme;
+  const tb = document.getElementById('uidTbInner');
+  const sp = document.getElementById('uidSpeaker');
+  const dlg = document.getElementById('uidDialog');
+  const choices = document.querySelectorAll('.uid-choice-btn');
+  if(!tb) return;
+
+  const bg = t.colors?.tbBg || '#040208';
+  const alpha = t.tbAlpha !== undefined ? t.tbAlpha : 0.88;
+  // parse hex to rgba
+  function hexAlpha(hex, a){ const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
+
+  tb.style.background = hexAlpha(bg, alpha);
+  tb.style.borderRadius = t.tbRadius || '10px';
+  tb.style.backdropFilter = `blur(${t.tbBlur||'6px'})`;
+  tb.style.borderColor = `rgba(184,159,216,0.2)`;
+
+  if(dlg){
+    dlg.style.fontFamily = t.dialogFont || "'Noto Serif SC',serif";
+    dlg.style.fontSize = t.dialogFontSize || '13px';
+    dlg.style.lineHeight = t.dialogLineH || '2.0';
+    dlg.style.color = t.colors?.textColor || '#f0e6f0';
+  }
+  if(sp){
+    sp.style.fontSize = t.speakerSize || '14px';
+    sp.style.fontFamily = t.dialogFont || "'Noto Serif SC',serif";
+  }
+  choices.forEach(btn=>{
+    btn.style.borderRadius = t.choiceRadius || '8px';
+    btn.style.fontFamily = t.dialogFont || "'Noto Serif SC',serif";
+    btn.style.color = t.colors?.textColor || '#f0e6f0';
+  });
+
+  // Show choices preview toggle
+  const choicesDiv = document.getElementById('uidChoices');
+  const textboxDiv = document.getElementById('uidTextbox');
+  // alternate every 3s
+}
+
+function loadTbBg(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  const tb = document.getElementById('uidTbInner');
+  if(tb){ tb.style.backgroundImage=`url(${url})`; tb.style.backgroundSize='cover'; tb.style.backgroundPosition='center'; }
+  currentTheme.tbBgImage = url;
+  showNotif('✅ 文本框背景已更新');
+}
+
+function exportTheme(){
+  const data = JSON.stringify(currentTheme, null, 2);
+  const blob = new Blob([data],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='galgame_theme.json'; a.click();
+  URL.revokeObjectURL(url);
+  showNotif('💾 主题已导出');
+}
+
+function importTheme(e){
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ev=>{ try{ const t=JSON.parse(ev.target.result); applyPreset(t); showNotif('✅ 主题已导入: '+file.name); } catch(err){ showNotif('❌ 主题文件格式错误'); } };
+  r.readAsText(file);
+}
+
+// ============================================================
+//  HELP / DEVELOPER DOCS
+// ============================================================
+const HELP_CHAPTERS = [
+  {
+    id:'quickstart', icon:'🚀', title:'快速开始',
+    sections:[
+      { title:'软件简介', content:`
+        <div class="help-body">
+          <p>GalgameMaker Studio 是一款面向个人开发者的视觉小说制作工具。无需编程基础，通过简单的脚本语法和可视化界面即可制作完整的 Galgame。</p>
+          <p>制作好的游戏可以一键导出为 HTML5 单文件，直接在浏览器中运行，也可以打包为 Steam 桌面应用。</p>
+        </div>
+        <div class="help-tip">推荐工作流：先写好剧本文本 → 导入角色/背景/音频素材 → 在剧情树中检查分支 → 导出预览 → 打包发布</div>
+      `},
+      { title:'界面导览', content:`
+        <table class="help-table">
+          <tr><th>区域</th><th>功能</th></tr>
+          <tr><td>左侧图标栏</td><td>在各功能模块之间切换（剧本/角色/画面/音频/剧情树/发布/UI/文档）</td></tr>
+          <tr><td>剧情大纲面板</td><td>展示章节结构，点击可快速跳转到对应场景</td></tr>
+          <tr><td>编辑器区域</td><td>当前选中模块的主编辑区</td></tr>
+          <tr><td>右侧检查器</td><td>（剧本模块）显示场景信息、角色快捷插入、跳转标签</td></tr>
+          <tr><td>状态栏</td><td>显示字数统计和潜在问题警告</td></tr>
+        </table>
+      `},
+    ]
+  },
+  {
+    id:'script', icon:'📝', title:'剧本脚本语法',
+    sections:[
+      { title:'基本结构', content:`
+        <div class="help-body"><p>剧本以纯文本编写，每行一条指令或对话。空行会被自动忽略。指令使用 <span class="help-tag">[方括号]</span> 包裹，对话使用 <span class="help-tag">角色名: 文本</span> 格式。</p></div>
+        <div class="help-code-block">[label: prologue_start]
+[bg: school_gate_morning]
+[bgm: spring_breeze]
+
+旁白: 四月的樱花，悄悄地飘落。
+
+[char: rinka_smile pos:center]
+凛夏: 你好！我叫宫下凛夏♪
+
+主角: 请多关照。</div>
+      `},
+      { title:'完整指令表', content:`
+        <table class="help-table">
+          <tr><th>指令</th><th>说明</th><th>示例</th></tr>
+          <tr><td>[label: 名称]</td><td>定义场景锚点，用于跳转和剧情树</td><td>[label: ch1_start]</td></tr>
+          <tr><td>角色名: 文字</td><td>显示角色对话</td><td>凛夏: 你好！</td></tr>
+          <tr><td>旁白: 文字</td><td>显示旁白（无角色名）</td><td>旁白: 夕阳西下。</td></tr>
+          <tr><td>[bg: 文件名]</td><td>切换背景图（不含扩展名）</td><td>[bg: rooftop_sunset]</td></tr>
+          <tr><td>[char: ID_表情 pos:位置]</td><td>显示角色立绘。pos可选left/center/right</td><td>[char: rinka_smile pos:left]</td></tr>
+          <tr><td>[char: hide pos:位置]</td><td>隐藏指定位置立绘</td><td>[char: hide pos:left]</td></tr>
+          <tr><td>[bgm: 文件名]</td><td>播放循环背景音乐</td><td>[bgm: spring_breeze]</td></tr>
+          <tr><td>[se: 文件名]</td><td>播放一次性音效</td><td>[se: door_open]</td></tr>
+          <tr><td>[voice: 文件名]</td><td>播放语音（与对话同步）</td><td>[voice: rinka_01]</td></tr>
+          <tr><td>[aff: 角色 +N]</td><td>增加好感度（N为正整数）</td><td>[aff: rinka +10]</td></tr>
+          <tr><td>[aff: 角色 -N]</td><td>减少好感度</td><td>[aff: yuki -5]</td></tr>
+          <tr><td>[flag: set 变量 值]</td><td>设置剧情标志变量</td><td>[flag: set met_rinka true]</td></tr>
+          <tr><td>[if: flag=变量 eq 值]</td><td>条件判断开始</td><td>[if: flag=met_rinka eq true]</td></tr>
+          <tr><td>[/if]</td><td>条件判断结束</td><td>[/if]</td></tr>
+          <tr><td>[choice] … [/choice]</td><td>选项分支块</td><td>见下方示例</td></tr>
+          <tr><td>[jump: 标签名]</td><td>无条件跳转到标签</td><td>[jump: ch2_start]</td></tr>
+          <tr><td>[title: 文字]</td><td>更新顶部章节标题</td><td>[title: 第一章 · 相遇]</td></tr>
+          <tr><td>[hide]</td><td>隐藏文本框</td><td>[hide]</td></tr>
+        </table>
+      `},
+      { title:'选项分支', content:`
+        <div class="help-body"><p>用 <span class="help-tag">[choice]</span> 和 <span class="help-tag">[/choice]</span> 包裹选项列表，每个选项以 <code>-</code> 开头，用 <code>→</code> 指定跳转标签。</p></div>
+        <div class="help-code-block">[choice]
+- 主动打招呼 → route_a_start
+- 沉默不语 → route_b_start
+- 转身离开 → route_c_start
+[/choice]</div>
+        <div class="help-tip">选项会自动暂停快进（FF）和跳过（SKIP）功能，等待玩家主动选择。</div>
+      `},
+      { title:'条件与标志', content:`
+        <div class="help-code-block">[flag: set chose_rinka true]
+
+[if: flag=chose_rinka eq true]
+凛夏: 谢谢你选择了我！
+[/if]
+
+[if: flag=chose_yuki eq true]
+雪绘: ……你选了我。
+[/if]</div>
+        <div class="help-tip">Flag变量名建议使用英文字母+下划线，值可以是任意字符串，如 true/false/yes/no/1/2 等。</div>
+      `},
+      { title:'好感度系统', content:`
+        <div class="help-body"><p>好感度通过 <span class="help-tag">[aff:]</span> 指令修改，可在运行时存档中保存。可以使用好感度值来控制哪条路线可解锁。</p></div>
+        <div class="help-code-block">凛夏: 要一起吃午饭吗？
+
+[choice]
+- 好啊，我正想认识你！ → lunch_yes
+- 不了，我不太习惯 → lunch_no
+[/choice]
+
+[label: lunch_yes]
+[aff: rinka +15]
+凛夏: 太好了！我带了很多！
+
+[label: lunch_no]
+[aff: rinka -5]
+凛夏: ……这样啊。</div>
+      `},
+    ]
+  },
+  {
+    id:'assets', icon:'🖼️', title:'素材管理',
+    sections:[
+      { title:'图片素材', content:`
+        <div class="help-body">
+          <p>所有图片素材通过「画面」模块导入，或直接拖放到编辑器区域。文件名（不含扩展名）就是脚本中引用的ID。</p>
+        </div>
+        <table class="help-table">
+          <tr><th>素材类型</th><th>推荐规格</th><th>格式</th></tr>
+          <tr><td>背景图</td><td>1280 × 720 px</td><td>JPG / PNG / WEBP</td></tr>
+          <tr><td>角色立绘</td><td>宽度 400~800px，高度自由，透明底</td><td>PNG（必须透明底）</td></tr>
+          <tr><td>UI贴图</td><td>任意尺寸</td><td>PNG</td></tr>
+        </table>
+        <div class="help-tip">立绘文件名建议用「角色ID_表情名」格式，例如 <code>rinka_smile.png</code>，这样脚本中写 <code>[char: rinka_smile]</code> 即可自动匹配。</div>
+      `},
+      { title:'音频素材', content:`
+        <div class="help-body"><p>通过「音频」模块或「🎵 加载音乐」按钮导入。支持格式：</p></div>
+        <table class="help-table">
+          <tr><th>用途</th><th>推荐格式</th><th>备注</th></tr>
+          <tr><td>背景音乐 BGM</td><td>OGG / MP3</td><td>推荐OGG，循环无缝；MP3 iOS兼容好</td></tr>
+          <tr><td>音效 SE</td><td>WAV / OGG</td><td>WAV延迟最低，适合短音效</td></tr>
+          <tr><td>角色语音</td><td>OGG / MP3</td><td>文件名建议「角色ID_场景编号」</td></tr>
+        </table>
+        <div class="help-warn">注意：导出的HTML5游戏需要用户手动点击「加载音乐」按钮导入本地音频文件。Steam版本可直接打包音频资源。</div>
+      `},
+    ]
+  },
+  {
+    id:'gamecontrols', icon:'🎮', title:'游戏内操作',
+    sections:[
+      { title:'键盘快捷键', content:`
+        <table class="help-table">
+          <tr><th>按键</th><th>功能</th></tr>
+          <tr><td><span class="help-kbd">空格</span> / <span class="help-kbd">Enter</span> / <span class="help-kbd">→</span></td><td>推进对话 / 完成打字机效果</td></tr>
+          <tr><td><span class="help-kbd">Ctrl</span> 按住</td><td>快进（自动推进对话，遇选项停止）</td></tr>
+          <tr><td><span class="help-kbd">Tab</span></td><td>SKIP — 跳过所有对话到下一个选项</td></tr>
+          <tr><td><span class="help-kbd">A</span></td><td>切换自动播放</td></tr>
+          <tr><td><span class="help-kbd">T</span></td><td>打开剧情树</td></tr>
+          <tr><td><span class="help-kbd">L</span></td><td>打开对话记录</td></tr>
+          <tr><td><span class="help-kbd">F5</span></td><td>打开存档/读档界面</td></tr>
+          <tr><td><span class="help-kbd">Esc</span></td><td>打开设置菜单</td></tr>
+        </table>
+      `},
+      { title:'游戏内菜单按钮', content:`
+        <table class="help-table">
+          <tr><th>按钮</th><th>功能</th></tr>
+          <tr><td>💾</td><td>存档/读档（9个存档槽，自动记录截图）</td></tr>
+          <tr><td>AUTO</td><td>自动播放，间隔时间可在设置中调节</td></tr>
+          <tr><td>FF</td><td>快进模式，按住Ctrl也可激活</td></tr>
+          <tr><td>SKIP</td><td>直接跳到下一个玩家选项</td></tr>
+          <tr><td>🌿</td><td>剧情树——查看/跳转已访问场景</td></tr>
+          <tr><td>📜</td><td>对话记录——回看最近对话</td></tr>
+          <tr><td>⚙️</td><td>设置（文字速度/音量/全屏等）</td></tr>
+        </table>
+      `},
+    ]
+  },
+  {
+    id:'uitheming', icon:'🎨', title:'UI 自定义',
+    sections:[
+      { title:'UI设计器使用方法', content:`
+        <div class="help-body">
+          <p>点击左侧导航「🎨 UI」进入 UI 设计器。左侧是参数控制面板，右侧是实时预览区域，所有修改即时反映在预览中。</p>
+        </div>
+        <table class="help-table">
+          <tr><th>参数组</th><th>可调内容</th></tr>
+          <tr><td>主题预设</td><td>6个内置主题一键应用，包括柚子社风/极简/和风/赛博/少女/哥特</td></tr>
+          <tr><td>文本框样式</td><td>背景透明度、圆角、边框透明度、位置、模糊效果</td></tr>
+          <tr><td>字体设置</td><td>对话字体（5种内置）、字号、行高、角色名字号</td></tr>
+          <tr><td>选项按钮</td><td>圆角、宽度、间距</td></tr>
+          <tr><td>颜色方案</td><td>文字色、框体背景色、选项高亮色、光标颜色</td></tr>
+          <tr><td>自定义背景</td><td>文本框可使用图片背景（PNG/JPG）</td></tr>
+        </table>
+        <div class="help-tip">调整完成后点击「💾 导出主题 JSON」保存主题文件，发布游戏时主题会自动应用到导出的游戏中。</div>
+      `},
+      { title:'主题JSON格式', content:`
+        <div class="help-body"><p>主题文件为标准JSON，也可以手动编辑：</p></div>
+        <div class="help-code-block">{
+  "name": "我的主题",
+  "tbAlpha": 0.88,
+  "tbRadius": "10px",
+  "tbBlur": "6px",
+  "dialogFont": "'Noto Serif SC',serif",
+  "dialogFontSize": "15px",
+  "dialogLineH": "2.0",
+  "speakerSize": "16px",
+  "choiceRadius": "8px",
+  "choiceWidth": "60%",
+  "choiceGap": "10px",
+  "colors": {
+    "tbBg": "#040208",
+    "textColor": "#f0e6f0",
+    "choiceHover": "#9b6db5",
+    "cursorColor": "#e8a0b4"
+  }
+}</div>
+      `},
+    ]
+  },
+  {
+    id:'storytree', icon:'🌿', title:'剧情树系统',
+    sections:[
+      { title:'剧情树说明', content:`
+        <div class="help-body">
+          <p>剧情树同时存在于制作器和导出游戏中。制作器中可以查看整体结构和跳转；游戏中玩家可以查看已访问的场景并跳转。</p>
+          <p>剧情树的节点由脚本中的 <span class="help-tag">[label: 名称]</span> 自动生成。命名规则影响节点类型：</p>
+        </div>
+        <table class="help-table">
+          <tr><th>Label命名包含</th><th>节点类型</th><th>颜色</th></tr>
+          <tr><td>_end / ending</td><td>结局节点</td><td>绿色</td></tr>
+          <tr><td>_a / route_a</td><td>A路线节点</td><td>粉色</td></tr>
+          <tr><td>_b / route_b</td><td>B路线节点</td><td>青色</td></tr>
+          <tr><td>其他</td><td>主线节点</td><td>紫色</td></tr>
+        </table>
+        <div class="help-tip">游戏中未访问的节点会显示为灰色锁定状态，只有玩过的场景才可以在剧情树中跳转，这样可以防止剧透。</div>
+      `},
+    ]
+  },
+  {
+    id:'export', icon:'🚀', title:'导出与发布',
+    sections:[
+      { title:'导出格式对比', content:`
+        <table class="help-table">
+          <tr><th>格式</th><th>适用场景</th><th>优势</th><th>限制</th></tr>
+          <tr><td>Web HTML5</td><td>itch.io、网页发布</td><td>单文件，零安装</td><td>音频需玩家手动加载</td></tr>
+          <tr><td>Steam / PC包</td><td>Steam正式发布</td><td>可打包音频，Steam SDK</td><td>需要Electron环境</td></tr>
+          <tr><td>引擎源码</td><td>自定义开发</td><td>完全可修改</td><td>需要基础编程知识</td></tr>
+          <tr><td>剧本JSON</td><td>外部工具集成</td><td>结构化数据</td><td>需自行渲染</td></tr>
+        </table>
+      `},
+      { title:'Steam上架流程', content:`
+        <div class="help-body">
+          <p>上架Steam需要以下步骤：</p>
+          <p><strong>1. 注册Steamworks</strong> — 访问 partner.steamgames.com，缴纳一次性费用（约$100）</p>
+          <p><strong>2. 创建应用</strong> — 填写游戏信息、上传截图、设置商店页面</p>
+          <p><strong>3. 打包游戏</strong> — 使用本软件导出Steam包，需安装 Node.js 和 Electron</p>
+          <p><strong>4. 上传构建</strong> — 使用Steamworks SDK的 steamcmd 上传游戏文件</p>
+          <p><strong>5. 审核发布</strong> — 提交审核，通常3-5个工作日</p>
+        </div>
+        <div class="help-tip">视觉小说在Steam上有专门的「视觉小说」标签分类，建议同时添加「Anime」「Story Rich」等标签提高曝光度。</div>
+        <div class="help-warn">Steam要求游戏必须有至少5张截图和1个预告片，请提前准备好宣传素材。</div>
+      `},
+    ]
+  },
+  {
+    id:'faq', icon:'❓', title:'常见问题',
+    sections:[
+      { title:'FAQ', content:`
+        <div class="help-sec">
+          <div style="margin-bottom:16px;padding:12px;background:var(--bg-card);border-radius:6px;border-left:3px solid var(--accent-purple);">
+            <div style="font-size:12px;color:var(--text-primary);margin-bottom:6px;">Q: 图片/音频显示不出来怎么办？</div>
+            <div style="font-size:12px;color:var(--text-secondary);">A: 确保文件名与脚本中引用的ID完全一致（区分大小写，不含扩展名）。图片支持PNG/JPG/WEBP，音频支持MP3/OGG/WAV。</div>
+          </div>
+          <div style="margin-bottom:16px;padding:12px;background:var(--bg-card);border-radius:6px;border-left:3px solid var(--accent-purple);">
+            <div style="font-size:12px;color:var(--text-primary);margin-bottom:6px;">Q: 选项跳转后场景不对？</div>
+            <div style="font-size:12px;color:var(--text-secondary);">A: 检查 <code>[choice]</code> 中 <code>→ 标签名</code> 的标签名是否与对应 <code>[label: 标签名]</code> 完全匹配。</div>
+          </div>
+          <div style="margin-bottom:16px;padding:12px;background:var(--bg-card);border-radius:6px;border-left:3px solid var(--accent-purple);">
+            <div style="font-size:12px;color:var(--text-primary);margin-bottom:6px;">Q: 怎么做多结局？</div>
+            <div style="font-size:12px;color:var(--text-secondary);">A: 在关键节点用 <code>[choice]</code> 分支，每条路线以不同的 <code>[label: xxx_end]</code> 结尾。建议配合 <code>[flag:]</code> 和 <code>[aff:]</code> 做隐藏条件结局。</div>
+          </div>
+          <div style="margin-bottom:16px;padding:12px;background:var(--bg-card);border-radius:6px;border-left:3px solid var(--accent-purple);">
+            <div style="font-size:12px;color:var(--text-primary);margin-bottom:6px;">Q: 导出的游戏如何加载音乐？</div>
+            <div style="font-size:12px;color:var(--text-secondary);">A: HTML5版本点击游戏左上角「🎵 加载音乐」选择本地MP3/OGG文件即可。Steam版本可以直接打包音频在游戏目录里自动读取。</div>
+          </div>
+          <div style="padding:12px;background:var(--bg-card);border-radius:6px;border-left:3px solid var(--accent-purple);">
+            <div style="font-size:12px;color:var(--text-primary);margin-bottom:6px;">Q: 可以在手机上玩吗？</div>
+            <div style="font-size:12px;color:var(--text-secondary);">A: HTML5版本支持移动端浏览器，建议横屏游玩。可以用触摸代替点击，长按可触发快进。</div>
+          </div>
+        </div>
+      `},
+    ]
+  },
+];
+
+let currentHelpChapter = 0;
+let currentHelpSection = 0;
+
+function buildHelp(){
+  const toc = document.getElementById('helpToc');
+  const content = document.getElementById('helpContent');
+  if(!toc||!content) return;
+  toc.innerHTML='';
+  HELP_CHAPTERS.forEach((ch,ci)=>{
+    const chEl = document.createElement('div');
+    chEl.className='help-toc-ch'+(ci===0?' active':'');
+    chEl.innerHTML=`<div class="help-toc-ch-title">${ch.icon} ${ch.title}</div>`;
+    chEl.onclick=()=>showHelpChapter(ci);
+    toc.appendChild(chEl);
+    ch.sections.forEach((sec,si)=>{
+      const secEl=document.createElement('div');
+      secEl.className='help-toc-sec'+(ci===0&&si===0?' active':'');
+      secEl.id=`toc-${ci}-${si}`;
+      secEl.textContent=sec.title;
+      secEl.onclick=(e)=>{e.stopPropagation();showHelpSection(ci,si);};
+      toc.appendChild(secEl);
+    });
+  });
+  showHelpChapter(0);
+}
+
+function showHelpChapter(ci){
+  currentHelpChapter=ci;
+  document.querySelectorAll('.help-toc-ch').forEach((el,i)=>el.classList.toggle('active',i===ci));
+  const ch=HELP_CHAPTERS[ci];
+  const content=document.getElementById('helpContent');
+  let html=`<div class="help-ch-title">${ch.icon} ${ch.title}</div>
+    <div class="help-ch-sub">GalgameMaker Studio — 开发文档</div>`;
+  ch.sections.forEach((sec,si)=>{
+    html+=`<div class="help-sec" id="help-sec-${ci}-${si}">
+      <div class="help-sec-title">${sec.title}</div>
+      ${sec.content}
+    </div>`;
+  });
+  content.innerHTML=html;
+  content.scrollTop=0;
+}
+
+function showHelpSection(ci,si){
+  showHelpChapter(ci);
+  setTimeout(()=>{
+    const el=document.getElementById(`help-sec-${ci}-${si}`);
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+    document.querySelectorAll('.help-toc-sec').forEach(x=>x.classList.remove('active'));
+    document.getElementById(`toc-${ci}-${si}`)?.classList.add('active');
+  },50);
+}
+
+// ========== PETALS ==========
+function petal(){
+  const p=document.createElement('div');p.className='petal';
+  p.textContent=['🌸','🌺','✿'][Math.floor(Math.random()*3)];
+  p.style.left=Math.random()*100+'vw';
+  p.style.animationDuration=(Math.random()*3+4)+'s';
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(),7000);
+}
+setInterval(()=>{if(Math.random()<0.25)petal();},3500);
+
+// ========== INIT ==========
+window.addEventListener('DOMContentLoaded',()=>{
+  buildOutline();
+  buildCharList();
+  loadChar(0);
+  buildImgList('bg');
+  buildAudioList('bgm');
+  buildWaveform();
+  startPlayhead();
+  onScript();
+  buildTree();
+  setTimeout(()=>showNotif('🌸 欢迎使用 GalgameMaker Studio！点击「导出游戏」试试吧'),1000);
+  buildOutline();
+  buildUIDPresets();
+  buildHelp();
+  renderUIDPreview();
+  // Toggle choice preview in UID every 3s
+  setInterval(()=>{
+    const c=document.getElementById('uidChoices');
+    const t=document.getElementById('uidTextbox');
+    if(!c||!t) return;
+    const showing=c.style.display==='flex';
+    c.style.display=showing?'none':'flex';
+    t.style.opacity=showing?'1':'0.3';
+  },3000);
+
+  // Drag drop script
+  const ta=document.getElementById('scriptTa');
+  ta.addEventListener('dragover',e=>e.preventDefault());
+  ta.addEventListener('drop',e=>{
+    e.preventDefault();
+    const file=e.dataTransfer.files[0];
+    if(file){const r=new FileReader();r.onload=ev=>{ta.value=ev.target.result;onScript();showNotif('✅ 拖放导入: '+file.name);};r.readAsText(file,'utf-8');}
+  });
+});
+</script>
+</body>
+</html>

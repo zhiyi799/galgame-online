@@ -1,0 +1,28 @@
+  <!-- ONLINE LOGIN -->
+  <div class="overlay" id="ov-login">
+    <div class="overlay-panel" style="width:380px;">
+      <div class="ov-header"><div class="ov-title">🌐 联网登录</div></div>
+      <div class="settings-body">
+        <input class="ol-input" id="olUser" type="text" placeholder="用户名" autocomplete="username" onkeydown="if(event.key==='Enter')olLogin()">
+        <input class="ol-input" id="olPass" type="password" placeholder="密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')olLogin()">
+        <div class="ol-msg" id="olMsg"></div>
+        <button class="ol-btn" onclick="olLogin()">登录</button>
+        <button class="ol-btn-ghost" onclick="olSignup()">注册新账号</button>
+        <span class="ol-link" onclick="olOffline()">▶ 离线游玩（不联网）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GACHA -->
+  <div class="overlay" id="ov-gacha">
+    <div class="overlay-panel" style="width:560px;max-height:85vh;display:flex;flex-direction:column;">
+      <div class="ov-header"><div class="ov-title">🎰 抽卡</div><div class="ov-close" onclick="closeOverlay('gacha')">✕</div></div>
+      <div class="settings-body" style="overflow-y:auto;">
+        <div class="wallet-line" id="gachaWallet">钱包加载中…</div>
+        <div id="gachaBanners"></div>
+        <div class="ol-msg" id="gachaMsg"></div>
+        <div class="pull-result" id="gachaResults"></div>
+      </div>
+    </div>
+  </div>
+

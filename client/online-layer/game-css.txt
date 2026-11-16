@@ -1,0 +1,22 @@
+/* ONLINE (GalgameOnline) */
+.ol-input{width:100%;padding:10px 12px;margin-bottom:10px;background:rgba(8,4,16,0.8);border:1px solid rgba(184,159,216,0.25);border-radius:8px;color:#f0e6f0;font-size:14px;font-family:'Noto Sans SC',sans-serif;outline:none;}
+.ol-input:focus{border-color:rgba(155,109,181,0.6);}
+.ol-btn{width:100%;padding:11px;border:none;border-radius:8px;background:linear-gradient(90deg,#9b6db5,#e8a0b4);color:#fff;font-size:14px;font-family:'Noto Serif SC',serif;letter-spacing:2px;cursor:pointer;margin-bottom:8px;}
+.ol-btn:hover{opacity:0.9;}
+.ol-btn-ghost{width:100%;padding:10px;border:1px solid rgba(184,159,216,0.3);border-radius:8px;background:transparent;color:#b89fd8;font-size:13px;cursor:pointer;}
+.ol-btn-ghost:hover{background:rgba(155,109,181,0.12);}
+.ol-msg{font-size:12px;color:#f87171;min-height:18px;margin:4px 0 8px;text-align:center;}
+.ol-link{display:block;text-align:center;font-size:12px;color:#6b5e7a;cursor:pointer;margin-top:10px;text-decoration:underline;}
+.ol-link:hover{color:#b89fd8;}
+.gacha-banner{border:1px solid rgba(184,159,216,0.18);border-radius:10px;padding:14px;margin-bottom:12px;background:rgba(28,20,42,0.6);}
+.gacha-banner h3{font-size:15px;color:#e8d8f0;font-family:'Noto Serif SC',serif;margin-bottom:4px;}
+.gacha-banner p{font-size:11px;color:#a89ab8;margin-bottom:10px;}
+.gacha-btns{display:flex;gap:8px;}
+.gacha-btn{flex:1;padding:9px;border-radius:8px;border:1px solid rgba(155,109,181,0.45);background:rgba(155,109,181,0.15);color:#e8d8f0;font-size:13px;cursor:pointer;font-family:'Noto Serif SC',serif;}
+.gacha-btn:hover{background:rgba(155,109,181,0.3);}
+.gacha-btn:disabled{opacity:0.4;cursor:default;}
+.pull-result{margin-top:6px;}
+.pull-item{display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid rgba(184,159,216,0.07);font-size:13px;color:#f0e6f0;}
+.pull-item .stars{color:#f5c542;letter-spacing:1px;}
+.pull-item.r5 .stars{color:#ffd700;}
+.wallet-line{font-size:12px;color:#b89fd8;margin-bottom:12px;text-align:center;}

@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GalgameOnline.GameServer/GalgameOnline.GameServer.csproj" />
+    <Project Path="src/GalgameOnline.QueryGateway/GalgameOnline.QueryGateway.csproj" />
+    <Project Path="src/GalgameOnline.SdkServer/GalgameOnline.SdkServer.csproj" />
+    <Project Path="src/GalgameOnline.Shared/GalgameOnline.Shared.csproj" />
+  </Folder>
+</Solution>

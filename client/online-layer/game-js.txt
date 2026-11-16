@@ -1,0 +1,184 @@
+// ---- ONLINE (GalgameOnline) ----
+// Item id -> display name. Server only knows numbers; rename here freely.
+const ITEM_NAMES = {
+  101:'星夜·凛', 102:'星夜·雪', 103:'星夜·花', 104:'星夜·月', 105:'月下·凛',
+  201:'四星·凛', 202:'四星·雪', 203:'四星·花', 204:'四星·祭', 205:'四星·夜',
+  301:'三星·信物', 302:'三星·花瓣', 303:'三星·纸鹤', 304:'三星·月光'
+};
+let onlineToken = localStorage.getItem('gm_online_token') || null;
+let onlineMode = false;
+let bootDone = false;
+
+function olHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (onlineToken) h['Authorization'] = 'Bearer ' + onlineToken;
+  return h;
+}
+async function olApi(base, path, method, body) {
+  const res = await fetch(base + path, {
+    method: method || 'GET',
+    headers: olHeaders(),
+    body: body ? JSON.stringify(body) : undefined
+  });
+  let data = null;
+  try { data = await res.json(); } catch (e) { data = null; }
+  return { status: res.status, data: data };
+}
+function olSetMsg(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = msg || '';
+}
+function olItemName(id) { return ITEM_NAMES[id] || ('物品#' + id); }
+function olStars(r) { let s = ''; for (let i = 0; i < r; i++) s += '★'; return s; }
+
+async function olLogin() {
+  const u = document.getElementById('olUser').value.trim();
+  const p = document.getElementById('olPass').value;
+  if (!u || !p) { olSetMsg('olMsg', '请输入用户名和密码'); return; }
+  olSetMsg('olMsg', '登录中…');
+  try {
+    const r = await olApi(ONLINE.sdkUrl, '/api/sdk/login', 'POST', { username: u, password: p });
+    if (r.data && r.data.ok && r.data.token) {
+      onlineToken = r.data.token;
+      localStorage.setItem('gm_online_token', onlineToken);
+      onlineMode = true;
+      bootDone = true;
+      closeOverlay('login');
+      showToast('🌐 已登录 ' + u);
+      processNext();
+    } else {
+      olSetMsg('olMsg', (r.data && r.data.error) || ('登录失败（HTTP ' + r.status + '）'));
+    }
+  } catch (e) {
+    olSetMsg('olMsg', '连接服务器失败，请检查地址与网络');
+  }
+}
+async function olSignup() {
+  const u = document.getElementById('olUser').value.trim();
+  const p = document.getElementById('olPass').value;
+  if (!u || !p) { olSetMsg('olMsg', '请输入用户名和密码'); return; }
+  olSetMsg('olMsg', '注册中…');
+  try {
+    const r = await olApi(ONLINE.sdkUrl, '/api/sdk/signup', 'POST', { username: u, password: p });
+    if (r.data && r.data.ok) {
+      olSetMsg('olMsg', '注册成功，正在登录…');
+      await olLogin();
+    } else {
+      olSetMsg('olMsg', (r.data && r.data.error) || ('注册失败（HTTP ' + r.status + '）'));
+    }
+  } catch (e) {
+    olSetMsg('olMsg', '连接服务器失败，请检查地址与网络');
+  }
+}
+function olOffline() {
+  onlineMode = false;
+  bootDone = true;
+  closeOverlay('login');
+  showToast('▶ 离线模式');
+  processNext();
+}
+async function olBoot() {
+  if (!onlineToken) { openOverlay('login'); return; }
+  try {
+    const r = await olApi(ONLINE.sdkUrl, '/api/sdk/session', 'GET');
+    if (r.data && r.data.ok) {
+      onlineMode = true;
+      bootDone = true;
+      processNext();
+    } else {
+      localStorage.removeItem('gm_online_token');
+      onlineToken = null;
+      openOverlay('login');
+    }
+  } catch (e) {
+    olSetMsg('olMsg', '连接服务器失败，可先离线游玩');
+    openOverlay('login');
+  }
+}
+function openGacha() {
+  if (!onlineMode) { showToast('🎰 请先登录（联网模式）才能抽卡'); return; }
+  openOverlay('gacha');
+}
+async function renderGacha() {
+  const wEl = document.getElementById('gachaWallet');
+  const bEl = document.getElementById('gachaBanners');
+  olSetMsg('gachaMsg', '');
+  try {
+    const w = await olApi(ONLINE.gameUrl, '/api/game/wallet', 'GET');
+    if (w.data) wEl.textContent = '💰 高级货币 ' + w.data.premium + '  ·  免费货币 ' + w.data.free + '  ·  抽卡券 ' + w.data.tickets;
+    const bl = await olApi(ONLINE.gameUrl, '/api/game/banners', 'GET');
+    const banners = (bl.data && bl.data.banners) || [];
+    bEl.innerHTML = '';
+    for (const b of banners) {
+      let info = null;
+      try {
+        const ir = await olApi(ONLINE.gameUrl, '/api/game/banner/' + b.id, 'GET');
+        info = ir.data || null;
+      } catch (e) { info = null; }
+      const div = document.createElement('div');
+      div.className = 'gacha-banner';
+      const pity = info ? ('5星保底还剩 ' + info.fiveRemain + ' 抽 · 4星保底还剩 ' + info.fourRemain + ' 抽 · 已抽 ' + info.totalCount) : '保底信息加载失败';
+      div.innerHTML =
+        '<h3>' + b.name + '</h3>' +
+        '<p>UP 5星：' + olItemName(b.featuredFiveStar) + ' · 单抽 ' + b.costPerPull + ' 货币 · ' + pity + '</p>' +
+        '<div class="gacha-btns">' +
+          '<button class="gacha-btn" onclick="olPull(' + b.id + ',1)">单抽</button>' +
+          '<button class="gacha-btn" onclick="olPull(' + b.id + ',10)">十连</button>' +
+        '</div>';
+      bEl.appendChild(div);
+    }
+    if (!banners.length) bEl.innerHTML = '<p style="font-size:12px;color:#6b5e7a;">暂无卡池</p>';
+  } catch (e) {
+    wEl.textContent = '钱包加载失败：服务器连接失败';
+  }
+}
+async function olPull(bannerId, count) {
+  olSetMsg('gachaMsg', '抽卡中…');
+  document.getElementById('gachaResults').innerHTML = '';
+  try {
+    const r = await olApi(ONLINE.gameUrl, '/api/game/gacha/pull', 'POST', { bannerId: bannerId, count: count });
+    if (r.data && r.data.ok && r.data.pulls) {
+      const box = document.getElementById('gachaResults');
+      let html = '';
+      for (const p of r.data.pulls) {
+        html += '<div class="pull-item r' + p.rarity + '"><span>' + olItemName(p.itemId) + (p.isFeatured ? '（UP）' : '') + '</span><span class="stars">' + olStars(p.rarity) + '</span></div>';
+      }
+      box.innerHTML = html;
+      olSetMsg('gachaMsg', '');
+      renderGacha();
+    } else {
+      olSetMsg('gachaMsg', (r.data && r.data.error) || ('抽卡失败（HTTP ' + r.status + '）'));
+    }
+  } catch (e) {
+    olSetMsg('gachaMsg', '连接服务器失败，请检查地址与网络');
+  }
+}
+async function cloudUpload(slot) {
+  if (!onlineMode) { showToast('☁️ 请先登录（联网模式）才能用云存档'); return; }
+  const s = SAVES[slot];
+  if (!s) { showToast('☁️ 本地 SLOT ' + slot + ' 没有存档'); return; }
+  try {
+    const r = await olApi(ONLINE.gameUrl, '/api/game/save', 'POST', { slot: slot, dataJson: JSON.stringify(s) });
+    if (r.data && r.data.ok) showToast('☁️ 已上传 SLOT ' + slot);
+    else showToast('☁️ 上传失败：' + ((r.data && r.data.error) || r.status));
+  } catch (e) {
+    showToast('☁️ 上传失败：服务器连接失败');
+  }
+}
+async function cloudDownload(slot) {
+  if (!onlineMode) { showToast('☁️ 请先登录（联网模式）才能用云存档'); return; }
+  try {
+    const r = await olApi(ONLINE.gameUrl, '/api/game/save/' + slot, 'GET');
+    if (r.data && r.data.ok && r.data.dataJson) {
+      SAVES[slot] = JSON.parse(r.data.dataJson);
+      localStorage.setItem('gmstudio_saves', JSON.stringify(SAVES));
+      buildSaveGrid();
+      showToast('☁️ 已下载 SLOT ' + slot + '，正在读取…');
+      setTimeout(function() { loadGame(slot); }, 400);
+    } else {
+      showToast('☁️ 云端 SLOT ' + slot + ' 没有存档');
+    }
+  } catch (e) {
+    showToast('☁️ 下载失败：服务器连接失败');
+  }
+}

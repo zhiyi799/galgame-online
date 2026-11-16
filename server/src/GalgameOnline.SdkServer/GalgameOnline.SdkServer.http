@@ -1,0 +1,6 @@
+@GalgameOnline.SdkServer_HostAddress = http://localhost:5222
+
+GET {{GalgameOnline.SdkServer_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
