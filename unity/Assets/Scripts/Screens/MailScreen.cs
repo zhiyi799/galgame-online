@@ -16,12 +16,12 @@ namespace GalgameOnline.Screens
 
         private void Start()
         {
-            var canvas = FindObjectOfType<Canvas>();
+            var canvas = UiFactory.SceneCanvas();
             var (root, _) = UiFactory.ScreenBase(canvas.transform, "邮件",
                 () => GameManager.Instance.GoTo(GameManager.SceneMainMenu));
 
             _statusLabel = UiFactory.Label(root.transform, "Status", "加载中…", 18,
-                TextAlignmentOptions.Left, new Color(0.8f, 0.85f, 1f, 1f));
+                TextAlignmentOptions.Left, UiFactory.SilverWhite);
             _statusLabel.rectTransform.anchorMin = new Vector2(0, 1);
             _statusLabel.rectTransform.anchorMax = new Vector2(0, 1);
             UiFactory.Place(_statusLabel.rectTransform, 20, -76, 800, 30);
@@ -59,13 +59,13 @@ namespace GalgameOnline.Screens
                     var mail = m;
                     var card = UiFactory.Panel(_content, "Mail",
                         new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 118),
-                        new Color(1f, 1f, 1f, 0.06f));
+                        UiFactory.GlassWhite(0.06f));
                     var cardRt = card.GetComponent<RectTransform>();
                     cardRt.pivot = new Vector2(0.5f, 1);
 
                     string title = (mail.read ? "" : "● ") + mail.title;
                     var t = UiFactory.Label(card.transform, "Title", title, 20,
-                        TextAlignmentOptions.Left, Color.white, true);
+                        TextAlignmentOptions.Left, UiFactory.MoonWhite, true);
                     UiFactory.Place(t.rectTransform, 12, -8, 700, 28);
 
                     string date = "";
@@ -76,11 +76,11 @@ namespace GalgameOnline.Screens
                         else date = mail.createdAt;
                     }
                     var d = UiFactory.Label(card.transform, "Date", date, 15,
-                        TextAlignmentOptions.Left, new Color(0.7f, 0.75f, 0.85f, 1f));
+                        TextAlignmentOptions.Left, UiFactory.SilverWhite);
                     UiFactory.Place(d.rectTransform, 12, -38, 400, 24);
 
                     var b = UiFactory.Label(card.transform, "Body", mail.body ?? "", 17,
-                        TextAlignmentOptions.Left, new Color(0.85f, 0.88f, 0.95f, 1f));
+                        TextAlignmentOptions.Left, UiFactory.SilverWhite);
                     UiFactory.Place(b.rectTransform, 12, -62, 700, 26);
 
                     string att = "";
@@ -91,14 +91,14 @@ namespace GalgameOnline.Screens
                         att = "附件：" + string.Join("、", parts);
                     }
                     var a = UiFactory.Label(card.transform, "Attachments", att, 16,
-                        TextAlignmentOptions.Left, new Color(1f, 0.85f, 0.4f, 1f));
+                        TextAlignmentOptions.Left, UiFactory.MoonlightBlue);
                     UiFactory.Place(a.rectTransform, 12, -88, 700, 24);
 
                     bool hasAttachments = mail.attachments != null && mail.attachments.Length > 0;
                     var claimBtn = UiFactory.Button(card.transform, "Claim",
                         mail.claimed ? "已领取" : "领取",
                         () => ClaimMail(mail), new Vector2(110, 40),
-                        mail.claimed ? new Color(0.25f, 0.25f, 0.25f, 1f) : null);
+                        mail.claimed ? UiFactory.DeepUltramarine : null);
                     var cRt = claimBtn.GetComponent<RectTransform>();
                     cRt.anchorMin = new Vector2(1, 0.5f);
                     cRt.anchorMax = new Vector2(1, 0.5f);

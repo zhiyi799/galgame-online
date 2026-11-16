@@ -2,6 +2,7 @@
 // screen controller). Ensures the scene Canvas has a CanvasScaler +
 // GraphicRaycaster and that an EventSystem exists, so the hand-written scene
 // files only need Camera + Canvas + root (no built-in script GUIDs in YAML).
+using GalgameOnline.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -12,7 +13,9 @@ namespace GalgameOnline.Core
     {
         private void Awake()
         {
-            var canvas = FindObjectOfType<Canvas>();
+            // The scene Canvas (named "Canvas"), NOT the ToastCanvas — FindObjectOfType
+            // would return the ToastCanvas (created first by the GameManager).
+            var canvas = UiFactory.SceneCanvas();
             if (canvas != null)
             {
                 var scaler = canvas.GetComponent<CanvasScaler>();

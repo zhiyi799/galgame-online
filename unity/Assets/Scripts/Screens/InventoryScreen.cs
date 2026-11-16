@@ -15,12 +15,12 @@ namespace GalgameOnline.Screens
 
         private void Start()
         {
-            var canvas = FindObjectOfType<Canvas>();
+            var canvas = UiFactory.SceneCanvas();
             var (root, _) = UiFactory.ScreenBase(canvas.transform, "背包",
                 () => GameManager.Instance.GoTo(GameManager.SceneMainMenu));
 
             _totalLabel = UiFactory.Label(root.transform, "Total", "加载中…", 20,
-                TextAlignmentOptions.Left, new Color(1f, 0.85f, 0.4f, 1f));
+                TextAlignmentOptions.Left, UiFactory.MoonlightBlue);
             _totalLabel.rectTransform.anchorMin = new Vector2(0, 1);
             _totalLabel.rectTransform.anchorMax = new Vector2(0, 1);
             UiFactory.Place(_totalLabel.rectTransform, 20, -76, 800, 30);
@@ -49,7 +49,7 @@ namespace GalgameOnline.Screens
                 if (items.Length == 0)
                 {
                     var e = UiFactory.Label(_content, "Empty", "背包是空的，去抽卡吧。", 20,
-                        TextAlignmentOptions.Center, new Color(0.7f, 0.75f, 0.85f, 1f));
+                        TextAlignmentOptions.Center, UiFactory.SilverWhite);
                     e.rectTransform.sizeDelta = new Vector2(0, 30);
                     return;
                 }
@@ -76,7 +76,7 @@ namespace GalgameOnline.Screens
             if (!any) return;
 
             var header = UiFactory.Label(_content, "Group", "—— " + title + " ——", 20,
-                TextAlignmentOptions.Left, new Color(0.8f, 0.85f, 1f, 1f), true);
+                TextAlignmentOptions.Left, UiFactory.SilverWhite, true);
             header.rectTransform.sizeDelta = new Vector2(0, 32);
 
             foreach (var it in items)
@@ -85,7 +85,7 @@ namespace GalgameOnline.Screens
                 string line = ItemNames.Get(it.itemId) + "　x" + it.count +
                     (kind == "character" ? "　Lv." + it.level : "");
                 var l = UiFactory.Label(_content, "Item", line, 20,
-                    TextAlignmentOptions.Left, Color.white);
+                    TextAlignmentOptions.Left, UiFactory.MoonWhite);
                 l.rectTransform.sizeDelta = new Vector2(0, 30);
             }
         }

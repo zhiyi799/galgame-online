@@ -36,9 +36,9 @@ namespace GalgameOnline.Core
 
             _panel = UiFactory.Panel(canvasGo.transform, "ToastPanel",
                 new Vector2(0.5f, 0.05f), new Vector2(0.5f, 0.05f), new Vector2(700, 44),
-                new Color(0.08f, 0.08f, 0.12f, 0.92f));
+                UiFactory.Glass(0.92f));
             _label = UiFactory.Label(_panel.transform, "ToastText", "",
-                20, TextAlignmentOptions.Center, Color.white);
+                20, TextAlignmentOptions.Center, UiFactory.MoonWhite);
             UiFactory.Stretch(_label.rectTransform);
             _panel.SetActive(false);
         }

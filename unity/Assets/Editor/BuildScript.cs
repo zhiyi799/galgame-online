@@ -79,6 +79,53 @@ namespace GalgameOnline.Editor
             Debug.Log("[Build] CJK TMP font asset generated: " + FontAssetPath);
         }
 
+        [MenuItem("GalgameOnline/Generate UI Material")]
+        public static void GenerateUiMaterial()
+        {
+            // The UGUI package cache in this project is a stub: it has no
+            // runtime UI shaders, so the built player has no UI/Default
+            // shader and every Image (panel / button / input background)
+            // renders magenta. Fix: bake a Material that references the
+            // Editor's built-in UI/Default shader into the project, so the
+            // build includes the shader. UiFactory assigns this material to
+            // every Image it creates.
+            const string dir = "Assets/Resources/UI";
+            const string texPath = dir + "/White1x1.png";
+            const string matPath = dir + "/DefaultUIMaterial.mat";
+            Directory.CreateDirectory(dir);
+
+            var shader = Shader.Find("UI/Default");
+            if (shader == null)
+            {
+                Debug.LogError("[Build] UI/Default shader not found (Shader.Find returned null).");
+                return;
+            }
+
+            // 1x1 white texture so the material is self-contained.
+            var tex = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+            tex.SetPixel(0, 0, Color.white);
+            tex.Apply();
+            File.WriteAllBytes(texPath, tex.EncodeToPNG());
+            AssetDatabase.ImportAsset(texPath);
+            var importedTex = AssetDatabase.LoadAssetAtPath<Texture2D>(texPath);
+            if (importedTex == null)
+            {
+                Debug.LogError("[Build] Failed to import white texture: " + texPath);
+                return;
+            }
+
+            var mat = new Material(shader);
+            mat.mainTexture = importedTex;
+            mat.name = "DefaultUIMaterial";
+            var existingMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            if (existingMat != null) AssetDatabase.DeleteAsset(matPath);
+            AssetDatabase.CreateAsset(mat, matPath);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("[Build] UI material generated: " + matPath);
+        }
+
         [MenuItem("GalgameOnline/Compile Check")]
         public static void CompileCheck()
         {

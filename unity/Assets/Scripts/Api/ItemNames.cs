@@ -21,6 +21,28 @@ namespace GalgameOnline.Api
             return Names.TryGetValue(itemId, out var n) ? n : "物品#" + itemId;
         }
 
+        // Item -> Resources/Characters art file name (no extension).
+        // Single shared copy: GachaScreen, BannerDetailsScreen,
+        // PullHistoryScreen and PullResultScreen all use this table.
+        // 3★ items (301-304) have no art; they appear as text fallbacks.
+        public static string ArtForItem(int itemId)
+        {
+            switch (itemId)
+            {
+                case 101: return "char_01_white_coat";
+                case 102: return "char_02_black_coat";
+                case 103: return "char_03_silver_hair";
+                case 104: return "char_04_long_hair";
+                case 105: return "char_05_black_suit";
+                case 201: return "char_06_cyber_black";
+                case 202: return "char_07_swimsuit";
+                case 203: return "char_08_casual";
+                case 204: return "expr_01_calm";
+                case 205: return "expr_02_gentle_smile";
+                default: return null;
+            }
+        }
+
         public static string Stars(int rarity)
         {
             switch (rarity)

@@ -29,13 +29,13 @@ namespace GalgameOnline.Screens
 
         private void Start()
         {
-            var canvas = FindObjectOfType<Canvas>();
+            var canvas = UiFactory.SceneCanvas();
             var (root, _) = UiFactory.ScreenBase(canvas.transform, "云存档",
                 () => GameManager.Instance.GoTo(GameManager.SceneMainMenu));
 
             _statusLabel = UiFactory.Label(root.transform, "Status",
                 "本地存档是剧情进度（第几句对话）。上传后可在别的设备下载继续。", 18,
-                TextAlignmentOptions.Left, new Color(0.8f, 0.85f, 1f, 1f));
+                TextAlignmentOptions.Left, UiFactory.SilverWhite);
             _statusLabel.rectTransform.anchorMin = new Vector2(0, 1);
             _statusLabel.rectTransform.anchorMax = new Vector2(0, 1);
             UiFactory.Place(_statusLabel.rectTransform, 20, -76, 1000, 30);
@@ -46,21 +46,21 @@ namespace GalgameOnline.Screens
                 int s = slot;
                 var card = UiFactory.Panel(root.transform, "Slot" + s,
                     new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 110),
-                    new Color(1f, 1f, 1f, 0.06f));
+                    UiFactory.GlassWhite(0.06f));
                 var cRt = card.GetComponent<RectTransform>();
                 cRt.pivot = new Vector2(0.5f, 1);
                 cRt.anchoredPosition = new Vector2(0, y);
                 y -= 122;
 
                 var title = UiFactory.Label(card.transform, "Title", "存档槽 " + s, 22,
-                    TextAlignmentOptions.Left, Color.white, true);
+                    TextAlignmentOptions.Left, UiFactory.MoonWhite, true);
                 UiFactory.Place(title.rectTransform, 16, -10, 300, 32);
 
                 string local = GetLocalSave(s);
                 string localTime = PlayerPrefs.GetString(LocalSaveKeyPrefix + s + "_time", "");
                 var info = UiFactory.Label(card.transform, "Info",
                     string.IsNullOrEmpty(local) ? "本地：空" : "本地：" + localTime + "　" + Summarize(local),
-                    16, TextAlignmentOptions.Left, new Color(0.8f, 0.85f, 1f, 1f));
+                    16, TextAlignmentOptions.Left, UiFactory.SilverWhite);
                 UiFactory.Place(info.rectTransform, 16, -48, 700, 26);
 
                 var upBtn = UiFactory.Button(card.transform, "Upload", "☁️ 上传", () => Upload(s),
@@ -71,7 +71,7 @@ namespace GalgameOnline.Screens
                 uRt.anchoredPosition = new Vector2(-196, 0);
 
                 var downBtn = UiFactory.Button(card.transform, "Download", "☁️ 下载", () => Download(s),
-                    new Vector2(160, 44), new Color(0.2f, 0.2f, 0.3f, 1f));
+                    new Vector2(160, 44), UiFactory.DeepUltramarine);
                 var dRt = downBtn.GetComponent<RectTransform>();
                 dRt.anchorMin = new Vector2(1, 0.5f); dRt.anchorMax = new Vector2(1, 0.5f);
                 dRt.pivot = new Vector2(1, 0.5f);

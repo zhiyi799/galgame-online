@@ -47,15 +47,15 @@ private TextMeshProUGUI _charLabel;
 
 private void Start()
 {
-var canvas = FindObjectOfType<Canvas>();
+var canvas = UiFactory.SceneCanvas();
 var root = UiFactory.Panel(canvas.transform, "StoryRoot",
 Vector2.zero, Vector2.one, Vector2.zero, new Color(0, 0, 0, 0));
 
 // Placeholder background: solid deep-blue panel (real scene art later).
 var bg = UiFactory.Panel(root.transform, "Background",
-Vector2.zero, Vector2.one, Vector2.zero, new Color(0.07f, 0.10f, 0.22f, 1f));
+Vector2.zero, Vector2.one, Vector2.zero, UiFactory.DeepUltramarine);
 var bgLabel = UiFactory.Label(bg.transform, "BgNote", "", 16,
-TextAlignmentOptions.Center, new Color(1f, 1f, 1f, 0.35f));
+TextAlignmentOptions.Center, new Color(0.898f, 0.918f, 0.969f, 0.35f));
 bgLabel.rectTransform.anchorMin = new Vector2(0.5f, 1);
 bgLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);
 UiFactory.Place(bgLabel.rectTransform, -300, -80, 600, 28);
@@ -63,33 +63,33 @@ UiFactory.Place(bgLabel.rectTransform, -300, -80, 600, 28);
 // Placeholder character box (real 立绘 later).
 _charBox = UiFactory.Panel(root.transform, "CharacterBox",
 new Vector2(0.62f, 0.18f), new Vector2(0.92f, 0.86f), Vector2.zero,
-new Color(0.45f, 0.55f, 0.85f, 1f));
+UiFactory.MoonlightBlue);
 _charLabel = UiFactory.Label(_charBox.transform, "CharName", "立绘占位", 22,
-TextAlignmentOptions.Center, Color.white, true);
+TextAlignmentOptions.Center, UiFactory.MoonWhite, true);
 UiFactory.Stretch(_charLabel.rectTransform);
 
 // Top bar: back + cloud save/load.
 var top = UiFactory.Panel(root.transform, "TopBar",
-new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 56), new Color(0, 0, 0, 0.35f));
+new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 56), UiFactory.Glass(0.35f));
 var topRt = top.GetComponent<RectTransform>();
 topRt.pivot = new Vector2(0.5f, 1);
 topRt.anchoredPosition = Vector2.zero;
 var back = UiFactory.Button(top.transform, "Back", "← 返回", () =>
 GameManager.Instance.GoTo(GameManager.SceneMainMenu), new Vector2(110, 40),
-new Color(0.2f, 0.2f, 0.3f, 1f));
+UiFactory.DeepUltramarine);
 var bRt = back.GetComponent<RectTransform>();
 bRt.anchorMin = new Vector2(0, 0.5f); bRt.anchorMax = new Vector2(0, 0.5f);
 bRt.pivot = new Vector2(0, 0.5f);
 bRt.anchoredPosition = new Vector2(12, 0);
 
 var upBtn = UiFactory.Button(top.transform, "CloudUp", "☁️ 上传进度", UploadProgress,
-new Vector2(150, 40), new Color(0.2f, 0.2f, 0.3f, 1f));
+new Vector2(150, 40), UiFactory.DeepUltramarine);
 var uRt = upBtn.GetComponent<RectTransform>();
 uRt.anchorMin = new Vector2(1, 0.5f); uRt.anchorMax = new Vector2(1, 0.5f);
 uRt.pivot = new Vector2(1, 0.5f);
 uRt.anchoredPosition = new Vector2(-178, 0);
 var downBtn = UiFactory.Button(top.transform, "CloudDown", "☁️ 下载进度", DownloadProgress,
-new Vector2(150, 40), new Color(0.2f, 0.2f, 0.3f, 1f));
+new Vector2(150, 40), UiFactory.DeepUltramarine);
 var dRt = downBtn.GetComponent<RectTransform>();
 dRt.anchorMin = new Vector2(1, 0.5f); dRt.anchorMax = new Vector2(1, 0.5f);
 dRt.pivot = new Vector2(1, 0.5f);
@@ -98,25 +98,25 @@ dRt.anchoredPosition = new Vector2(-12, 0);
 // Dialogue box (click it to advance).
 var dlg = UiFactory.Panel(root.transform, "DialogueBox",
 new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 210),
-new Color(0.05f, 0.06f, 0.12f, 0.88f));
+UiFactory.Glass(0.88f));
 var dlgBtn = dlg.AddComponent<Button>();
 dlgBtn.onClick.AddListener(Advance);
 dlgBtn.transition = Button.Transition.None;
 
 _nameLabel = UiFactory.Label(dlg.transform, "Name", "", 22,
-TextAlignmentOptions.Left, new Color(1f, 0.85f, 0.4f, 1f), true);
+TextAlignmentOptions.Left, UiFactory.MoonlightBlue, true);
 UiFactory.Place(_nameLabel.rectTransform, 24, -12, 400, 32);
 _nameLabel.rectTransform.anchorMin = new Vector2(0, 1);
 _nameLabel.rectTransform.anchorMax = new Vector2(0, 1);
 
 _bodyLabel = UiFactory.Label(dlg.transform, "Body", "", 22,
-TextAlignmentOptions.TopLeft, Color.white);
+TextAlignmentOptions.TopLeft, UiFactory.MoonWhite);
 UiFactory.Place(_bodyLabel.rectTransform, 24, -52, 1200, 120);
 _bodyLabel.rectTransform.anchorMin = new Vector2(0, 1);
 _bodyLabel.rectTransform.anchorMax = new Vector2(0, 1);
 
 _hintLabel = UiFactory.Label(dlg.transform, "Hint", "▼ 点击继续", 15,
-TextAlignmentOptions.Right, new Color(1f, 1f, 1f, 0.55f));
+TextAlignmentOptions.Right, new Color(0.898f, 0.918f, 0.969f, 0.55f));
 UiFactory.Place(_hintLabel.rectTransform, -140, -176, 120, 24);
 _hintLabel.rectTransform.anchorMin = new Vector2(1, 1);
 _hintLabel.rectTransform.anchorMax = new Vector2(1, 1);

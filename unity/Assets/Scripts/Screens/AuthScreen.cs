@@ -22,24 +22,27 @@ namespace GalgameOnline.Screens
 
         private void Start()
         {
-            var canvas = FindObjectOfType<Canvas>();
+            var canvas = UiFactory.SceneCanvas();
+            // Night shrine / sakura / moon art from Resources/Backgrounds/Auth
+            // if the user has supplied it; otherwise deep ultramarine.
+            UiFactory.AddBackground(canvas.transform, "Auth", UiFactory.DeepUltramarine);
             var root = UiFactory.Panel(canvas.transform, "AuthRoot",
-                Vector2.zero, Vector2.one, Vector2.zero, new Color(0.05f, 0.06f, 0.10f, 1f));
+                Vector2.zero, Vector2.one, Vector2.zero, UiFactory.Glass(0.88f));
 
             var title = UiFactory.Label(root.transform, "Title", "GalgameOnline", 44,
-                TextAlignmentOptions.Center, Color.white, true);
+                TextAlignmentOptions.Center, UiFactory.MoonWhite, true);
             UiFactory.Place(title.rectTransform, -300, -90, 600, 60);
             title.rectTransform.anchorMin = new Vector2(0.5f, 1);
             title.rectTransform.anchorMax = new Vector2(0.5f, 1);
 
             var sub = UiFactory.Label(root.transform, "Subtitle", "联网 Galgame · 抽卡 / 存档 / 邮件", 20,
-                TextAlignmentOptions.Center, new Color(0.8f, 0.85f, 1f, 1f));
+                TextAlignmentOptions.Center, UiFactory.SilverWhite);
             UiFactory.Place(sub.rectTransform, -300, -140, 600, 34);
             sub.rectTransform.anchorMin = new Vector2(0.5f, 1);
             sub.rectTransform.anchorMax = new Vector2(0.5f, 1);
 
             _modeLabel = UiFactory.Label(root.transform, "Mode", "登录", 26,
-                TextAlignmentOptions.Center, Color.white, true);
+                TextAlignmentOptions.Center, UiFactory.MoonWhite, true);
             UiFactory.Place(_modeLabel.rectTransform, -200, -200, 400, 40);
             _modeLabel.rectTransform.anchorMin = new Vector2(0.5f, 1);
             _modeLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);
@@ -62,26 +65,26 @@ namespace GalgameOnline.Screens
             sRt.anchoredPosition = new Vector2(0, -392);
 
             var switchBtn = UiFactory.Button(root.transform, "SwitchButton", "没有账号？去注册", OnSwitchMode,
-                new Vector2(420, 40), new Color(0.2f, 0.2f, 0.3f, 1f));
+                new Vector2(420, 40), UiFactory.DeepUltramarine);
             var swRt = switchBtn.GetComponent<RectTransform>();
             swRt.anchorMin = new Vector2(0.5f, 1); swRt.anchorMax = new Vector2(0.5f, 1);
             swRt.anchoredPosition = new Vector2(0, -448);
 
             var offlineBtn = UiFactory.Button(root.transform, "OfflineButton", "离线游玩（无需登录）", OnOffline,
-                new Vector2(420, 40), new Color(0.25f, 0.25f, 0.25f, 1f));
+                new Vector2(420, 40), UiFactory.DeepUltramarine);
             var oRt = offlineBtn.GetComponent<RectTransform>();
             oRt.anchorMin = new Vector2(0.5f, 1); oRt.anchorMax = new Vector2(0.5f, 1);
             oRt.anchoredPosition = new Vector2(0, -496);
 
             _statusLabel = UiFactory.Label(root.transform, "Status", "", 18,
-                TextAlignmentOptions.Center, new Color(1f, 0.8f, 0.4f, 1f));
+                TextAlignmentOptions.Center, UiFactory.SakuraPink);
             UiFactory.Place(_statusLabel.rectTransform, -350, -540, 700, 30);
             _statusLabel.rectTransform.anchorMin = new Vector2(0.5f, 1);
             _statusLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);
 
             var apiLabel = UiFactory.Label(root.transform, "ApiLabel",
                 "API: " + Settings.ApiBaseUrl + (Settings.IsPlaceholderUrl ? "\n（服务器未部署：请在主菜单设置里填入部署后的 Workers 地址）" : ""),
-                15, TextAlignmentOptions.Center, new Color(0.7f, 0.75f, 0.85f, 1f));
+                15, TextAlignmentOptions.Center, UiFactory.SilverWhite);
             UiFactory.Place(apiLabel.rectTransform, -450, -580, 900, 44);
             apiLabel.rectTransform.anchorMin = new Vector2(0.5f, 1);
             apiLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);

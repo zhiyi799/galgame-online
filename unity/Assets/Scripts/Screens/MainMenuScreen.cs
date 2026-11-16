@@ -21,26 +21,27 @@ namespace GalgameOnline.Screens
 
         private void Start()
         {
-            var canvas = FindObjectOfType<Canvas>();
+            var canvas = UiFactory.SceneCanvas();
+            UiFactory.AddBackground(canvas.transform, "MainMenu", UiFactory.DeepUltramarine);
             var root = UiFactory.Panel(canvas.transform, "MenuRoot",
-                Vector2.zero, Vector2.one, Vector2.zero, new Color(0.05f, 0.06f, 0.10f, 1f));
+                Vector2.zero, Vector2.one, Vector2.zero, UiFactory.Glass(0.88f));
 
             var gm = GameManager.Instance;
 
             var title = UiFactory.Label(root.transform, "Title", "GalgameOnline", 40,
-                TextAlignmentOptions.Center, Color.white, true);
+                TextAlignmentOptions.Center, UiFactory.MoonWhite, true);
             title.rectTransform.anchorMin = new Vector2(0.5f, 1);
             title.rectTransform.anchorMax = new Vector2(0.5f, 1);
             UiFactory.Place(title.rectTransform, -300, -60, 600, 56);
 
             _userLabel = UiFactory.Label(root.transform, "User", "", 20,
-                TextAlignmentOptions.Center, new Color(0.8f, 0.85f, 1f, 1f));
+                TextAlignmentOptions.Center, UiFactory.SilverWhite);
             _userLabel.rectTransform.anchorMin = new Vector2(0.5f, 1);
             _userLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);
             UiFactory.Place(_userLabel.rectTransform, -300, -116, 600, 30);
 
             _walletLabel = UiFactory.Label(root.transform, "Wallet", "", 20,
-                TextAlignmentOptions.Center, new Color(1f, 0.85f, 0.4f, 1f));
+                TextAlignmentOptions.Center, UiFactory.MoonlightBlue);
             _walletLabel.rectTransform.anchorMin = new Vector2(0.5f, 1);
             _walletLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);
             UiFactory.Place(_walletLabel.rectTransform, -300, -148, 600, 30);
@@ -63,20 +64,20 @@ namespace GalgameOnline.Screens
             {
                 if (gm.RequireOnline()) gm.GoTo(GameManager.SceneCloudSave);
             }, ref y);
-            AddMenuButton(root.transform, "⚙️ 设置", ToggleSettings, ref y, new Color(0.2f, 0.2f, 0.3f, 1f));
+            AddMenuButton(root.transform, "⚙️ 设置", ToggleSettings, ref y, UiFactory.DeepUltramarine);
             AddMenuButton(root.transform, gm.IsOffline ? "返回登录" : "退出登录", () =>
             {
                 gm.Logout();
-            }, ref y, new Color(0.35f, 0.15f, 0.15f, 1f));
+            }, ref y, UiFactory.DeepRose);
 
             // Unread-mail badge on the mail button.
             _mailBadge = UiFactory.Panel(mailBtn.transform, "Badge",
-                new Vector2(1, 1), new Vector2(1, 1), new Vector2(34, 34), new Color(0.9f, 0.15f, 0.15f, 1f));
+                new Vector2(1, 1), new Vector2(1, 1), new Vector2(34, 34), UiFactory.SakuraPink);
             var bRt = _mailBadge.GetComponent<RectTransform>();
             bRt.pivot = new Vector2(1, 1);
             bRt.anchoredPosition = new Vector2(6, 6);
             _mailBadgeText = UiFactory.Label(_mailBadge.transform, "BadgeText", "", 18,
-                TextAlignmentOptions.Center, Color.white, true);
+                TextAlignmentOptions.Center, UiFactory.MoonWhite, true);
             UiFactory.Stretch(_mailBadgeText.rectTransform);
             _mailBadge.SetActive(false);
 
@@ -132,19 +133,19 @@ namespace GalgameOnline.Screens
         {
             _settingsPanel = UiFactory.Panel(root.transform, "SettingsPanel",
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(760, 420),
-                new Color(0.10f, 0.12f, 0.20f, 1f));
+                UiFactory.Glass(0.92f));
             var pRt = _settingsPanel.GetComponent<RectTransform>();
             pRt.anchoredPosition = Vector2.zero;
 
             var title = UiFactory.Label(_settingsPanel.transform, "Title", "设置 · API 地址", 24,
-                TextAlignmentOptions.Center, Color.white, true);
+                TextAlignmentOptions.Center, UiFactory.MoonWhite, true);
             UiFactory.Place(title.rectTransform, -380, -20, 760, 36);
             title.rectTransform.anchorMin = new Vector2(0.5f, 1);
             title.rectTransform.anchorMax = new Vector2(0.5f, 1);
 
             var hint = UiFactory.Label(_settingsPanel.transform, "Hint",
                 "Worker 部署后把 *.workers.dev 地址填在这里；本地开发用 127.0.0.1:8787。\n改完需要重新登录。", 16,
-                TextAlignmentOptions.Center, new Color(0.8f, 0.85f, 1f, 1f));
+                TextAlignmentOptions.Center, UiFactory.SilverWhite);
             UiFactory.Place(hint.rectTransform, -370, -58, 740, 48);
             hint.rectTransform.anchorMin = new Vector2(0.5f, 1);
             hint.rectTransform.anchorMax = new Vector2(0.5f, 1);
@@ -169,7 +170,7 @@ namespace GalgameOnline.Screens
             var localBtn = UiFactory.Button(_settingsPanel.transform, "LocalBtn", "本地开发地址", () =>
             {
                 _apiInput.text = Settings.LocalDevApiBaseUrl;
-            }, new Vector2(200, 48), new Color(0.2f, 0.2f, 0.3f, 1f));
+            }, new Vector2(200, 48), UiFactory.DeepUltramarine);
             var lRt = localBtn.GetComponent<RectTransform>();
             lRt.anchorMin = new Vector2(0.5f, 1); lRt.anchorMax = new Vector2(0.5f, 1);
             lRt.anchoredPosition = new Vector2(110, -210);
@@ -178,13 +179,13 @@ namespace GalgameOnline.Screens
             {
                 Settings.ResetToDefault();
                 _apiInput.text = Settings.ApiBaseUrl;
-            }, new Vector2(200, 48), new Color(0.2f, 0.2f, 0.3f, 1f));
+            }, new Vector2(200, 48), UiFactory.DeepUltramarine);
             var rRt = resetBtn.GetComponent<RectTransform>();
             rRt.anchorMin = new Vector2(0.5f, 1); rRt.anchorMax = new Vector2(0.5f, 1);
             rRt.anchoredPosition = new Vector2(-110, -270);
 
             var closeBtn = UiFactory.Button(_settingsPanel.transform, "CloseBtn", "关闭", ToggleSettings,
-                new Vector2(200, 48), new Color(0.25f, 0.25f, 0.25f, 1f));
+                new Vector2(200, 48), UiFactory.DeepUltramarine);
             var cRt = closeBtn.GetComponent<RectTransform>();
             cRt.anchorMin = new Vector2(0.5f, 1); cRt.anchorMax = new Vector2(0.5f, 1);
             cRt.anchoredPosition = new Vector2(110, -270);
