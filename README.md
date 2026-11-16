@@ -78,7 +78,9 @@ server/
     GalgameOnline.GameServer/  游戏服务
     GalgameOnline.QueryGateway/ 网关
 client/
-  galgame-maker/   GalgameMaker Studio（待接入网络层）
+  galgame-online-studio.html   改好的 Studio（登录/抽卡/邮件/背包/云存档）
+  online-layer/                改动来源（片段 + build.py）
+  galgame-maker/               上游原版（只读参考）
 ref/
   lunaria/     架构参考（只读，不进构建）
   ruxi-skill/  内容生成参考（只读）

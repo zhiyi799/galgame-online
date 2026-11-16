@@ -20,3 +20,17 @@
 .pull-item .stars{color:#f5c542;letter-spacing:1px;}
 .pull-item.r5 .stars{color:#ffd700;}
 .wallet-line{font-size:12px;color:#b89fd8;margin-bottom:12px;text-align:center;}
+/* ONLINE mail + inventory */
+.ol-badge{position:absolute;top:1px;right:1px;min-width:15px;height:15px;padding:0 3px;border-radius:8px;background:#e5484d;color:#fff;font-size:10px;line-height:15px;text-align:center;pointer-events:none;}
+.mail-item{border:1px solid rgba(184,159,216,0.18);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:rgba(28,20,42,0.6);}
+.mail-item.claimed{opacity:0.55;}
+.mail-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.mail-head h3{font-size:14px;color:#e8d8f0;font-family:'Noto Serif SC',serif;}
+.mail-date{font-size:11px;color:#6b5e7a;white-space:nowrap;}
+.mail-body{font-size:12px;color:#cbbfd8;line-height:1.7;margin:6px 0;}
+.mail-att{font-size:12px;color:#b89fd8;margin-bottom:8px;}
+.mail-item .gacha-btn{flex:0 0 auto;padding:6px 16px;}
+.inv-group{margin-bottom:14px;}
+.inv-group h4{font-size:13px;color:#b89fd8;font-family:'Noto Serif SC',serif;margin-bottom:6px;letter-spacing:1px;}
+.inv-total{font-size:12px;color:#b89fd8;margin-bottom:12px;text-align:center;}
+.inv-empty{font-size:13px;color:#6b5e7a;text-align:center;padding:24px 0;}

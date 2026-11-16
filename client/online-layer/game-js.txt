@@ -182,3 +182,147 @@ async function cloudDownload(slot) {
     showToast('☁️ 下载失败：服务器连接失败');
   }
 }
+
+// ---- Mail center + inventory ----
+// Mail ids of the last render, so claim buttons can pass an index (no quotes
+// inside the onclick string: the game JS lives in a template literal, which
+// would eat backslash escapes).
+let LAST_MAIL_IDS = [];
+function olEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function olCurrencyName(kind) {
+  if (kind === 'free') return '免费货币';
+  if (kind === 'premium') return '高级货币';
+  if (kind === 'ticket') return '抽卡券';
+  return kind;
+}
+function olAttachText(a) {
+  const name = (a.kind === 'free' || a.kind === 'premium' || a.kind === 'ticket')
+    ? olCurrencyName(a.kind) : olItemName(a.itemId);
+  return name + ' ×' + a.count;
+}
+function openMail() {
+  if (!onlineMode) { showToast('✉️ 请先登录（联网模式）才能看邮件'); return; }
+  openOverlay('mail');
+}
+function openInventory() {
+  if (!onlineMode) { showToast('🎒 请先登录（联网模式）才能看背包'); return; }
+  openOverlay('inventory');
+}
+async function olRefreshMailBadge(list) {
+  const badge = document.getElementById('mailBadge');
+  if (!badge) return;
+  if (!onlineMode) { badge.style.display = 'none'; return; }
+  let mail = list;
+  if (!mail) {
+    try {
+      const r = await olApi(ONLINE.gameUrl, '/api/game/mail', 'GET');
+      mail = (r.data && r.data.mail) || [];
+    } catch (e) {
+      badge.style.display = 'none';
+      return;
+    }
+  }
+  const unread = mail.filter(function(m) { return !m.read; }).length;
+  badge.textContent = unread > 99 ? '99+' : String(unread);
+  badge.style.display = unread ? 'block' : 'none';
+}
+async function renderMail() {
+  const wEl = document.getElementById('mailWallet');
+  const lEl = document.getElementById('mailList');
+  olSetMsg('mailMsg', '');
+  try {
+    const w = await olApi(ONLINE.gameUrl, '/api/game/wallet', 'GET');
+    if (w.data) wEl.textContent = '💰 高级货币 ' + w.data.premium + '  ·  免费货币 ' + w.data.free + '  ·  抽卡券 ' + w.data.tickets;
+    const r = await olApi(ONLINE.gameUrl, '/api/game/mail', 'GET');
+    const mail = (r.data && r.data.mail) || [];
+    mail.sort(function(a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+    LAST_MAIL_IDS = mail.map(function(m) { return m.id; });
+    lEl.innerHTML = '';
+    if (!mail.length) {
+      lEl.innerHTML = '<p style="font-size:12px;color:#6b5e7a;text-align:center;padding:20px 0;">暂无邮件</p>';
+    }
+    for (let i = 0; i < mail.length; i++) {
+      const m = mail[i];
+      const div = document.createElement('div');
+      div.className = 'mail-item' + (m.claimed ? ' claimed' : '');
+      const atts = (m.attachments || []).map(olAttachText).join('，');
+      const date = m.createdAt ? new Date(m.createdAt).toLocaleString() : '';
+      div.innerHTML =
+        '<div class="mail-head"><h3>' + (m.read ? '' : '● ') + olEsc(m.title) + '</h3><span class="mail-date">' + date + '</span></div>' +
+        '<div class="mail-body">' + olEsc(m.body) + '</div>' +
+        (atts ? '<div class="mail-att">附件：' + olEsc(atts) + '</div>' : '') +
+        '<button class="gacha-btn" ' + (m.claimed ? 'disabled' : '') + ' onclick="olClaimMailIdx(' + i + ')">' + (m.claimed ? '已领取' : '领取') + '</button>';
+      lEl.appendChild(div);
+    }
+    olRefreshMailBadge(mail);
+  } catch (e) {
+    wEl.textContent = '钱包加载失败：服务器连接失败';
+    lEl.innerHTML = '<p style="font-size:12px;color:#f87171;text-align:center;">邮件加载失败：服务器连接失败</p>';
+  }
+}
+async function olClaimMailIdx(i) {
+  const id = LAST_MAIL_IDS[i];
+  if (!id) { olSetMsg('mailMsg', '找不到这封邮件，请重新打开邮件'); return; }
+  await olClaimMail(id);
+}
+async function olClaimMail(id) {
+  olSetMsg('mailMsg', '领取中…');
+  try {
+    const r = await olApi(ONLINE.gameUrl, '/api/game/mail/' + id + '/claim', 'POST');
+    if (r.data && r.data.ok) {
+      const granted = (r.data.granted || []).map(olAttachText).join('，');
+      await renderMail();
+      olSetMsg('mailMsg', granted ? '已领取：' + granted : '已领取');
+    } else {
+      olSetMsg('mailMsg', (r.data && r.data.error) || ('领取失败（HTTP ' + r.status + '）'));
+    }
+  } catch (e) {
+    olSetMsg('mailMsg', '连接服务器失败，请检查地址与网络');
+  }
+}
+async function renderInventory() {
+  const tEl = document.getElementById('invTotal');
+  const lEl = document.getElementById('invList');
+  olSetMsg('invMsg', '');
+  try {
+    const r = await olApi(ONLINE.gameUrl, '/api/game/inventory', 'GET');
+    const items = (r.data && r.data.items) || [];
+    const total = items.reduce(function(s, it) { return s + (it.count || 0); }, 0);
+    tEl.textContent = '共 ' + items.length + ' 种 · ' + total + ' 件';
+    lEl.innerHTML = '';
+    if (!items.length) {
+      lEl.innerHTML = '<div class="inv-empty">背包是空的，去抽卡吧</div>';
+      return;
+    }
+    const groups = {};
+    for (const it of items) {
+      const k = it.kind || 'item';
+      if (!groups[k]) groups[k] = [];
+      groups[k].push(it);
+    }
+    const order = ['character', 'item'];
+    const kinds = Object.keys(groups).sort(function(a, b) {
+      const ia = order.indexOf(a), ib = order.indexOf(b);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+    for (const k of kinds) {
+      const g = document.createElement('div');
+      g.className = 'inv-group';
+      const label = k === 'character' ? '角色' : (k === 'item' ? '道具' : k);
+      let html = '<h4>' + label + '</h4>';
+      for (const it of groups[k]) {
+        const lv = k === 'character' ? ' · Lv.' + (it.level || 1) : '';
+        html += '<div class="pull-item"><span>' + olEsc(olItemName(it.itemId)) + lv + '</span><span>×' + it.count + '</span></div>';
+      }
+      g.innerHTML = html;
+      lEl.appendChild(g);
+    }
+  } catch (e) {
+    tEl.textContent = '';
+    lEl.innerHTML = '<p style="font-size:12px;color:#f87171;text-align:center;">背包加载失败：服务器连接失败</p>';
+  }
+}

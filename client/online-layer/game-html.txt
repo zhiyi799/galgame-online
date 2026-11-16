@@ -26,3 +26,27 @@
     </div>
   </div>
 
+  <!-- MAIL -->
+  <div class="overlay" id="ov-mail">
+    <div class="overlay-panel" style="width:560px;max-height:85vh;display:flex;flex-direction:column;">
+      <div class="ov-header"><div class="ov-title">✉️ 邮件</div><div class="ov-close" onclick="closeOverlay('mail')">✕</div></div>
+      <div class="settings-body" style="overflow-y:auto;">
+        <div class="wallet-line" id="mailWallet">钱包加载中…</div>
+        <div id="mailList"></div>
+        <div class="ol-msg" id="mailMsg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVENTORY -->
+  <div class="overlay" id="ov-inventory">
+    <div class="overlay-panel" style="width:560px;max-height:85vh;display:flex;flex-direction:column;">
+      <div class="ov-header"><div class="ov-title">🎒 背包</div><div class="ov-close" onclick="closeOverlay('inventory')">✕</div></div>
+      <div class="settings-body" style="overflow-y:auto;">
+        <div class="inv-total" id="invTotal"></div>
+        <div id="invList"></div>
+        <div class="ol-msg" id="invMsg"></div>
+      </div>
+    </div>
+  </div>
+

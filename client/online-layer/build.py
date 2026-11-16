@@ -73,11 +73,13 @@ def main():
     # ---- 5. Exported CSS ----
     s = once(s, "#skip-flash{", css + "#skip-flash{", "exported css")
 
-    # ---- 6. Gacha menu button (before settings button) ----
+    # ---- 6. Gacha/mail/inventory menu buttons (before settings button) ----
     s = once(s, """    <div class="mbtn" onclick="openOverlay('settings')" title="设置 Esc">⚙️</div>""",
 """    <div class="mbtn" onclick="openGacha()" title="抽卡">🎰</div>
+    <div class="mbtn" onclick="openMail()" title="邮件" style="position:relative;">✉️<span class="ol-badge" id="mailBadge" style="display:none;"></span></div>
+    <div class="mbtn" onclick="openInventory()" title="背包">🎒</div>
     <div class="mbtn" onclick="openOverlay('settings')" title="设置 Esc">⚙️</div>""",
-             "gacha menu button")
+             "gacha/mail/inventory menu buttons")
 
     # ---- 7. Login + gacha overlays before SAVE/LOAD ----
     s = once(s, "  <!-- SAVE/LOAD -->", html + "  <!-- SAVE/LOAD -->", "login+gacha overlays")
@@ -87,14 +89,16 @@ def main():
              "const SAVES   = JSON.parse(localStorage.getItem('gmstudio_saves') || '{}');\n" + js,
              "online js")
 
-    # ---- 9. openOverlay: render gacha on open ----
+    # ---- 9. openOverlay: render gacha/mail/inventory on open ----
     s = once(s, """    if (name === 'tree')     renderTree();
     if (name === 'log')      renderLog();
     if (name === 'saveload') buildSaveGrid();""",
 """    if (name === 'tree')     renderTree();
     if (name === 'log')      renderLog();
     if (name === 'saveload') buildSaveGrid();
-    if (name === 'gacha')    renderGacha();""", "openOverlay gacha branch")
+    if (name === 'gacha')    renderGacha();
+    if (name === 'mail')     renderMail();
+    if (name === 'inventory') renderInventory();""", "openOverlay gacha/mail/inventory branches")
 
     # ---- 10. Cloud buttons in save slots 1-3 ----
     s = once(s, """          '<button class="slot-act-btn" style="color:#f87171aa;" onclick="delSave('+i+')">删除</button>'+
@@ -122,6 +126,22 @@ def main():
 processNext();""",
 """// ---- START (online gate) ----
 olBoot();""", "boot gate")
+
+    # ---- 13. Refresh mail badge after a successful login ----
+    s = once(s, """      showToast('🌐 已登录 ' + u);
+      processNext();""",
+"""      showToast('🌐 已登录 ' + u);
+      processNext();
+      olRefreshMailBadge();""", "mail badge after login")
+
+    # ---- 14. Refresh mail badge after a successful session boot ----
+    s = once(s, """      onlineMode = true;
+      bootDone = true;
+      processNext();""",
+"""      onlineMode = true;
+      bootDone = true;
+      processNext();
+      olRefreshMailBadge();""", "mail badge after boot")
 
     with open(DST, "w", encoding="utf-8") as f:
         f.write(s)
