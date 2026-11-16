@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STELLAR OBLIVION</title>
+<style>
+    /* 全局重置：干掉所有圆角，回归极简 */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        border-radius: 0 !important; /* 强制全屏零圆角 */
+    }
+
+    body {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background: #000;
+        color: #fff;
+        user-select: none;
+    }
+
+    /* 1. 背景层（动态视频，自动播放、静音、循环） */
+    .bg-video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 1;
+    }
+
+    /* 2. 顶部 LOGO（大间距衬线体） */
+    .header-logo {
+        position: absolute;
+        top: 6%;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        z-index: 10;
+    }
+    .logo-text {
+        font-family: "Times New Roman", serif;
+        font-size: 28px;
+        letter-spacing: 15px;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.95);
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        margin-right: -15px; /* 修正字间距带来的居中偏移 */
+    }
+
+    /* 3. 左侧主菜单 */
+    .left-menu {
+        position: absolute;
+        top: 40%;
+        left: 8%;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+        z-index: 10;
+    }
+    .menu-item {
+        font-size: 14px;
+        letter-spacing: 4px;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        position: relative;
+        padding-left: 15px;
+    }
+    /* 左侧的装饰竖线 */
+    .menu-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1px;
+        height: 0;
+        background: #fff;
+        transition: all 0.3s;
+    }
+    /* 悬停效果：文字变白，向右平移，左侧发光竖线出现 */
+    .menu-item:hover {
+        color: #fff;
+        transform: translateX(10px);
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+    }
+    .menu-item:hover::before {
+        height: 100%;
+        box-shadow: 0 0 8px #fff;
+    }
+
+    /* 4. 右侧极简图标菜单 */
+    .right-menu {
+        position: absolute;
+        top: 25%;
+        right: 4%;
+        display: flex;
+        flex-direction: column;
+        gap: 35px;
+        z-index: 10;
+        align-items: center;
+    }
+    .icon-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        opacity: 0.5;
+        transition: 0.3s;
+    }
+    .icon-item:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+    /* 用纯 CSS 画极简图标（你后期可以换成 SVG） */
+    .icon-shape {
+        width: 16px;
+        height: 16px;
+        border: 1px solid rgba(255,255,255,0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .icon-shape.circle { border-radius: 50% !important; }
+    .icon-shape.diamond { transform: rotate(45deg); width: 12px; height: 12px; }
+    .icon-text {
+        font-size: 10px;
+        letter-spacing: 2px;
+        color: #fff;
+    }
+
+    /* 5. 右下角主按钮 */
+    .bottom-action {
+        position: absolute;
+        bottom: 12%;
+        right: 8%;
+        z-index: 10;
+        cursor: pointer;
+        padding: 15px 40px;
+        background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.4), transparent); /* 微弱遮罩防看不清字 */
+        transition: all 0.4s;
+    }
+    .enter-text {
+        font-size: 18px;
+        letter-spacing: 8px;
+        color: #fff;
+        transition: all 0.4s;
+    }
+    .touch-text {
+        font-size: 12px;
+        letter-spacing: 3px;
+        color: rgba(255, 255, 255, 0.6);
+        text-align: center;
+        margin-top: 5px;
+        transition: 0.4s;
+    }
+    /* 悬停主按钮：字距拉开，文字高亮发光 */
+    .bottom-action:hover .enter-text {
+        letter-spacing: 12px;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 1);
+    }
+    .bottom-action:hover .touch-text {
+        color: #fff;
+    }
+
+    /* 6. 登录面板（苹果毛玻璃绝杀） */
+    .login-panel {
+        position: absolute;
+        top: 50%;
+        left: 15%; /* 放在左边，不挡住少女 */
+        transform: translateY(-50%) translateX(-150%); /* 默认藏在屏幕左侧外 */
+        width: 380px;
+        padding: 40px;
+        z-index: 20;
+        transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.5s;
+        opacity: 0;
+        
+        /* 核心毛玻璃参数 */
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.05);
+    }
+    /* 激活状态滑入 */
+    .login-panel.active {
+        transform: translateY(-50%) translateX(0);
+        opacity: 1;
+    }
+
+    .login-panel h2 {
+        font-size: 22px;
+        font-weight: 400;
+        letter-spacing: 3px;
+        margin-bottom: 30px;
+        color: #fff;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 15px;
+    }
+
+    /* 输入框（极简白线） */
+    .input-group {
+        position: relative;
+        margin-bottom: 25px;
+    }
+    .input-group input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 10px 0;
+        color: #fff;
+        font-size: 14px;
+        letter-spacing: 1px;
+        outline: none;
+        transition: 0.3s;
+    }
+    .input-group input::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: 2px;
+    }
+    /* 输入时底部线条发光 */
+    .input-group input:focus {
+        border-bottom: 1px solid #fff;
+        box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.8);
+    }
+
+    /* 登录按钮（白底黑字，悬停变青/变透明） */
+    .login-btn {
+        width: 100%;
+        padding: 15px;
+        background: #fff;
+        color: #000;
+        border: none;
+        font-size: 15px;
+        font-weight: bold;
+        letter-spacing: 4px;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: 0.3s;
+    }
+    .login-btn:hover {
+        background: #00ffff;
+        color: #000;
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        letter-spacing: 6px;
+    }
+
+    /* 关闭按钮 */
+    .close-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        color: rgba(255,255,255,0.5);
+        font-size: 20px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .close-btn:hover { color: #fff; transform: rotate(90deg); }
+
+    .err-msg {
+        color: #ff6b6b;
+        font-size: 12px;
+        height: 16px;
+        margin-top: 5px;
+        letter-spacing: 1px;
+    }
+    
+    .link-row {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        font-size: 12px;
+    }
+    .link-row a {
+        color: rgba(255,255,255,0.5);
+        text-decoration: none;
+        transition: 0.3s;
+        letter-spacing: 1px;
+    }
+    .link-row a:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+    <!-- 1. 背景（动态视频，静态图作封面/备用） -->
+    <video class="bg-video" autoplay muted loop playsinline poster="bg.jpg">
+        <source src="bg-video.mp4" type="video/mp4">
+    </video>
+
+    <!-- 2. 顶部 LOGO -->
+    <div class="header-logo">
+        <div class="logo-text">STELLAR OBLIVION</div>
+    </div>
+
+    <!-- 3. 左侧菜单 -->
+    <div class="left-menu">
+        <div class="menu-item">NEW GAME</div>
+        <div class="menu-item">CONTINUE</div>
+        <div class="menu-item">GALLERY</div>
+        <div class="menu-item">SETTINGS</div>
+        <div class="menu-item">EXIT</div>
+    </div>
+
+    <!-- 4. 右侧菜单 -->
+    <div class="right-menu">
+        <div class="icon-item">
+            <div class="icon-shape"></div>
+            <div class="icon-text">NOTICE</div>
+        </div>
+        <div class="icon-item">
+            <div class="icon-shape circle"></div>
+            <div class="icon-text">MAIL</div>
+        </div>
+        <div class="icon-item">
+            <div class="icon-shape diamond"></div>
+            <div class="icon-text">STATISTICS</div>
+        </div>
+        <div class="icon-item">
+            <div class="icon-shape circle"></div>
+            <div class="icon-text">SETTING</div>
+        </div>
+    </div>
+
+    <!-- 5. 右下角主按钮 -->
+    <div class="bottom-action" id="startBtn">
+        <div class="enter-text">ENTER THE WORLD</div>
+        <div class="touch-text">TOUCH TO START</div>
+    </div>
+
+    <!-- 6. 苹果毛玻璃登录面板 -->
+    <div class="login-panel" id="loginPanel">
+        <div class="close-btn" id="closeBtn">×</div>
+        <h2>WELCOME BACK</h2>
+        
+        <div class="input-group">
+            <input type="text" id="accountInput" placeholder="EMAIL / ACCOUNT" autocomplete="off">
+        </div>
+        <div class="input-group">
+            <input type="password" id="passwordInput" placeholder="PASSWORD">
+            <div class="err-msg" id="errMsg"></div>
+        </div>
+        
+        <button class="login-btn" id="loginBtn">LOG IN</button>
+        
+        <div class="link-row">
+            <a href="#">忘记密码?</a>
+            <a href="#">注册账号</a>
+        </div>
+    </div>
+
+    <!-- 交互逻辑 -->
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const loginPanel = document.getElementById('loginPanel');
+        const closeBtn = document.getElementById('closeBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const accountInput = document.getElementById('accountInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const errMsg = document.getElementById('errMsg');
+
+        // 点击进入按钮，滑出毛玻璃面板
+        startBtn.addEventListener('click', () => {
+            loginPanel.classList.add('active');
+        });
+
+        // 点击关闭按钮，收回面板
+        closeBtn.addEventListener('click', () => {
+            loginPanel.classList.remove('active');
+            errMsg.innerText = '';
+        });
+
+        // 登录逻辑 (演示)
+        loginBtn.addEventListener('click', () => {
+            const acc = accountInput.value.trim();
+            const pwd = passwordInput.value.trim();
+            
+            if (!acc || !pwd) {
+                errMsg.innerText = "账号或密码不能为空";
+                return;
+            }
+
+            loginBtn.innerText = "LOADING...";
+            loginBtn.style.opacity = "0.7";
+            loginBtn.disabled = true;
+
+            // 模拟网络请求
+            setTimeout(() => {
+                if (acc === 'admin' && pwd === '123456') {
+                    errMsg.style.color = "#00ffff";
+                    errMsg.innerText = "登录成功，正在链接星海...";
+                    // 这里可以写跳转逻辑
+                } else {
+                    errMsg.style.color = "#ff6b6b";
+                    errMsg.innerText = "账号或密码错误";
+                    loginBtn.innerText = "LOG IN";
+                    loginBtn.style.opacity = "1";
+                    loginBtn.disabled = false;
+                }
+            }, 1200);
+        });
+
+        // 回车直接登录
+        passwordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') loginBtn.click();
+        });
+    </script>
+</body>
+</html>
