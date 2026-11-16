@@ -36,7 +36,7 @@ export type AuthResult = { userId: string } | { response: Response };
 export async function requireAuth(request: Request, env: Env): Promise<AuthResult> {
   const token = bearerToken(request);
   if (!token) return { response: err("unauthorized", 401) };
-  const res = await verifySupabaseJwt(token, env.SUPABASE_JWT_SECRET);
+  const res = await verifySupabaseJwt(token, env.SUPABASE_JWT_SECRET, env.SUPABASE_URL);
   if (!res.ok) return { response: err("unauthorized", 401) };
   return { userId: res.sub };
 }

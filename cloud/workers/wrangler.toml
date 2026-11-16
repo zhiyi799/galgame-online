@@ -13,11 +13,10 @@ AUTH_EMAIL_DOMAIN = "players.galgame.local"
 ALLOW_DEV_MAIL_SEND = "false"
 
 # Per-IP fixed-window rate limiting for the auth routes (10 req/min, mirroring
-# the C# prototype). Create once and paste the id here:
-#   wrangler kv namespace create RATE_LIMIT_KV
-# [[kv_namespaces]]
-# binding = "RATE_LIMIT_KV"
-# id = "PASTE-KV-NAMESPACE-ID-HERE"
+# the C# prototype). Created 2026-11-16 via the Cloudflare API token.
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "88980d95a4b644628389990f838a3fd1"
 
 [observability]
 enabled = true

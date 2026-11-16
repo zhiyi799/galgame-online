@@ -142,7 +142,7 @@ export async function sessionCheck(request: Request, env: Env): Promise<Response
   // Same envelope as the C# prototype: 200 with {ok, accountId}.
   const token = bearerToken(request);
   if (!token) return json({ ok: false, accountId: null });
-  const res = await verifySupabaseJwt(token, env.SUPABASE_JWT_SECRET);
+  const res = await verifySupabaseJwt(token, env.SUPABASE_JWT_SECRET, env.SUPABASE_URL);
   if (!res.ok) return json({ ok: false, accountId: null });
   return json({ ok: true, accountId: res.sub });
 }

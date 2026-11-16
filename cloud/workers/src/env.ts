@@ -8,7 +8,9 @@ export interface Env {
   SUPABASE_ANON_KEY: string;
   /** Supabase service_role key — SERVER ONLY, bypasses RLS. */
   SUPABASE_SERVICE_ROLE_KEY: string;
-  /** Supabase JWT secret — HS256 key for verifying Auth access tokens. */
+  /** Supabase JWT secret — HS256 fallback key for verifying Auth access
+   *  tokens. New projects issue ES256 tokens, verified against the JWKS
+   *  endpoint instead; keep this set for projects still on HS256. */
   SUPABASE_JWT_SECRET: string;
   /** Synthetic email domain for username-only auth (default players.galgame.local). */
   AUTH_EMAIL_DOMAIN?: string;

@@ -71,6 +71,117 @@ describe("verifySupabaseJwt", () => {
   });
 });
 
+// --- ES256 (JWKS) verification ---
+
+const SUPABASE_URL = "https://test.supabase.co";
+
+async function makeEs256Key(kid: string) {
+  const pair = (await crypto.subtle.generateKey(
+    { name: "ECDSA", namedCurve: "P-256" },
+    true,
+    ["sign", "verify"],
+  )) as CryptoKeyPair;
+  const jwk = await crypto.subtle.exportKey("jwk", pair.publicKey);
+  const jwks = { keys: [{ ...jwk, kid, alg: "ES256", use: "sig" }] };
+  return { privateKey: pair.privateKey, jwks };
+}
+
+async function signEs256Token(
+  payload: Record<string, unknown>,
+  privateKey: CryptoKey,
+  kid: string,
+): Promise<string> {
+  const header = b64url(JSON.stringify({ alg: "ES256", typ: "JWT", kid }));
+  const body = b64url(JSON.stringify(payload));
+  const sig = await crypto.subtle.sign(
+    { name: "ECDSA", hash: "SHA-256" },
+    privateKey,
+    new TextEncoder().encode(`${header}.${body}`),
+  );
+  return `${header}.${body}.${Buffer.from(sig).toString("base64url")}`;
+}
+
+function stubJwks(jwks: unknown): () => void {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: string | URL | Request) => {
+    const url = String(input);
+    if (url.includes("/.well-known/jwks.json")) {
+      return new Response(JSON.stringify(jwks), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ error: `unexpected URL ${url}` }), { status: 404 });
+  }) as typeof fetch;
+  return () => void (globalThis.fetch = originalFetch);
+}
+
+let es256KidCounter = 0;
+
+describe("verifySupabaseJwt (ES256 via JWKS)", () => {
+  let restore = () => {};
+
+  afterEach(() => {
+    restore();
+  });
+
+  it("accepts a well-formed ES256 token", async () => {
+    const kid = `test-kid-${++es256KidCounter}`;
+    const { privateKey, jwks } = await makeEs256Key(kid);
+    restore = stubJwks(jwks);
+    const token = await signEs256Token(validPayload(), privateKey, kid);
+    const res = await verifySupabaseJwt(token, SECRET, SUPABASE_URL);
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.sub).toBe("00000000-0000-0000-0000-000000000001");
+  });
+
+  it("rejects an ES256 token with an unknown kid", async () => {
+    const kid = `test-kid-${++es256KidCounter}`;
+    const { privateKey, jwks } = await makeEs256Key(kid);
+    restore = stubJwks(jwks);
+    const token = await signEs256Token(validPayload(), privateKey, "some-other-kid");
+    const res = await verifySupabaseJwt(token, SECRET, SUPABASE_URL);
+    expect(res).toEqual({ ok: false, error: "unknown key" });
+  });
+
+  it("rejects an ES256 token with a tampered payload", async () => {
+    const kid = `test-kid-${++es256KidCounter}`;
+    const { privateKey, jwks } = await makeEs256Key(kid);
+    restore = stubJwks(jwks);
+    const token = await signEs256Token(validPayload(), privateKey, kid);
+    const [h, _p, s] = token.split(".");
+    const tampered = `${h}.${b64url(JSON.stringify(validPayload({ sub: "attacker" })))}.${s}`;
+    const res = await verifySupabaseJwt(tampered, SECRET, SUPABASE_URL);
+    expect(res).toEqual({ ok: false, error: "bad signature" });
+  });
+
+  it("rejects an expired ES256 token", async () => {
+    const kid = `test-kid-${++es256KidCounter}`;
+    const { privateKey, jwks } = await makeEs256Key(kid);
+    restore = stubJwks(jwks);
+    const token = await signEs256Token(
+      validPayload({ exp: Math.floor(Date.now() / 1000) - 10 }),
+      privateKey,
+      kid,
+    );
+    const res = await verifySupabaseJwt(token, SECRET, SUPABASE_URL);
+    expect(res).toEqual({ ok: false, error: "token expired" });
+  });
+
+  it("rejects an ES256 token from the wrong issuer", async () => {
+    const kid = `test-kid-${++es256KidCounter}`;
+    const { privateKey, jwks } = await makeEs256Key(kid);
+    restore = stubJwks(jwks);
+    const token = await signEs256Token(
+      validPayload({ iss: "https://other.supabase.co/auth/v1" }),
+      privateKey,
+      kid,
+    );
+    const res = await verifySupabaseJwt(token, SECRET, SUPABASE_URL);
+    expect(res).toEqual({ ok: false, error: "wrong issuer" });
+  });
+});
+
 // --- Pull route with a stubbed Supabase ---
 
 const USER_ID = "00000000-0000-0000-0000-000000000001";

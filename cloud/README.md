@@ -244,18 +244,38 @@ shape it must take when one is (Stripe, etc.):
   both in one process. Splitting keeps the engine unit-testable in
   TypeScript while the RPC keeps the commit atomic.
 
-## Verification status (2026-11-16, scaffold)
+## Verification status (2026-11-16, deployed and verified live)
 
-- `npm test`: 28/28 pass (gacha engine pity/50-50/120-guarantee/costs;
-  JWT sign/verify; pull route with stubbed Supabase: insufficient funds,
-  bad count, commit, OCC retry, unauthenticated).
+- `npm test`: **33/33 pass** (gacha engine pity/50-50/120-guarantee/costs;
+  JWT sign/verify incl. ES256-via-JWKS; pull route with stubbed Supabase:
+  insufficient funds, bad count, commit, OCC retry, unauthenticated).
 - `npm run build` (`tsc --noEmit`): clean.
 - `npm run check-sql`: all 4 migrations parse (libpg-query), including the
-  5 plpgsql function bodies. Syntax only — **not executed against a live
-  Postgres**. No local Postgres/Docker was available in the sandbox.
-- `wrangler deploy --dry-run`: bundles cleanly (48.75 KiB).
-- `wrangler dev` boot test: `/api/status` and `/api/game/status` answer;
-  unconfigured routes return 503; unknown routes 404; OPTIONS 204.
-- NOT verified yet (needs the user's accounts): applying the migrations to a
-  real Supabase project, the signup→login→pull flow against live Supabase,
-  and the deployed Worker URL.
+  5 plpgsql function bodies. Syntax only at scaffold time — **since executed
+  against the live Supabase project** (see below).
+- **Deployed 2026-11-16 ~13:36 CST**: Worker `galgame-online-api` at
+  `https://galgame-online-api.2119351988.workers.dev` (Cloudflare account
+  2119351988@qq.com, API token `galgame-online-wrangler`). KV namespace
+  `RATE_LIMIT_KV` created and bound; 4 secrets set (SUPABASE_URL,
+  SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_JWT_SECRET).
+- **Supabase project `galgame-online`** (ref `bfhjmnyzofcgodvpivnm`,
+  Singapore, Free): migrations 0001–0004 run in the SQL Editor, email
+  confirmation OFF, 5 public buckets
+  (character-art, cg, bgm, voice, scenes).
+- **Live flow verified 2026-11-16 ~13:40 CST** against the deployed Worker:
+  signup → login → session → banners (2) → wallet (0/1000/0) → single
+  pull (3★ item 301, pity counters move) → inventory (item 301 ×1) →
+  wallet after pull (free 840). All good.
+- **ES256 fix (2026-11-16)**: new Supabase projects issue ES256 access
+  tokens, not HS256. The Worker verifies ES256 against the project's JWKS
+  endpoint (`<SUPABASE_URL>/auth/v1/.well-known/jwks.json`, cached 10 min,
+  refetch on unknown `kid`); HS256 with `SUPABASE_JWT_SECRET` stays as a
+  fallback. Before this fix every authed call returned `unauthorized`
+  even though login succeeded.
+- **Deployment notes**: `wrangler login` OAuth does NOT work from the
+  sandbox — the cloud browser cannot reach the CLI's localhost:8976
+  callback (ERR_CONNECTION_REFUSED). Deploy with a Cloudflare API token
+  instead (`CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` env vars;
+  "Edit Cloudflare Workers" template). Copy the token from the main value
+  display on the creation page, not from the example command (a bad copy
+  fails with "Invalid API Token").

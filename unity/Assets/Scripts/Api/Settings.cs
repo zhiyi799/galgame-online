@@ -11,7 +11,7 @@ namespace GalgameOnline.Api
 {
     public static class Settings
     {
-        public const string DefaultApiBaseUrl = "https://galgame-online-api.<your-subdomain>.workers.dev";
+        public const string DefaultApiBaseUrl = "https://galgame-online-api.2119351988.workers.dev";
         public const string LocalDevApiBaseUrl = "http://127.0.0.1:8787";
 
         private const string PrefsKey = "api_base_url";
