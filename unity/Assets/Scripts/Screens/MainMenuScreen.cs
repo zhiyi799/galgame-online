@@ -21,6 +21,17 @@ namespace GalgameOnline.Screens
 
         private void Start()
         {
+            // Safety net: the main menu is only reachable after the
+            // protagonist is chosen (Auth routes through RouteAfterAuth).
+            // If there is no selection, send the player to the select
+            // screen instead of showing a menu with no protagonist.
+            // Skipped in smoke mode: the runner loads scenes directly.
+            if (!GameManager.SmokeMode && !ProtagonistManager.HasSelection)
+            {
+                GameManager.Instance.GoTo(GameManager.SceneProtagonistSelect);
+                return;
+            }
+
             var canvas = UiFactory.SceneCanvas();
             UiFactory.AddBackground(canvas.transform, "MainMenu", UiFactory.DeepUltramarine);
             var root = UiFactory.Panel(canvas.transform, "MenuRoot",
@@ -46,6 +57,17 @@ namespace GalgameOnline.Screens
             _walletLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);
             UiFactory.Place(_walletLabel.rectTransform, -300, -148, 600, 30);
 
+            // The chosen protagonist (unified identity 无星者 + gender).
+            // The story never changes with gender; this is presentation only.
+            var protagLabel = UiFactory.Label(root.transform, "Protagonist",
+                ProtagonistManager.HasSelection
+                    ? "主角：无星者（" + ProtagonistManager.SelectedGenderLabel + "）"
+                    : "主角：无星者（未选择）", 16,
+                TextAlignmentOptions.Center, UiFactory.MoonlightBlue);
+            protagLabel.rectTransform.anchorMin = new Vector2(0.5f, 1);
+            protagLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);
+            UiFactory.Place(protagLabel.rectTransform, -300, -180, 600, 24);
+
             float y = -210;
             AddMenuButton(root.transform, "开始游戏", () => gm.GoTo(GameManager.SceneStory), ref y);
             var gachaBtn = AddMenuButton(root.transform, "🎰 抽卡", () =>
@@ -64,6 +86,16 @@ namespace GalgameOnline.Screens
             {
                 if (gm.RequireOnline()) gm.GoTo(GameManager.SceneCloudSave);
             }, ref y);
+            // Player homepage: works offline too (inventory pages show an
+            // honest offline state; static pages stay available).
+            AddMenuButton(root.transform, "个人主页", () =>
+                gm.GoTo(GameManager.ScenePlayerHome), ref y);
+            // 3D exploration (TideSong world, re-skinned): local, works offline.
+            AddMenuButton(root.transform, "探索", () =>
+                gm.GoTo(GameManager.SceneExploration), ref y);
+            // World map: the five regions as Unity Terrains (local, offline).
+            AddMenuButton(root.transform, "🗺 世界地图", () =>
+                gm.GoTo(GameManager.SceneWorldMap), ref y);
             AddMenuButton(root.transform, "⚙️ 设置", ToggleSettings, ref y, UiFactory.DeepUltramarine);
             AddMenuButton(root.transform, gm.IsOffline ? "返回登录" : "退出登录", () =>
             {
@@ -125,7 +157,7 @@ namespace GalgameOnline.Screens
             rt.anchorMin = new Vector2(0.5f, 1);
             rt.anchorMax = new Vector2(0.5f, 1);
             rt.anchoredPosition = new Vector2(0, y);
-            y -= 64;
+            y -= 58;
             return btn;
         }
 

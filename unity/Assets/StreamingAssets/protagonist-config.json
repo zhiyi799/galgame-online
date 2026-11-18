@@ -1,0 +1,62 @@
+{
+  "combat": {
+    "awakening": {
+      "id": "star_awakening",
+      "name": "星律觉醒（待定）",
+      "unlocked": false
+    },
+    "base_stats": {
+      "attack": 20,
+      "defense": 10,
+      "hp": 100,
+      "speed": 10
+    },
+    "data_only": true,
+    "element": "star",
+    "note": "战斗系统尚未实现；以下为男女主角共享的配置骨架（元素 / 定位 / 数值 / 武器 / 技能 / 觉醒完全一致），数值与技能名为设计占位，待数值策划确定。",
+    "role": "protagonist",
+    "skills": [
+      {
+        "id": "normal_attack",
+        "name": "星律普攻（待定）",
+        "type": "normal"
+      },
+      {
+        "id": "skill",
+        "name": "星律技能（待定）",
+        "type": "active"
+      },
+      {
+        "id": "ultimate",
+        "name": "星律爆发（待定）",
+        "type": "ultimate"
+      }
+    ],
+    "weapon": "星律武器（待定）"
+  },
+  "protagonist": {
+    "female": {
+      "art_resource": "protagonist_female",
+      "element": "star",
+      "gender": "female",
+      "id": "protagonist_female",
+      "intro": "能够听见已经消失的星辰声音的少女。清冷、坚韧，星光在她身后轻盈流转。",
+      "name": "无星者",
+      "story_identity": "无星者",
+      "title": "无星者",
+      "trait": "清冷 · 坚韧 · 灵动"
+    },
+    "male": {
+      "art_resource": "protagonist_male",
+      "element": "star",
+      "gender": "male",
+      "id": "protagonist_male",
+      "intro": "能够听见已经消失的星辰声音的少年。沉稳、理性，星律在他手中如星空般安静而深远。",
+      "name": "无星者",
+      "story_identity": "无星者",
+      "title": "无星者",
+      "trait": "沉稳 · 理性 · 神秘"
+    },
+    "selected_gender": null
+  }
+}

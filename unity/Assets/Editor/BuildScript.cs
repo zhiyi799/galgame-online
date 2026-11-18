@@ -17,7 +17,11 @@ namespace GalgameOnline.Editor
         public static readonly string[] Scenes =
         {
             "Assets/Scenes/Auth.unity",
+            "Assets/Scenes/ProtagonistSelect.unity",
             "Assets/Scenes/MainMenu.unity",
+            "Assets/Scenes/PlayerHome.unity",
+            "Assets/Scenes/Exploration.unity",
+            "Assets/Scenes/WorldMap.unity",
             "Assets/Scenes/Gacha.unity",
             "Assets/Scenes/Inventory.unity",
             "Assets/Scenes/Mail.unity",

@@ -90,15 +90,21 @@ namespace GalgameOnline.Screens
             apiLabel.rectTransform.anchorMax = new Vector2(0.5f, 1);
 
             // Restore the saved token if there is one.
+            // Skipped in smoke mode: the smoke runner owns scene
+            // navigation there, and a restored session racing
+            // RouteAfterAuth would unload the scene the runner just
+            // loaded (seen with -homepage-shot after an earlier shot
+            // run saved its token to PlayerPrefs).
             var gm = GameManager.Instance;
-            if (!string.IsNullOrEmpty(gm.Api.Token) && !string.IsNullOrEmpty(gm.Username))
+            if (!GameManager.SmokeMode
+                && !string.IsNullOrEmpty(gm.Api.Token) && !string.IsNullOrEmpty(gm.Username))
             {
                 _statusLabel.text = "正在验证登录…";
                 StartCoroutine(gm.Api.CheckSession(r =>
                 {
                     if (r.Success && r.Data.ok)
                     {
-                        gm.GoTo(GameManager.SceneMainMenu);
+                        gm.RouteAfterAuth();
                     }
                     else
                     {
@@ -166,7 +172,7 @@ namespace GalgameOnline.Screens
                     if (r.Success && r.Data.ok && !string.IsNullOrEmpty(r.Data.token))
                     {
                         gm.SetLoggedIn(user, r.Data.token);
-                        gm.GoTo(GameManager.SceneMainMenu);
+                        gm.RouteAfterAuth();
                     }
                     else
                     {
@@ -180,7 +186,7 @@ namespace GalgameOnline.Screens
         {
             GameManager.Instance.SetOffline();
             Toast.Show("离线游玩：抽卡、邮件、云存档不可用。");
-            GameManager.Instance.GoTo(GameManager.SceneMainMenu);
+            GameManager.Instance.RouteAfterAuth();
         }
     }
 }

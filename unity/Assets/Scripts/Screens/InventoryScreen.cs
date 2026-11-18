@@ -25,6 +25,15 @@ namespace GalgameOnline.Screens
             _totalLabel.rectTransform.anchorMax = new Vector2(0, 1);
             UiFactory.Place(_totalLabel.rectTransform, 20, -76, 800, 30);
 
+            // Phase 1 / P1-B：星律回响面板入口
+            var echoBtn = UiFactory.Button(root.transform, "EchoButton", "星律回响",
+                () => AstralBloom.EchoPanel.Open(), new Vector2(180, 44));
+            var eRt = echoBtn.GetComponent<RectTransform>();
+            eRt.anchorMin = new Vector2(1, 1);
+            eRt.anchorMax = new Vector2(1, 1);
+            eRt.pivot = new Vector2(1, 1);
+            eRt.anchoredPosition = new Vector2(-16, -64);
+
             var (scroll, content) = UiFactory.ScrollView(root.transform, "List",
                 new Vector2(0, 0), new Vector2(1, 1), new Vector2(0, 0));
             var sRt = scroll.GetComponent<RectTransform>();

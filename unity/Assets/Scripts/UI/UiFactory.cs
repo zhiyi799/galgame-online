@@ -207,18 +207,26 @@ namespace GalgameOnline.UI
         /// Four thin Images pinned to the rect's edges, drawn above the fill.</summary>
         public static void AddSilverBorder(RectTransform rt, float thickness = 1f)
         {
+            AddBorder(rt, SilverBorder, thickness);
+        }
+
+        /// <summary>Hairline frame in an arbitrary colour — e.g. pale gold
+        /// for the primary action, silver everywhere else.</summary>
+        public static void AddBorder(RectTransform rt, Color color, float thickness = 1f)
+        {
             AddBorderEdge(rt, "BorderTop", new Vector2(0, 1), new Vector2(1, 1),
-                new Vector2(0, -thickness), Vector2.zero, thickness);
+                new Vector2(0, -thickness), Vector2.zero, thickness, color);
             AddBorderEdge(rt, "BorderBottom", new Vector2(0, 0), new Vector2(1, 0),
-                Vector2.zero, new Vector2(0, thickness), thickness);
+                Vector2.zero, new Vector2(0, thickness), thickness, color);
             AddBorderEdge(rt, "BorderLeft", new Vector2(0, 0), new Vector2(0, 1),
-                Vector2.zero, new Vector2(thickness, 0), thickness);
+                Vector2.zero, new Vector2(thickness, 0), thickness, color);
             AddBorderEdge(rt, "BorderRight", new Vector2(1, 0), new Vector2(1, 1),
-                new Vector2(-thickness, 0), Vector2.zero, thickness);
+                new Vector2(-thickness, 0), Vector2.zero, thickness, color);
         }
 
         private static void AddBorderEdge(RectTransform parent, string name,
-            Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax, float thickness)
+            Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax,
+            float thickness, Color color)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
@@ -228,7 +236,7 @@ namespace GalgameOnline.UI
             rt.offsetMin = offsetMin;
             rt.offsetMax = offsetMax;
             var img = go.AddComponent<Image>();
-            img.color = SilverBorder;
+            img.color = color;
             ApplyMaterial(img);
         }
 

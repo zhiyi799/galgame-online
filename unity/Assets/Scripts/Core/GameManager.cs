@@ -15,7 +15,11 @@ namespace GalgameOnline.Core
         public static GameManager Instance { get; private set; }
 
         public const string SceneAuth = "Auth";
+        public const string SceneProtagonistSelect = "ProtagonistSelect";
         public const string SceneMainMenu = "MainMenu";
+        public const string ScenePlayerHome = "PlayerHome";
+        public const string SceneExploration = "Exploration";
+        public const string SceneWorldMap = "WorldMap";
         public const string SceneGacha = "Gacha";
         public const string SceneInventory = "Inventory";
         public const string SceneMail = "Mail";
@@ -92,6 +96,15 @@ namespace GalgameOnline.Core
         }
 
         public void GoTo(string scene) => SceneManager.LoadScene(scene);
+
+        /// <summary>After login / offline entry: first-time players pick
+        /// their protagonist (male / female 无星者）; returning players load
+        /// the saved choice directly and go to the main menu.</summary>
+        public void RouteAfterAuth()
+        {
+            if (ProtagonistManager.HasSelection) GoTo(SceneMainMenu);
+            else GoTo(SceneProtagonistSelect);
+        }
 
         public void RefreshWallet(Action onDone = null)
         {

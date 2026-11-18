@@ -25,20 +25,24 @@ namespace GalgameOnline.Api
         // Single shared copy: GachaScreen, BannerDetailsScreen,
         // PullHistoryScreen and PullResultScreen all use this table.
         // 3★ items (301-304) have no art; they appear as text fallbacks.
+        // Item 101 (featured 5★ of banner 1) uses 塞蕾斯蒂娅's splash
+        // (celestia_splash, user-supplied illustration, watermark removed).
+        // Its display name is still the placeholder "星夜·凛" — rename it
+        // to 塞蕾斯蒂娅 when the item -> character mapping is confirmed.
         public static string ArtForItem(int itemId)
         {
             switch (itemId)
             {
-                case 101: return "char_01_white_coat";
-                case 102: return "char_02_black_coat";
-                case 103: return "char_03_silver_hair";
-                case 104: return "char_04_long_hair";
-                case 105: return "char_05_black_suit";
-                case 201: return "char_06_cyber_black";
-                case 202: return "char_07_swimsuit";
-                case 203: return "char_08_casual";
-                case 204: return "expr_01_calm";
-                case 205: return "expr_02_gentle_smile";
+                case 101: return "celestia_splash";
+                case 102: return "char_102";
+                case 103: return "char_103";
+                case 104: return "char_104";
+                case 105: return "char_105";
+                case 201: return "char_201";
+                case 202: return "char_202";
+                case 203: return "char_203";
+                case 204: return "char_204";
+                case 205: return "char_205";
                 default: return null;
             }
         }

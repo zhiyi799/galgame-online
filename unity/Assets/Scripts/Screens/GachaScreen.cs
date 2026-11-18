@@ -1,10 +1,15 @@
-// GachaScreen — v3 redesign (user's detailed gacha brief, 2026-11-16).
+// GachaScreen — v3 redesign (user's detailed gacha brief, 2026-11-16)
+// + v4 UI refinement (user's gacha UI refine prompt, 2026-11-17).
 // Restrained commercial-game WISH UI: night shrine-courtyard scene
 // background (Resources/Backgrounds/Gacha.png), 23% / 30% / 47% zones
-// (left banner rows / center info column / right large character),
-// slim banner rows (no heavy boxes), center info with UP frames and
-// real-data pity bars, large character right with a soft moonlight glow
-// (no white circle), bottom pull buttons, simplified top nav.
+// (left banner rows / center info column / right large character).
+// v4 changes are VISUAL ONLY — layout, background, art, banner data
+// and all functionality are unchanged: flat list rows (no heavy
+// cards; selection = translucent tint + gold accent + hairline),
+// flat rate-up frames with pale-gold stars, slim 6px pity bars,
+// ten-pull as the clear primary (classic ultramarine + pale-gold
+// hairline), single pull quiet deep blue + silver hairline, pink
+// removed from coming-soon status, twinkle dots removed.
 // API logic unchanged: GetBanners / GetBannerDetail / Pull / RefreshWallet.
 //
 // Concept slot -> backend banner mapping (the live backend only has
@@ -15,9 +20,13 @@
 //   slot 4 星辰之约 -> coming soon (not pullable)
 // Display names / subtitles / quotes come from the concept; remaining
 // time for live slots is "长期开放" (the backend has no end date).
-// "绫华" is the concept's display name for item 101's art (char_01).
-// Slot 2's quote line is placeholder flavor text, like the placeholder
-// item names in ItemNames.cs.
+// "绫华" was the concept's display name for item 101's art (char_01).
+// The featured 5★ splash is now 塞蕾斯蒂娅： her user-supplied
+// illustration (docs/celestia-5star-illustration.png), cropped to a
+// portrait splash (Resources/Characters/celestia_splash) with the
+// "豆包 AI 生成" watermark removed. Item 101's art mapping in
+// ItemNames.ArtForItem points at the same splash, so the UP frame,
+// details, history and pull-result screens all show her.
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -66,20 +75,20 @@ namespace GalgameOnline.Screens
             new BannerSlot {
                 name = "月下樱华", subtitle = "M O O N L I T   S A K U R A", cardSub = "MOONLIT SAKURA",
                 quote = "「在这片星海与樱花之间……\n我们，终将再再次相遇。」",
-                artName = "char_01_white_coat", nameplate = "绫华",
+                artName = "celestia_splash", nameplate = "塞蕾斯蒂娅",
                 backendId = 1, comingSoon = false, badge = "限定",
                 remain = "长期开放", rateUpIds = new int[] { 101, 102, 103 },
             },
             new BannerSlot {
                 name = "苍穹之誓", subtitle = "O A T H   O F   T H E   S K Y", cardSub = "OATH OF THE SKY",
                 quote = "「苍穹为誓，星光为证。」",
-                artName = "char_05_black_suit", nameplate = "月下·凛",
+                artName = "char_105", nameplate = "月下·凛",
                 backendId = 2, comingSoon = false, badge = null,
                 remain = "长期开放", rateUpIds = new int[] { 105, 102, 103 },
             },
             new BannerSlot {
                 name = "春日絮语", subtitle = "S P R I N G   W H I S P E R", cardSub = "SPRING WHISPER",
-                quote = "", artName = "char_04_long_hair", nameplate = "",
+                quote = "", artName = "char_104", nameplate = "",
                 backendId = 0, comingSoon = true, badge = null,
                 remain = "即将开启", rateUpIds = new int[0],
             },
@@ -136,9 +145,8 @@ namespace GalgameOnline.Screens
         // Caveat: a pull made on another device after this snapshot will
         // read as NEW here — accepted (see docs/gacha-phase1-2-plan.md §7.6).
         private readonly HashSet<int> _ownedItemIds = new HashSet<int>();
-        // Soft moonlight glow behind the character + twinkling stars (Update).
+        // Soft moonlight glow behind the character (Update).
         private Image _charGlow;
-        private readonly List<Image> _twinkles = new List<Image>();
         private float _time;
         // Wallet balance for pull-button gating; -1 = not loaded yet
         // (buttons stay enabled, as before, until the wallet arrives).
@@ -199,8 +207,9 @@ namespace GalgameOnline.Screens
             scaler.matchWidthOrHeight = 0.5f;
         }
 
-        // Gentle ambient motion: the moonlight glow breathes and the few
-        // stars twinkle. Only Image colour alpha is touched — no layout work.
+        // Gentle ambient motion: the moonlight glow breathes. Only Image
+        // colour alpha is touched — no layout work. (v4 refinement: the
+        // twinkling star dots are gone — decoration that adds nothing.)
         private void Update()
         {
             _time += Time.deltaTime;
@@ -209,14 +218,6 @@ namespace GalgameOnline.Screens
                 var c = _charGlow.color;
                 c.a = 0.09f + 0.02f * Mathf.Sin(_time * 0.6f);
                 _charGlow.color = c;
-            }
-            for (int i = 0; i < _twinkles.Count; i++)
-            {
-                var img = _twinkles[i];
-                if (img == null) continue;
-                var c = img.color;
-                c.a = 0.20f + 0.14f * (0.5f + 0.5f * Mathf.Sin(_time * 1.4f + i * 1.7f));
-                img.color = c;
             }
         }
 
@@ -365,29 +366,11 @@ namespace GalgameOnline.Screens
             veil.transform.SetSiblingIndex(1);
 
             // Soft moonlight glow centred on the character (right zone).
+            // It blends the cut-out art into the scene's lighting — the
+            // scene's own stars stay; no extra decorative dots are added.
             var glowSprite = UiFactory.RadialGlowSprite();
             _charGlow = AddGlow(root, glowSprite, new Vector2(0, 1), new Vector2(1128, -356),
                 new Vector2(560, 560), new Color(0.47f, 0.59f, 0.86f, 0.10f));
-
-            // A few tiny twinkling stars (the scene already has its own stars).
-            Vector2[] stars =
-            {
-                new Vector2(380, -120), new Vector2(460, -180), new Vector2(560, -100),
-                new Vector2(640, -220), new Vector2(740, -140), new Vector2(860, -120),
-                new Vector2(980, -180), new Vector2(1080, -100), new Vector2(1180, -220),
-                new Vector2(420, -420),
-            };
-            for (int i = 0; i < stars.Length; i++)
-            {
-                float size = 3 + (i % 3);
-                float alpha = 0.45f + 0.15f * (i % 3);
-                var dot = UiFactory.Panel(root, "Star",
-                    new Vector2(0, 1), new Vector2(0, 1), new Vector2(size, size),
-                    new Color(0.898f, 0.918f, 0.969f, alpha));
-                dot.GetComponent<RectTransform>().anchoredPosition = stars[i];
-                var img = dot.GetComponent<Image>();
-                if (img != null) _twinkles.Add(img);
-            }
         }
 
         private static Image AddGlow(Transform root, Sprite glowSprite, Vector2 anchor,
@@ -409,7 +392,7 @@ namespace GalgameOnline.Screens
 
         private void BuildCenterArt(Transform root)
         {
-            _centerArt = UiFactory.ArtImage(root, "FeaturedArt", LoadArt("char_01_white_coat"));
+            _centerArt = UiFactory.ArtImage(root, "FeaturedArt", LoadArt("celestia_splash"));
             if (_centerArt != null)
             {
                 _centerArtRt = _centerArt.GetComponent<RectTransform>();
@@ -479,21 +462,25 @@ namespace GalgameOnline.Screens
             rowRt.sizeDelta = new Vector2(288, 140);
 
             // Pity block — all numbers come from the live BannerInfo (see
-            // UpdatePityDisplay); nothing here is hardcoded.
-            _pityTotalLabel = UiFactory.Label(root, "PityTotal", "", 15,
-                TextAlignmentOptions.Left, UiFactory.MoonWhite);
+            // UpdatePityDisplay); nothing here is hardcoded. The total is
+            // auxiliary (silver, smaller); the two pity lines carry the
+            // numbers the player reads at a glance.
+            _pityTotalLabel = UiFactory.Label(root, "PityTotal", "", 14,
+                TextAlignmentOptions.Left, UiFactory.SilverWhite);
             UiFactory.Place(_pityTotalLabel.rectTransform, 310, -472, 384, 20);
 
             _fivePityLabel = UiFactory.Label(root, "FivePity", "", 15,
                 TextAlignmentOptions.Left, UiFactory.MoonWhite);
             UiFactory.Place(_fivePityLabel.rectTransform, 310, -496, 384, 18);
-            var fiveBg = UiFactory.RoundedPanel(root, "FiveBarBg",
-                new Vector2(0, 1), new Vector2(0, 1), new Vector2(PityBarWidth, 10), UiFactory.GlassWhite(0.15f));
+            // Slim 6px bars (v4 refinement): a flat hairline track and a
+            // flat fill — a simple progress read, not a chunky gauge.
+            var fiveBg = UiFactory.Panel(root, "FiveBarBg",
+                new Vector2(0, 1), new Vector2(0, 1), new Vector2(PityBarWidth, 6), UiFactory.GlassWhite(0.12f));
             var fiveBgRt = fiveBg.GetComponent<RectTransform>();
             fiveBgRt.pivot = new Vector2(0, 1);
             fiveBgRt.anchoredPosition = new Vector2(310, -518);
-            _fiveFill = UiFactory.RoundedPanel(root, "FiveBarFill",
-                new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 10), UiFactory.MoonlightBlue)
+            _fiveFill = UiFactory.Panel(root, "FiveBarFill",
+                new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 6), UiFactory.MoonlightBlue)
                 .GetComponent<RectTransform>();
             _fiveFill.pivot = new Vector2(0, 1);
             _fiveFill.anchoredPosition = new Vector2(310, -518);
@@ -501,13 +488,13 @@ namespace GalgameOnline.Screens
             _fourPityLabel = UiFactory.Label(root, "FourPity", "", 15,
                 TextAlignmentOptions.Left, UiFactory.MoonWhite);
             UiFactory.Place(_fourPityLabel.rectTransform, 310, -536, 384, 18);
-            var fourBg = UiFactory.RoundedPanel(root, "FourBarBg",
-                new Vector2(0, 1), new Vector2(0, 1), new Vector2(PityBarWidth, 10), UiFactory.GlassWhite(0.15f));
+            var fourBg = UiFactory.Panel(root, "FourBarBg",
+                new Vector2(0, 1), new Vector2(0, 1), new Vector2(PityBarWidth, 6), UiFactory.GlassWhite(0.12f));
             var fourBgRt = fourBg.GetComponent<RectTransform>();
             fourBgRt.pivot = new Vector2(0, 1);
             fourBgRt.anchoredPosition = new Vector2(310, -558);
-            _fourFill = UiFactory.RoundedPanel(root, "FourBarFill",
-                new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 10), UiFactory.SilverWhite)
+            _fourFill = UiFactory.Panel(root, "FourBarFill",
+                new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 6), UiFactory.SilverWhite)
                 .GetComponent<RectTransform>();
             _fourFill.pivot = new Vector2(0, 1);
             _fourFill.anchoredPosition = new Vector2(310, -558);
@@ -528,12 +515,18 @@ namespace GalgameOnline.Screens
             {
                 int itemId = slot.rateUpIds[i];
                 bool featured = i == 0;
-                var card = UiFactory.RoundedPanel(_rateUpRow, "RateUp" + itemId,
+                // Flat frame (v4 refinement): sharp corners, hairline
+                // border, subtle fill. The featured UP frame gets a
+                // pale-gold hairline + a translucent classic-ultramarine
+                // fill; the others stay quiet so the UP reads at a glance.
+                var card = UiFactory.Panel(_rateUpRow, "RateUp" + itemId,
                     new Vector2(0, 1), new Vector2(0, 1), new Vector2(84, 140),
-                    featured ? new Color(0.141f, 0.302f, 0.671f, 0.85f) : UiFactory.Glass(0.55f));
+                    featured ? new Color(0.141f, 0.302f, 0.671f, 0.72f) : UiFactory.Glass(0.28f));
                 var cRt = card.GetComponent<RectTransform>();
                 cRt.pivot = new Vector2(0, 1);
                 cRt.anchoredPosition = new Vector2(i * 96, 0);
+                if (featured) UiFactory.AddBorder(cRt, UiFactory.PaleGold);
+                else UiFactory.AddSilverBorder(cRt);
 
                 var art = UiFactory.ArtImage(card.transform, "Art", LoadArt(ItemNames.ArtForItem(itemId)));
                 if (art != null)
@@ -551,7 +544,7 @@ namespace GalgameOnline.Screens
                     TextAlignmentOptions.Center, UiFactory.MoonWhite);
                 UiFactory.Place(name.rectTransform, 0, -94, 84, 18);
                 var stars = UiFactory.Label(card.transform, "Stars", ItemNames.Stars(5), 11,
-                    TextAlignmentOptions.Center, UiFactory.SakuraPink);
+                    TextAlignmentOptions.Center, UiFactory.PaleGold);
                 UiFactory.Place(stars.rectTransform, 0, -114, 84, 16);
 
                 if (featured)
@@ -569,12 +562,16 @@ namespace GalgameOnline.Screens
         {
             _pull1Btn = MakePullButton(root, "Pull1", 800, "祈愿一次",
                 () => DoPull(1), UiFactory.DeepUltramarine, UiFactory.MoonWhite,
-                UiFactory.StarryBlue);
+                UiFactory.StarryBlue, UiFactory.SilverBorder);
             _pull1Text = _pull1Btn.GetComponentInChildren<TextMeshProUGUI>();
 
+            // Ten-pull is the primary action (v4 refinement): a stronger
+            // classic-ultramarine fill with a pale-gold hairline, so it
+            // clearly outweighs the single pull without any glow or
+            // gradient. Single pull stays quiet deep blue + silver hairline.
             _pull10Btn = MakePullButton(root, "Pull10", 1022, "祈愿十次",
-                () => DoPull(10), UiFactory.StarryBlue, UiFactory.MoonWhite,
-                UiFactory.ClassicUltramarine);
+                () => DoPull(10), UiFactory.ClassicUltramarine, UiFactory.MoonWhite,
+                UiFactory.StarryBlue, UiFactory.PaleGold);
             _pull10Text = _pull10Btn.GetComponentInChildren<TextMeshProUGUI>();
 
             MakeTextButton(root, "DetailsBtn", 16, "详情", ShowDetails);
@@ -610,17 +607,18 @@ namespace GalgameOnline.Screens
             return btn;
         }
 
-        // Pull button: deep ultramarine / starry blue fill, thin silver
-        // edge, hover/press feedback. No glow panel behind it.
+        // Pull button: flat fill, thin hairline edge, hover/press
+        // feedback. No glow panel behind it, no gradient — the colour
+        // and the hairline carry the weight.
         private Button MakePullButton(Transform root, string name, float x, string label,
-            UnityAction onClick, Color bg, Color textColor, Color highlight)
+            UnityAction onClick, Color bg, Color textColor, Color highlight, Color borderColor)
         {
-            var go = UiFactory.RoundedPanel(root, name,
+            var go = UiFactory.Panel(root, name,
                 new Vector2(0, 1), new Vector2(0, 1), new Vector2(210, 64), bg);
             var rt = go.GetComponent<RectTransform>();
             rt.pivot = new Vector2(0, 1);
             rt.anchoredPosition = new Vector2(x, -640);
-            UiFactory.AddSilverBorder(rt);
+            UiFactory.AddBorder(rt, borderColor);
             var btn = go.AddComponent<Button>();
             btn.onClick.AddListener(onClick);
             var colors = btn.colors;
@@ -728,19 +726,35 @@ namespace GalgameOnline.Screens
             {
                 var slot = Slots[i];
                 int idx = i;
-                var card = UiFactory.RoundedPanel(_root, "BannerCard" + idx,
+                // Flat list row (v4 refinement): no rounded card, no heavy
+                // fill — a near-transparent row with a hairline divider
+                // below it. Selection is shown by a translucent classic-
+                // ultramarine tint + the pale-gold accent and silver frame
+                // (see UpdateCardHighlight), never by a solid block.
+                var card = UiFactory.Panel(_root, "BannerCard" + idx,
                     new Vector2(0, 1), new Vector2(0, 1), new Vector2(264, 86),
-                    UiFactory.Glass(slot.comingSoon ? 0.18f : 0.28f));
+                    UiFactory.Glass(slot.comingSoon ? 0.06f : 0.10f));
                 var cRt = card.GetComponent<RectTransform>();
                 cRt.pivot = new Vector2(0, 1);
                 cRt.anchoredPosition = new Vector2(16, -84 - idx * 98);
                 var btn = card.AddComponent<Button>();
                 btn.onClick.AddListener(() => SelectSlot(idx));
                 var cols = btn.colors;
-                cols.normalColor = UiFactory.Glass(slot.comingSoon ? 0.18f : 0.28f);
-                cols.highlightedColor = UiFactory.StarryBlue;
-                cols.pressedColor = UiFactory.DeepUltramarine;
+                cols.normalColor = UiFactory.Glass(slot.comingSoon ? 0.06f : 0.10f);
+                cols.highlightedColor = new Color(0.255f, 0.412f, 0.788f, 0.35f);
+                cols.pressedColor = new Color(0.078f, 0.169f, 0.404f, 0.55f);
                 btn.colors = cols;
+
+                // Hairline list divider in the gap below the row.
+                if (idx < Slots.Length - 1)
+                {
+                    var div = UiFactory.Panel(_root, "BannerDivider" + idx,
+                        new Vector2(0, 1), new Vector2(0, 1), new Vector2(264, 1),
+                        new Color(0.788f, 0.831f, 0.910f, 0.22f));
+                    var dvRt = div.GetComponent<RectTransform>();
+                    dvRt.pivot = new Vector2(0, 1);
+                    dvRt.anchoredPosition = new Vector2(16, -84 - idx * 98 - 92);
+                }
                 _cardBtns.Add(btn);
 
                 // Pale-gold accent bar on the left edge; visible only while
@@ -796,7 +810,10 @@ namespace GalgameOnline.Screens
                 UiFactory.Place(sub.rectTransform, 80, -34, 176, 16);
                 var remain = UiFactory.Label(card.transform, "Remain",
                     slot.comingSoon ? "即将开启" : "剩余时间：" + slot.remain, 12,
-                    TextAlignmentOptions.Left, slot.comingSoon ? UiFactory.SakuraPink : subColor);
+                    TextAlignmentOptions.Left,
+                    // Coming-soon status in dimmed silver, not pink: pink is
+                    // reserved for the 5★ accent and must not dominate.
+                    slot.comingSoon ? new Color(0.788f, 0.831f, 0.910f, 0.55f) : subColor);
                 UiFactory.Place(remain.rectTransform, 80, -56, 176, 18);
 
                 if (!string.IsNullOrEmpty(slot.badge))
@@ -818,9 +835,12 @@ namespace GalgameOnline.Screens
                 if (_cardBgs[i] == null) continue;
                 bool isSel = Slots[i] == selected;
                 bool soon = Slots[i].comingSoon;
+                // Selected: translucent classic-ultramarine tint (the scene
+                // shows through), not a solid block. Unselected rows stay
+                // near-transparent so the list reads as a list, not cards.
                 Color fill = isSel
-                    ? UiFactory.ClassicUltramarine
-                    : UiFactory.Glass(soon ? 0.18f : 0.28f);
+                    ? new Color(0.141f, 0.302f, 0.671f, 0.55f)
+                    : UiFactory.Glass(soon ? 0.06f : 0.10f);
                 _cardBgs[i].color = fill;
                 // The Button's colorBlock drives the Image colour on hover /
                 // press, so its normal colour must track the selection too,
@@ -966,9 +986,9 @@ namespace GalgameOnline.Screens
         private void SetProgress(float five, float four)
         {
             if (_fiveFill != null)
-                _fiveFill.sizeDelta = new Vector2(PityBarWidth * Mathf.Clamp01(five), 10f);
+                _fiveFill.sizeDelta = new Vector2(PityBarWidth * Mathf.Clamp01(five), 6f);
             if (_fourFill != null)
-                _fourFill.sizeDelta = new Vector2(PityBarWidth * Mathf.Clamp01(four), 10f);
+                _fourFill.sizeDelta = new Vector2(PityBarWidth * Mathf.Clamp01(four), 6f);
         }
 
         // ---------- wallet / pull ----------

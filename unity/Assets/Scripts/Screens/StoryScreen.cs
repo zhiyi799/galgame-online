@@ -157,9 +157,17 @@ _bodyLabel.text = "这就是全部的示例内容。真实剧本、立绘、CG�
 private void ShowLine()
 {
 var l = Script[_line];
-_nameLabel.text = l.speaker;
+// The story reads the UNIFIED protagonist identity （无星者） — the
+// speaker name never changes with gender. Only the presentation (the
+// character box label) shows which gender was chosen.
+bool isProtagonist = l.speaker == "主角";
+_nameLabel.text = isProtagonist ? ProtagonistManager.StoryIdentity : l.speaker;
 _bodyLabel.text = l.text;
-_charLabel.text = l.speaker + "\n立绘占位";
+_charLabel.text = isProtagonist
+? ProtagonistManager.StoryIdentity
++ (ProtagonistManager.HasSelection ? "（" + ProtagonistManager.SelectedGenderLabel + "）" : "")
++ "\n立绘占位"
+: l.speaker + "\n立绘占位";
 _hintLabel.text = $"▼ 点击继续（{_line + 1}/{Script.Length}）";
 }
 
