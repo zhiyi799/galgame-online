@@ -1,0 +1,86 @@
+{
+  "key": "wuhai",
+  "source": "astral-bloom-wuhai-border-elevation.webp",
+  "source_size": [
+    1920,
+    1280
+  ],
+  "crop_frac": [
+    0.02,
+    0.1,
+    0.98,
+    0.92
+  ],
+  "crop_px": [
+    1843,
+    1049
+  ],
+  "aspect_w_h": 1.7569,
+  "grid": 513,
+  "sigma": 3.0,
+  "bands": [
+    {
+      "rgb": [
+        0,
+        80,
+        144
+      ],
+      "height_m": 0
+    },
+    {
+      "rgb": [
+        136,
+        192,
+        208
+      ],
+      "height_m": 100
+    },
+    {
+      "rgb": [
+        136,
+        192,
+        128
+      ],
+      "height_m": 200
+    },
+    {
+      "rgb": [
+        240,
+        192,
+        64
+      ],
+      "height_m": 320
+    },
+    {
+      "rgb": [
+        240,
+        160,
+        56
+      ],
+      "height_m": 450
+    },
+    {
+      "rgb": [
+        224,
+        64,
+        64
+      ],
+      "height_m": 600
+    }
+  ],
+  "max_m": 600,
+  "matched_pct": 72.57,
+  "band_pixel_counts": {
+    "0": 13813,
+    "1": 47401,
+    "2": 47695,
+    "3": 27429,
+    "4": 24973,
+    "5": 29681
+  },
+  "height_min_m": 0.0,
+  "height_max_m": 600.0,
+  "raw": "wuhai_513.raw",
+  "preview": "wuhai_513_preview.png",
+  "note": "RAW row 0 = south (flipped vertically from image). Terrain height = max_m; height value = band_height / max_m. Schematic design values, NOT surveyed data."
+}

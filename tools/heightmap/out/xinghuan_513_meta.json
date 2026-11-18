@@ -1,0 +1,86 @@
+{
+  "key": "xinghuan",
+  "source": "astral-bloom-xinghuan-elevation.webp",
+  "source_size": [
+    1920,
+    1280
+  ],
+  "crop_frac": [
+    0.02,
+    0.1,
+    0.98,
+    0.92
+  ],
+  "crop_px": [
+    1843,
+    1049
+  ],
+  "aspect_w_h": 1.7569,
+  "grid": 513,
+  "sigma": 3.0,
+  "bands": [
+    {
+      "rgb": [
+        0,
+        80,
+        160
+      ],
+      "height_m": 0
+    },
+    {
+      "rgb": [
+        130,
+        205,
+        215
+      ],
+      "height_m": 20
+    },
+    {
+      "rgb": [
+        110,
+        185,
+        110
+      ],
+      "height_m": 40
+    },
+    {
+      "rgb": [
+        240,
+        215,
+        85
+      ],
+      "height_m": 60
+    },
+    {
+      "rgb": [
+        240,
+        150,
+        65
+      ],
+      "height_m": 80
+    },
+    {
+      "rgb": [
+        220,
+        85,
+        70
+      ],
+      "height_m": 100
+    }
+  ],
+  "max_m": 100,
+  "matched_pct": 32.58,
+  "band_pixel_counts": {
+    "0": 45140,
+    "1": 24832,
+    "2": 7096,
+    "3": 3700,
+    "4": 2055,
+    "5": 2916
+  },
+  "height_min_m": 0.0,
+  "height_max_m": 100.0,
+  "raw": "xinghuan_513.raw",
+  "preview": "xinghuan_513_preview.png",
+  "note": "RAW row 0 = south (flipped vertically from image). Terrain height = max_m; height value = band_height / max_m. Schematic design values, NOT surveyed data."
+}

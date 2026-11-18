@@ -1,0 +1,86 @@
+{
+  "key": "skyvault",
+  "source": "astral-bloom-skyvault-elevation-fixed.webp",
+  "source_size": [
+    1920,
+    1280
+  ],
+  "crop_frac": [
+    0.02,
+    0.1,
+    0.98,
+    0.92
+  ],
+  "crop_px": [
+    1843,
+    1049
+  ],
+  "aspect_w_h": 1.7569,
+  "grid": 513,
+  "sigma": 3.0,
+  "bands": [
+    {
+      "rgb": [
+        56,
+        144,
+        192
+      ],
+      "height_m": 300
+    },
+    {
+      "rgb": [
+        125,
+        190,
+        210
+      ],
+      "height_m": 500
+    },
+    {
+      "rgb": [
+        130,
+        175,
+        95
+      ],
+      "height_m": 700
+    },
+    {
+      "rgb": [
+        200,
+        192,
+        88
+      ],
+      "height_m": 900
+    },
+    {
+      "rgb": [
+        240,
+        176,
+        80
+      ],
+      "height_m": 1100
+    },
+    {
+      "rgb": [
+        208,
+        96,
+        80
+      ],
+      "height_m": 1300
+    }
+  ],
+  "max_m": 1400,
+  "matched_pct": 30.98,
+  "band_pixel_counts": {
+    "0": 10011,
+    "1": 7985,
+    "2": 6465,
+    "3": 28117,
+    "4": 14775,
+    "5": 14179
+  },
+  "height_min_m": 302.2,
+  "height_max_m": 1300.0,
+  "raw": "skyvault_513.raw",
+  "preview": "skyvault_513_preview.png",
+  "note": "RAW row 0 = south (flipped vertically from image). Terrain height = max_m; height value = band_height / max_m. Schematic design values, NOT surveyed data."
+}

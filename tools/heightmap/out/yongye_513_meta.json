@@ -1,0 +1,86 @@
+{
+  "key": "yongye",
+  "source": "astral-bloom-yongye-elevation.webp",
+  "source_size": [
+    1920,
+    1280
+  ],
+  "crop_frac": [
+    0.02,
+    0.1,
+    0.98,
+    0.92
+  ],
+  "crop_px": [
+    1843,
+    1049
+  ],
+  "aspect_w_h": 1.7569,
+  "grid": 513,
+  "sigma": 3.0,
+  "bands": [
+    {
+      "rgb": [
+        0,
+        80,
+        136
+      ],
+      "height_m": 0
+    },
+    {
+      "rgb": [
+        112,
+        176,
+        208
+      ],
+      "height_m": 40
+    },
+    {
+      "rgb": [
+        120,
+        176,
+        96
+      ],
+      "height_m": 90
+    },
+    {
+      "rgb": [
+        232,
+        208,
+        96
+      ],
+      "height_m": 150
+    },
+    {
+      "rgb": [
+        240,
+        160,
+        64
+      ],
+      "height_m": 220
+    },
+    {
+      "rgb": [
+        225,
+        70,
+        60
+      ],
+      "height_m": 300
+    }
+  ],
+  "max_m": 300,
+  "matched_pct": 69.43,
+  "band_pixel_counts": {
+    "0": 29294,
+    "1": 19312,
+    "2": 85308,
+    "3": 38365,
+    "4": 8109,
+    "5": 2336
+  },
+  "height_min_m": 0.0,
+  "height_max_m": 300.0,
+  "raw": "yongye_513.raw",
+  "preview": "yongye_513_preview.png",
+  "note": "RAW row 0 = south (flipped vertically from image). Terrain height = max_m; height value = band_height / max_m. Schematic design values, NOT surveyed data."
+}
