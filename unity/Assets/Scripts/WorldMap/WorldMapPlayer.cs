@@ -17,6 +17,11 @@ namespace GalgameOnline.WorldMap
         private float _vy;
         private bool _grounded = true;
 
+        // ALS 手感：水平速度不再瞬切，按加速度/摩擦曲线趋近目标速度。
+        private Vector3 _vel;
+        // 落地镜头下沉（硬着陆时俯角临时 -3°，0.25 s 恢复）。
+        private float _landDipT;
+
         // Third-person orbit camera.
         private float _yaw = 180f;   // start looking north from the plaza
         private float _pitch = 18f;
@@ -38,7 +43,8 @@ namespace GalgameOnline.WorldMap
 
         private Vector3 CameraOffset()
         {
-            Quaternion rot = Quaternion.Euler(_pitch, _yaw, 0f);
+            float dip = _landDipT > 0f ? 3f * (_landDipT / 0.25f) : 0f;
+            Quaternion rot = Quaternion.Euler(_pitch - dip, _yaw, 0f);
             return rot * new Vector3(0f, 0f, -_distance);
         }
 
@@ -61,6 +67,7 @@ namespace GalgameOnline.WorldMap
 
         private void Update()
         {
+            if (_landDipT > 0f) _landDipT = Mathf.Max(0f, _landDipT - Time.deltaTime);
             HandleCameraInput();
             if (_externalCamera) return;
 
@@ -73,8 +80,10 @@ namespace GalgameOnline.WorldMap
             Vector3 move = yawRot * new Vector3(ix, 0f, iz);
             if (move.sqrMagnitude > 1f) move.Normalize();
             float speed = run ? runSpeed : walkSpeed;
+            // ALS：速度按加速度/摩擦曲线趋近目标值（起步/刹车有惯性，不再瞬切）。
+            _vel = GalgameOnline.Core.ALSLocomotion.Accelerate(_vel, move * speed, Time.deltaTime);
             Vector3 pos = transform.position;
-            pos += move * speed * Time.deltaTime;
+            pos += _vel * Time.deltaTime;
 
             // Keep the player inside the continent bounds (with a margin so
             // they cannot walk off the world edge into the void).
@@ -96,6 +105,8 @@ namespace GalgameOnline.WorldMap
                 pos.y += _vy * Time.deltaTime;
                 if (onTerrain && pos.y <= ground + 0.05f)
                 {
+                    // ALS 落地：下落速度 > 6 m/s 时镜头下沉一下（无身体，不做假翻滚）。
+                    if (-_vy > 6f) _landDipT = 0.25f;
                     pos.y = ground;
                     _vy = 0f;
                     _grounded = true;

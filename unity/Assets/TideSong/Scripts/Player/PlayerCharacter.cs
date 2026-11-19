@@ -95,6 +95,16 @@ namespace TideSong
         float hurtFlashT;
         float lastGroundY;
 
+        // ALS 手感（见 Assets/Scripts/Core/ALSLocomotion.cs）
+        Vector3 _hVel;          // 水平速度（加速度/摩擦模型，不再瞬切）
+        Vector3 _prevPos;       // 上一帧位置（算真实位移速度）
+        float _mantleTimer;     // 攀爬探测冷却
+        bool _mantling;         // 攀爬进行中
+        float _mantleT, _mantleDur, _mantleP;
+        Vector3 _mantleFrom, _mantleTo;
+        float _rollT;           // 落地翻滚剩余时间
+        Vector3 _rollDir;       // 翻滚方向
+
         void Awake()
         {
             Instance = this;
@@ -106,6 +116,7 @@ namespace TideSong
             CC.slopeLimit = 55f;
             CC.stepOffset = 0.45f;
             CC.skinWidth = 0.03f;
+            _prevPos = transform.position;
         }
 
         public void SetupVisual()
@@ -119,6 +130,8 @@ namespace TideSong
             transform.position = worldPos;
             CC.enabled = true;
             velocity = Vector3.zero;
+            _hVel = Vector3.zero;
+            _prevPos = worldPos;
             FX.Burst(worldPos + Vector3.up * 1f, new Color(0.4f, 0.9f, 1f), 30, 6f, 0.4f, 0.7f);
         }
 
@@ -202,6 +215,27 @@ namespace TideSong
                 CC.enabled = false; transform.position = p; CC.enabled = true;
             }
 
+            // ALS 攀爬进行中：按时间插值抬升（CC 关闭，直接改位置）
+            if (_mantling)
+            {
+                _mantleT += dt;
+                float mp = Mathf.Clamp01(_mantleT / _mantleDur);
+                _mantleP = mp;
+                float s = mp * mp * (3f - 2f * mp);
+                CC.enabled = false;
+                transform.position = Vector3.Lerp(_mantleFrom, _mantleTo, s);
+                CC.enabled = true;
+                if (mp >= 1f)
+                {
+                    _mantling = false;
+                    _mantleP = 0f;
+                    velocity.y = 0f;
+                    _hVel = Vector3.zero;
+                }
+                UpdateSpeedNow(dt);
+                return;
+            }
+
             Vector3 camF = CameraRig.Instance != null ? CameraRig.Instance.FlatForward : Vector3.forward;
             Vector3 camR = CameraRig.Instance != null ? CameraRig.Instance.FlatRight : Vector3.right;
 
@@ -241,6 +275,24 @@ namespace TideSong
                 dir = dodgeDirXZ;
             }
 
+            // ALS 攀爬：着地 + 朝障碍移动时探测台面（0.5–1.25 m），命中则抬升上去。
+            _mantleTimer -= dt;
+            if (grounded && hasInput && !Attacking && !Dodging && _rollT <= 0f && _mantleTimer <= 0f)
+            {
+                if (GalgameOnline.Core.ALSLocomotion.TryFindLedge(transform, dir, 1.25f, 0.5f, 0.75f, out Vector3 ledgeTop))
+                {
+                    _mantling = true;
+                    _mantleT = 0f;
+                    _mantleDur = 0.55f;
+                    _mantleFrom = transform.position;
+                    _mantleTo = ledgeTop + Vector3.up * 0.05f;
+                    _mantleTimer = 0.6f;
+                    _hVel = Vector3.zero;
+                    UpdateSpeedNow(dt);
+                    return;
+                }
+            }
+
             if (dir.sqrMagnitude > 0.001f)
             {
                 float targetYaw = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
@@ -270,9 +322,38 @@ namespace TideSong
             if (grounded) Gliding = false;
             if (stamina <= 0f) Gliding = false;
 
-            Vector3 motion = dir * speed;
+            // ALS：水平速度按加速度/摩擦曲线趋近（闪避与翻滚直接给速度，保持干脆）。
+            Vector3 motion;
+            if (_rollT > 0f)
+            {
+                _rollT -= dt;
+                _hVel = _rollDir * 8f;
+            }
+            else if (dodgeT > 0f)
+            {
+                _hVel = dir * speed;
+            }
+            else
+            {
+                _hVel = GalgameOnline.Core.ALSLocomotion.Accelerate(_hVel, dir * speed, dt);
+            }
+            motion = _hVel;
             motion.y = velocity.y;
             CC.Move(motion * dt);
+
+            // ALS 落地：下落速度 > 7 m/s 且有移动输入 → 翻滚卸力（带 0.3 s 无敌）。
+            if (!grounded && CC.isGrounded && _rollT <= 0f && !Attacking)
+            {
+                float fallSpeed = -velocity.y;
+                if (GalgameOnline.Core.ALSLocomotion.ShouldRoll(fallSpeed, hasInput))
+                {
+                    _rollT = 0.45f;
+                    _rollDir = dir.sqrMagnitude > 0.01f ? dir.normalized : transform.forward;
+                    invulnerable = true;
+                    CancelInvoke("EndInvuln");
+                    Invoke("EndInvuln", 0.30f);
+                }
+            }
 
             // 地形安全网：运行时生成的 MeshCollider 烘焙可能滞后于第一帧，
             // 角色控制器会穿透地形无限坠落。用高度函数（地形唯一权威）
@@ -288,8 +369,16 @@ namespace TideSong
                 if (velocity.y < 0f) velocity.y = 0f;
             }
 
-            SpeedNow = dir.magnitude * speed;
+            UpdateSpeedNow(dt);
             if (CC.isGrounded) lastGroundY = transform.position.y;
+        }
+
+        // ALS 速度匹配：用真实位移速度（被挡住时腿停摆，不按输入空摆）。
+        void UpdateSpeedNow(float dt)
+        {
+            Vector3 disp = transform.position - _prevPos;
+            SpeedNow = Mathf.Clamp(new Vector3(disp.x, 0f, disp.z).magnitude / Mathf.Max(dt, 0.001f), 0f, 20f);
+            _prevPos = transform.position;
         }
 
         Vector3 dodgeDirXZ = Vector3.forward;
@@ -306,8 +395,30 @@ namespace TideSong
             if (Rig == null) return;
             animTime += dt;
 
+            // ALS 落地翻滚：视觉前滚 360°，腿收起。
+            if (_rollT > 0f)
+            {
+                float rp = 1f - _rollT / 0.45f;
+                if (Rig.visual != null) Rig.visual.localRotation = Quaternion.Euler(rp * 360f, 0f, 0f);
+                if (Rig.legL != null) Rig.legL.localRotation = Quaternion.Euler(-70f, 0f, 0f);
+                if (Rig.legR != null) Rig.legR.localRotation = Quaternion.Euler(-70f, 0f, 0f);
+                return;
+            }
+            // ALS 攀爬：身体前倾。
+            if (_mantling)
+            {
+                if (Rig.visual != null) Rig.visual.localRotation = Quaternion.Euler(-25f * Mathf.Sin(_mantleP * Mathf.PI), 0f, 0f);
+                return;
+            }
+
             float moveAmt = Mathf.Clamp01(SpeedNow / walkSpeed);
             float cycle = animTime * (7f + SpeedNow * 0.55f);
+
+            // ALS 足部贴地（单骨骼近似）：按脚下前后地形高差算坡度，身体顺坡前倾、
+            // 前摆腿多伸，让脚尽量落在斜坡地面上（无 Humanoid 骨架，做不了真 IK）。
+            float hAhead = WorldData.HeightAt(transform.position.x + transform.forward.x * 0.45f, transform.position.z + transform.forward.z * 0.45f);
+            float hBehind = WorldData.HeightAt(transform.position.x - transform.forward.x * 0.45f, transform.position.z - transform.forward.z * 0.45f);
+            float slopeDeg = Mathf.Clamp(Mathf.Atan2(hAhead - hBehind, 0.9f) * Mathf.Rad2Deg, -18f, 18f);
 
             // 呼吸
             float bob = Mathf.Sin(animTime * 2.2f) * 0.015f;
@@ -315,9 +426,11 @@ namespace TideSong
             if (Rig.body != null) Rig.body.localPosition = new Vector3(0f, 1.06f + bob + walkBob, 0f);
 
             // 腿摆动
-            float legSwing = Mathf.Sin(cycle) * 32f * moveAmt;
-            if (Rig.legL != null) Rig.legL.localRotation = Quaternion.Euler(legSwing, 0f, 0f);
-            if (Rig.legR != null) Rig.legR.localRotation = Quaternion.Euler(-legSwing, 0f, 0f);
+            float sinCycle = Mathf.Sin(cycle);
+            float legSwingL = sinCycle * 32f * moveAmt + (sinCycle > 0f ? slopeDeg * 0.4f * moveAmt : 0f);
+            float legSwingR = -sinCycle * 32f * moveAmt + (sinCycle < 0f ? slopeDeg * 0.4f * moveAmt : 0f);
+            if (Rig.legL != null) Rig.legL.localRotation = Quaternion.Euler(legSwingL, 0f, 0f);
+            if (Rig.legR != null) Rig.legR.localRotation = Quaternion.Euler(legSwingR, 0f, 0f);
 
             // 手臂
             float armSwing = -Mathf.Sin(cycle) * 26f * moveAmt;
@@ -335,7 +448,14 @@ namespace TideSong
             else if (Rig.armR != null)
             {
                 Rig.armR.localRotation = Quaternion.Euler(-armSwing + (Gliding ? -40f : 0f), 0f, -8f);
-                if (Rig.visual != null) Rig.visual.localRotation = Quaternion.Slerp(Rig.visual.localRotation, Quaternion.identity, dt * 8f);
+                if (Rig.visual != null)
+                {
+                    // 顺坡前倾（移动中才倾，站定时回正）。
+                    Quaternion lean = moveAmt > 0.05f
+                        ? Quaternion.Euler(slopeDeg * 0.5f, 0f, 0f)
+                        : Quaternion.identity;
+                    Rig.visual.localRotation = Quaternion.Slerp(Rig.visual.localRotation, lean, dt * 8f);
+                }
             }
 
             // 滑翔时手臂张开、身体前倾

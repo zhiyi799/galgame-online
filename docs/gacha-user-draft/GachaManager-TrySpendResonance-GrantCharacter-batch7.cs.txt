@@ -1,0 +1,47 @@
+// Batch 7 patch: add these two methods INSIDE GachaManager (v2).
+// They are referenced by GachaExchangeShop but are NOT in the pasted
+// GachaManager.cs — the manager will not compile with the shop until
+// these are added.
+
+public bool TrySpendResonance(int amount)
+{
+    if (amount <= 0 || Save == null)
+        return false;
+
+    if (Save.resonance < amount)
+        return false;
+
+    Save.resonance -= amount;
+    SaveGame();
+
+    return true;
+}
+
+public void GrantCharacter(GachaCharacter character)
+{
+    if (character == null || string.IsNullOrEmpty(character.id))
+        return;
+
+    GachaOwnedCharacter owned =
+        Save.ownedCharacters.Find(
+            x => x.characterId == character.id
+        );
+
+    if (owned == null)
+    {
+        owned = new GachaOwnedCharacter
+        {
+            characterId = character.id,
+            count = 1,
+            firstObtainedPull = 0
+        };
+
+        Save.ownedCharacters.Add(owned);
+    }
+    else
+    {
+        owned.count++;
+    }
+
+    SaveGame();
+}

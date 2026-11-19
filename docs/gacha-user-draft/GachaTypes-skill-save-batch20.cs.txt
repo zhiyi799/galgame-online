@@ -1,0 +1,18 @@
+// Batch 20 patch: skill level save data.
+// Add GachaSkillLevelSave to GachaTypes.cs (v2), add the skillLevels
+// list to GachaSaveData, and add the null-guard to GachaManager.Load().
+
+[Serializable]
+public class GachaSkillLevelSave
+{
+    public string skillId;
+    public int level = 1;
+}
+
+// Inside GachaSaveData:
+public List<GachaSkillLevelSave> skillLevels =
+    new List<GachaSkillLevelSave>();
+
+// Inside GachaManager.Load(), after the existing null-guards:
+if (Save.skillLevels == null)
+    Save.skillLevels = new List<GachaSkillLevelSave>();

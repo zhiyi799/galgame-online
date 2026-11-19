@@ -1,0 +1,181 @@
+// Batch 14 patch: per-banner pity in GachaManager.cs (v2).
+// Add the methods, replace RollOne() and PickFiveStar(), replace the
+// banner check in Pull(), extend AddHistory(), and add the migration
+// snippet. Do NOT paste any of these outside the class.
+
+// --- 1. New methods (inside GachaManager) ---
+private GachaBannerPitySave GetBannerPity(string bannerId)
+{
+    if (Save.bannerPities == null)
+        Save.bannerPities = new List<GachaBannerPitySave>();
+
+    GachaBannerPitySave state =
+        Save.bannerPities.Find(x => x.bannerId == bannerId);
+
+    if (state == null)
+    {
+        state = new GachaBannerPitySave
+        {
+            bannerId = bannerId,
+            pityFiveStar = 0,
+            guaranteedRateUp = false
+        };
+
+        Save.bannerPities.Add(state);
+    }
+
+    return state;
+}
+
+public int GetBannerPityCount(string bannerId)
+{
+    return GetBannerPity(bannerId).pityFiveStar;
+}
+
+public bool IsBannerGuaranteed(string bannerId)
+{
+    return GetBannerPity(bannerId).guaranteedRateUp;
+}
+
+// --- 2. In Load(), add ---
+if (Save.bannerPities == null)
+    Save.bannerPities = new List<GachaBannerPitySave>();
+
+// --- 3. REPLACE RollOne(int pullIndex) ---
+private GachaPullResult RollOne(int pullIndex)
+{
+    GachaBannerPitySave pity =
+        GetBannerPity(banner.bannerId);
+
+    int nextPity = pity.pityFiveStar + 1;
+
+    float fiveRate = GetFiveStarRate(nextPity);
+    float roll = UnityEngine.Random.Range(0f, 100f);
+
+    GachaCharacter selected;
+
+    if (nextPity >= banner.hardPity || roll < fiveRate)
+    {
+        selected = PickFiveStar(pity);
+
+        if (selected == null)
+            return null;
+
+        pity.pityFiveStar = 0;
+    }
+    else
+    {
+        float fourRate = banner.fourStarRate;
+
+        if (roll < fiveRate + fourRate)
+            selected = PickRandom(banner.fourStarPool);
+        else
+            selected = PickRandom(banner.threeStarPool);
+
+        if (selected == null)
+            return null;
+
+        pity.pityFiveStar++;
+    }
+
+    return new GachaPullResult
+    {
+        character = selected,
+        pullIndex = pullIndex,
+        isNew = !OwnsCharacter(selected.id)
+    };
+}
+
+// --- 4. REPLACE PickFiveStar() ---
+private GachaCharacter PickFiveStar(GachaBannerPitySave pity)
+{
+    List<GachaCharacter> upCharacters =
+        banner.fiveStarPool.FindAll(x => x != null && x.isRateUp);
+
+    List<GachaCharacter> standardCharacters =
+        banner.fiveStarPool.FindAll(x => x != null && !x.isRateUp);
+
+    if (pity.guaranteedRateUp)
+    {
+        if (upCharacters.Count == 0)
+        {
+            Debug.LogError(
+                "当前卡池没有 UP 五星角色，无法兑现必定 UP。"
+            );
+
+            return null;
+        }
+
+        pity.guaranteedRateUp = false;
+        return PickRandom(upCharacters);
+    }
+
+    float chance = Mathf.Clamp(
+        banner.rateUpChance,
+        0f,
+        1f
+    );
+
+    bool winRateUp = UnityEngine.Random.value < chance;
+
+    if (winRateUp && upCharacters.Count > 0)
+        return PickRandom(upCharacters);
+
+    if (standardCharacters.Count > 0)
+    {
+        pity.guaranteedRateUp = true;
+        return PickRandom(standardCharacters);
+    }
+
+    // 如果卡池只有 UP 五星角色，则直接获得 UP。
+    if (upCharacters.Count > 0)
+    {
+        pity.guaranteedRateUp = false;
+        return PickRandom(upCharacters);
+    }
+
+    Debug.LogError("五星池没有有效角色。");
+    return null;
+}
+
+// NOTE: the Clamp above only fixes the batch-6 rateUpChance bug if the
+// config value is actually 0.5 (0-1 scale). If the old v1 value 50
+// stays, Clamp turns it into 1.0 and EVERY 5-star is UP.
+
+// --- 5. In Pull(), REPLACE the banner check with ---
+if (banner == null || !banner.isEnabled)
+{
+    Debug.LogWarning("当前卡池不可用。");
+    return results;
+}
+
+if (string.IsNullOrWhiteSpace(banner.bannerId))
+{
+    Debug.LogError("当前卡池缺少唯一 bannerId。");
+    return results;
+}
+
+// --- 6. In AddHistory(), add to the record initializer ---
+bannerId = banner.bannerId,
+bannerName = banner.bannerDisplayName,
+
+// --- 7. Save migration (old global pity -> per-banner pity) ---
+// Run AFTER the manager has a valid banner bound. Do NOT call this
+// from Awake()/Load() if banner may still be unassigned there —
+// delay it until after the banner config is bound.
+if (Save.bannerPities == null)
+    Save.bannerPities = new List<GachaBannerPitySave>();
+
+if (Save.bannerPities.Count == 0 &&
+    banner != null &&
+    (Save.pityFiveStar > 0 || Save.guaranteedRateUp))
+{
+    Save.bannerPities.Add(
+        new GachaBannerPitySave
+        {
+            bannerId = banner.bannerId,
+            pityFiveStar = Save.pityFiveStar,
+            guaranteedRateUp = Save.guaranteedRateUp
+        }
+    );
+}

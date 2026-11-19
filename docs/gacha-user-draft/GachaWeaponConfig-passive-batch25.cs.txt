@@ -1,0 +1,5 @@
+// Batch 25 patch: weapon passive on GachaWeaponConfig.cs (batch 21).
+// Add this field inside the GachaWeaponConfig class.
+
+[Header("武器专属被动")]
+public GachaWeaponPassive passive;

@@ -1,0 +1,41 @@
+// Batch 22 patch: combat stat display on the character detail UI.
+// Add these fields + method to GachaCharacterDetailUI.cs (batch 5).
+// *** WIRING GAP: nothing calls RefreshCombatStats yet — Show() must
+// call RefreshCombatStats(result.character.id) or the stat texts stay
+// empty. ***
+
+public Text hpText;
+public Text attackText;
+public Text defenseText;
+public Text speedText;
+public Text critRateText;
+public Text critDamageText;
+
+public GachaFinalStatProvider statProvider;
+
+public void RefreshCombatStats(string characterId)
+{
+    if (statProvider == null)
+        return;
+
+    CharacterCombatStats stats =
+        statProvider.GetFinalStats(characterId);
+
+    if (hpText != null)
+        hpText.text = "生命：" + Mathf.RoundToInt(stats.maxHP);
+
+    if (attackText != null)
+        attackText.text = "攻击：" + Mathf.RoundToInt(stats.attack);
+
+    if (defenseText != null)
+        defenseText.text = "防御：" + Mathf.RoundToInt(stats.defense);
+
+    if (speedText != null)
+        speedText.text = "速度：" + Mathf.RoundToInt(stats.speed);
+
+    if (critRateText != null)
+        critRateText.text = "暴击率：" + stats.critRate.ToString("F1") + "%";
+
+    if (critDamageText != null)
+        critDamageText.text = "暴击伤害：" + stats.critDamage.ToString("F1") + "%";
+}

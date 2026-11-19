@@ -1,0 +1,34 @@
+// Batch 14 patch: banner identity + type for GachaBannerConfig.
+// *** WARNING — DO NOT paste bannerId as a new field: the v1 config
+// ALREADY declares `public string bannerId = "limited_001";`.
+// Adding it again is a duplicate-field compile error. Only the three
+// genuinely new fields below should be added (and the default value
+// of the existing bannerId set per asset in the Inspector).
+// Also note: the config STILL needs the v2 field rename from batch 6
+// (fiveStarBaseRate -> fiveStarRate, fiveStarHardPity -> hardPity,
+// softPityIncreasePerPull -> softPityIncrease, rateUpChance 50 -> 0.5)
+// before the v2 / batch-14 manager code will compile against it.
+// bannerTitle (v1) and bannerDisplayName (new) are two title fields —
+// pick one as canonical or keep both set to the same value.
+
+public enum GachaBannerType
+{
+    Standard,
+    Limited,
+    Rerun,
+    Beginner
+}
+
+// Inside the GachaBannerConfig class (new fields only):
+[Header("卡池身份")]
+public string bannerDisplayName = "星樱寻迹";
+
+public GachaBannerType bannerType =
+    GachaBannerType.Standard;
+
+[Header("卡池状态")]
+public bool isEnabled = true;
+
+// Example bannerIds (set per asset, on the EXISTING bannerId field):
+// standard_001 (standard) / limited_001 (limited) /
+// rerun_001 (rerun) / beginner_001 (beginner)

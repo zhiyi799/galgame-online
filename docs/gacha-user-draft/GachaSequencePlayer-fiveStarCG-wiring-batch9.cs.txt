@@ -1,0 +1,24 @@
+// Batch 9 patch: wire the 5-star CG into GachaSequencePlayer.cs
+// (batch-4 version). Add the field, then insert the block in
+// PlayRoutine() after dequeuing the result and BEFORE revealUI.Reveal().
+
+[Header("五星专属 CG")]
+public GachaFiveStarCG fiveStarCG;
+
+if (result.character != null &&
+    result.character.rarity == Rarity.FiveStar &&
+    fiveStarCG != null)
+{
+    bool cgFinished = false;
+
+    bool started = fiveStarCG.Play(result, () =>
+    {
+        cgFinished = true;
+    });
+
+    if (started)
+    {
+        while (!cgFinished)
+            yield return null;
+    }
+}

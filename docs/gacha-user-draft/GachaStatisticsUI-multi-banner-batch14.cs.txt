@@ -1,0 +1,31 @@
+// Batch 14 patch: GachaStatisticsUI.cs pity display.
+// Replace the pity/guaranteed block inside Refresh() with this, so the
+// panel shows the CURRENT banner's pity instead of the old global one.
+// (Does not fix the stale-refresh issue: Refresh is still only called
+// from Start, so the numbers go stale after a pull.)
+
+if (manager.banner != null)
+{
+    int pity = manager.GetBannerPityCount(
+        manager.banner.bannerId
+    );
+
+    bool guaranteed = manager.IsBannerGuaranteed(
+        manager.banner.bannerId
+    );
+
+    SetText(
+        pityText,
+        "当前五星保底：" +
+        pity +
+        "/" +
+        manager.banner.hardPity
+    );
+
+    SetText(
+        guaranteedText,
+        guaranteed
+            ? "下次五星：必定 UP"
+            : "下次五星：概率 UP"
+    );
+}

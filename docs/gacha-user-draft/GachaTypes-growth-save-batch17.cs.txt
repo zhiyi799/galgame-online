@@ -1,0 +1,42 @@
+// Batch 17 patch: character growth save data.
+// Add the two classes to GachaTypes.cs (v2), add the two lists to
+// GachaSaveData, and add the null-guards to GachaManager.Load().
+// GrowthManager will not compile until this patch is applied.
+
+[Serializable]
+public class GachaCharacterGrowthSave
+{
+    public string characterId;
+
+    public int level = 1;
+    public int experience = 0;
+    public int ascension = 0;
+
+    public int skillLevel = 1;
+    public int duplicateLevel = 0;
+}
+
+[Serializable]
+public class GachaMaterialSave
+{
+    public string materialId;
+    public int amount;
+}
+
+// Inside GachaSaveData:
+public List<GachaCharacterGrowthSave> characterGrowth =
+    new List<GachaCharacterGrowthSave>();
+
+public List<GachaMaterialSave> materials =
+    new List<GachaMaterialSave>();
+
+// Inside GachaManager.Load(), after the existing null-guards:
+if (Save.characterGrowth == null)
+    Save.characterGrowth = new List<GachaCharacterGrowthSave>();
+
+if (Save.materials == null)
+    Save.materials = new List<GachaMaterialSave>();
+
+// NOTE: skillLevel and duplicateLevel are saved but not yet used by any
+// code in this batch (skill upgrades and duplicate/constellation
+// conversion are planned for a later batch).

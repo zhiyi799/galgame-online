@@ -1,0 +1,53 @@
+// Batch 4 patch for GachaUI.cs (user draft, 2026-11-19).
+// NOT yet applied to docs/gacha-user-draft/GachaUI.cs.
+// The batch-2 GachaUI.cs Pull(int count) must be REPLACED with this
+// version (not added alongside it), and the sequencePlayer field added.
+
+[Header("演出系统")]
+public GachaSequencePlayer sequencePlayer;
+
+private List<GachaPullResult> latestResults =
+    new List<GachaPullResult>();
+
+public void Pull(int count)
+{
+    if (manager == null)
+    {
+        Debug.LogError("GachaManager 尚未绑定。");
+        return;
+    }
+
+    if (sequencePlayer != null && sequencePlayer.IsPlaying)
+        return;
+
+    if (count != 1 && count != 10)
+    {
+        Debug.LogWarning("目前只支持单抽和十连。");
+        return;
+    }
+
+    List<GachaPullResult> results = manager.Pull(count);
+
+    if (results == null || results.Count == 0)
+        return;
+
+    latestResults = new List<GachaPullResult>(results);
+
+    if (sequencePlayer != null)
+    {
+        sequencePlayer.PlaySequence(
+            latestResults,
+            () => ShowResults(latestResults)
+        );
+    }
+    else
+    {
+        ShowResults(latestResults);
+    }
+}
+
+// REVIEW NOTE (2026-11-19): ShowResults in batch-2 GachaUI.cs is a
+// coroutine (IEnumerator). Calling it plainly like this creates an
+// IEnumerator that never runs, so the results panel would never appear.
+// Fix: StartCoroutine(ShowResults(latestResults)), or call
+// ShowResultPanel(latestResults) directly.

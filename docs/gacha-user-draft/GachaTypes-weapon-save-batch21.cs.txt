@@ -1,0 +1,36 @@
+// Batch 21 patch: weapon save data.
+// Add the two classes to GachaTypes.cs (v2), add the two lists to
+// GachaSaveData, and add the null-guards to GachaManager.Load().
+
+[Serializable]
+public class GachaWeaponOwnedSave
+{
+    public string instanceId;
+    public string weaponId;
+
+    public int level = 1;
+    public int ascension = 0;
+
+    public bool locked;
+}
+
+[Serializable]
+public class GachaWeaponEquipmentSave
+{
+    public string characterId;
+    public string weaponInstanceId;
+}
+
+// Inside GachaSaveData:
+public List<GachaWeaponOwnedSave> ownedWeapons =
+    new List<GachaWeaponOwnedSave>();
+
+public List<GachaWeaponEquipmentSave> equippedWeapons =
+    new List<GachaWeaponEquipmentSave>();
+
+// Inside GachaManager.Load(), after the existing null-guards:
+if (Save.ownedWeapons == null)
+    Save.ownedWeapons = new List<GachaWeaponOwnedSave>();
+
+if (Save.equippedWeapons == null)
+    Save.equippedWeapons = new List<GachaWeaponEquipmentSave>();

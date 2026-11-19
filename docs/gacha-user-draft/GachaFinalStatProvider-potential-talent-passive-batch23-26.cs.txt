@@ -1,0 +1,47 @@
+// Batch 23-26 patch: potential / talent / weapon-passive wiring
+// for GachaFinalStatProvider.cs (v2). NOT APPLIED — save only.
+// Add the three fields to the class, and the three Apply calls inside
+// GetFinalStats(), after the weapon stats block, before `return stats`.
+//
+// Final attribute order after applying all three:
+//   1. base stats (statCalculator.Calculate)
+//   2. weapon stats (weaponManager.AddWeaponStats)
+//   3. potential stats (potentialManager.ApplyPotentialStats)
+//   4. talent stats (talentManager.ApplyTalentStats)
+//   5. weapon passive stats (weaponPassiveManager.ApplyWeaponPassive)
+//
+// NOTE: the three managers referenced here must be the BATCH versions
+// (GachaPotentialManager-batch23, GachaTalentManager-batch25,
+// GachaWeaponPassiveManager), NOT the saved files of the same names,
+// which are a different (node-based / ascension-based) design.
+
+// --- fields to add to GachaFinalStatProvider ---
+public GachaPotentialManager potentialManager;
+public GachaTalentManager talentManager;
+public GachaWeaponPassiveManager weaponPassiveManager;
+
+// --- inside GetFinalStats(), after the weaponManager block,
+//     before `return stats;` ---
+if (potentialManager != null)
+{
+    stats = potentialManager.ApplyPotentialStats(
+        characterId,
+        stats
+    );
+}
+
+if (talentManager != null)
+{
+    stats = talentManager.ApplyTalentStats(
+        characterId,
+        stats
+    );
+}
+
+if (weaponPassiveManager != null)
+{
+    stats = weaponPassiveManager.ApplyWeaponPassive(
+        characterId,
+        stats
+    );
+}

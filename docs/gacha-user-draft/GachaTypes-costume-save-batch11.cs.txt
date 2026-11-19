@@ -1,0 +1,33 @@
+// Batch 11 patch: costume save data.
+// Add the two classes to GachaTypes.cs, add the two lists to
+// GachaSaveData, and add the null-guards to GachaManager.Load().
+// CostumeManager will not compile until this patch is applied
+// (it reads manager.Save.costumes / manager.Save.appearances).
+
+[Serializable]
+public class GachaCharacterCostumeSave
+{
+    public string costumeId;
+    public bool unlocked;
+}
+
+[Serializable]
+public class GachaCharacterAppearanceSave
+{
+    public string characterId;
+    public string equippedCostumeId;
+}
+
+// Inside GachaSaveData:
+public List<GachaCharacterCostumeSave> costumes =
+    new List<GachaCharacterCostumeSave>();
+
+public List<GachaCharacterAppearanceSave> appearances =
+    new List<GachaCharacterAppearanceSave>();
+
+// Inside GachaManager.Load(), after the existing null-guards:
+if (Save.costumes == null)
+    Save.costumes = new List<GachaCharacterCostumeSave>();
+
+if (Save.appearances == null)
+    Save.appearances = new List<GachaCharacterAppearanceSave>();

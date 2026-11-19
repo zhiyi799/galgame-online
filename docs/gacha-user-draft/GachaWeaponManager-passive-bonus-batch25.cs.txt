@@ -1,0 +1,24 @@
+// Batch 25 patch: weapon passive bonus method.
+// Add this method to GachaWeaponManager.cs (batch 21).
+
+public float GetWeaponPassiveBonus(
+    string characterId,
+    WeaponPassiveType type)
+{
+    GachaWeaponOwnedSave owned =
+        GetEquippedWeapon(characterId);
+
+    if (owned == null)
+        return 0f;
+
+    GachaWeaponConfig config =
+        GetWeaponConfig(owned.weaponId);
+
+    if (config == null || config.passive == null)
+        return 0f;
+
+    if (config.passive.passiveType != type)
+        return 0f;
+
+    return config.passive.GetValue(owned.ascension);
+}

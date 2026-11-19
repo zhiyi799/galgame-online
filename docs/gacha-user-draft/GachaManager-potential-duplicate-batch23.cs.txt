@@ -1,0 +1,50 @@
+// Batch 23 patch: duplicate pulls feed the potential system.
+// The snippet below is the user's draft — VERIFIED MISMATCH against
+// the saved v2 GachaManager.cs, do NOT paste verbatim:
+//
+//   1. The v2 method is `private void AddOwnedCharacter(GachaPullResult result)`.
+//      It returns void — there is NO bool "is first obtain" return.
+//      New/duplicate is carried by `result.isNew` (true = new).
+//      The snippet's `return false;` would be a compile error.
+//   2. Variable names do not match: the v2 method uses `owned`
+//      (not `existing`) and the local `string id = result.character.id;`
+//      (there is no `character` variable in scope).
+//   3. The v2 method is already an if/else: owned == null -> create
+//      record + isNew = true; else -> owned.count++ + resonance reward
+//      via GetDuplicateReward(). The potential call belongs in the
+//      else branch, after owned.count++.
+//
+// Adapted form (else branch of AddOwnedCharacter, after owned.count++):
+//
+//     if (potentialManager != null)
+//     {
+//         potentialManager.AddPotentialPoints(id, 1);
+//     }
+//
+// And add the field to GachaManager:
+//
+//     public GachaPotentialManager potentialManager;
+//
+// --- user's draft snippet (kept verbatim for reference) ---
+//
+// In GachaManager add:
+// public GachaPotentialManager potentialManager;
+//
+// In AddOwnedCharacter(), at the already-owned branch:
+// if (existing != null)
+// {
+//     existing.count++;
+//
+//     if (potentialManager != null)
+//     {
+//         potentialManager.AddPotentialPoints(
+//             character.id,
+//             1
+//         );
+//     }
+//
+//     return false;
+// }
+//
+// NOTE: potential points are a test rule only — 1 point per duplicate
+// pull. Duplicate rewards, node counts and effect values are not final.

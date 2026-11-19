@@ -1,0 +1,25 @@
+// Batch 14 patch: multi-banner pity save data.
+// Add GachaBannerPitySave to GachaTypes.cs (v2), add the bannerPities
+// list to GachaSaveData, and add bannerId/bannerName to GachaPullRecord.
+// The OLD global Save.pityFiveStar / Save.guaranteedRateUp fields stay
+// for now — they are the migration source (see the manager patch).
+
+[Serializable]
+public class GachaBannerPitySave
+{
+    public string bannerId;
+
+    // 当前卡池距离上次五星后的抽数
+    public int pityFiveStar;
+
+    // 当前卡池下次五星是否必定 UP
+    public bool guaranteedRateUp;
+}
+
+// Inside GachaSaveData:
+public List<GachaBannerPitySave> bannerPities =
+    new List<GachaBannerPitySave>();
+
+// Inside GachaPullRecord (add):
+public string bannerId;
+public string bannerName;

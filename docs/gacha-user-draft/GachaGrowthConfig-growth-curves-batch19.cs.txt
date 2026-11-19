@@ -1,0 +1,24 @@
+// Batch 19 patch: growth curves in GachaGrowthConfig.cs (batch 17).
+// Add these fields inside the GachaGrowthConfig class.
+
+[Header("角色成长曲线")]
+public AnimationCurve hpGrowth =
+    AnimationCurve.Linear(1, 1, 90, 5);
+
+public AnimationCurve attackGrowth =
+    AnimationCurve.Linear(1, 1, 90, 5);
+
+public AnimationCurve defenseGrowth =
+    AnimationCurve.Linear(1, 1, 90, 5);
+
+public AnimationCurve speedGrowth =
+    AnimationCurve.Linear(1, 1, 90, 1.2f);
+
+[Header("突破属性加成")]
+public float ascensionHPBonus = 0.08f;
+public float ascensionAttackBonus = 0.05f;
+public float ascensionDefenseBonus = 0.05f;
+
+// NOTE: the curves are multipliers (level 1 = x1, level 90 = x5), not
+// final values. critRate / critDamage / energyRecharge do not scale
+// with level or ascension — only weapons can raise critRate.

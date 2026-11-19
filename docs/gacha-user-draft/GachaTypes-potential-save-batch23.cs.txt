@@ -1,0 +1,24 @@
+// Batch 23 patch: potential save data.
+// Add GachaCharacterPotentialSave to GachaTypes.cs (v2), add the
+// characterPotentials list to GachaSaveData, and add the null-guard
+// to GachaManager.Load().
+
+[System.Serializable]
+public class GachaCharacterPotentialSave
+{
+    public string characterId;
+
+    public int potentialPoints;
+
+    public System.Collections.Generic.List<string> unlockedNodes =
+        new System.Collections.Generic.List<string>();
+}
+
+// Inside GachaSaveData:
+public List<GachaCharacterPotentialSave> characterPotentials =
+    new List<GachaCharacterPotentialSave>();
+
+// Inside GachaManager.Load(), after the existing null-guards:
+if (Save.characterPotentials == null)
+    Save.characterPotentials =
+        new List<GachaCharacterPotentialSave>();

@@ -1,0 +1,12 @@
+// Batch 30 patch: archive UI wiring for CharacterProfileController.cs.
+// NOT APPLIED — save only.
+// Add the archiveUI field to the class, and refresh the archive UI
+// inside OpenCharacter() after setting CurrentCharacterId.
+
+// --- field to add to CharacterProfileController ---
+public CharacterArchiveProfileUI archiveUI;
+
+// --- inside OpenCharacter(), after `CurrentCharacterId = characterId;`
+//     and before `OpenTab(CharacterProfileTab.Archive);` ---
+if (archiveUI != null)
+    archiveUI.Refresh(characterId);

@@ -749,6 +749,10 @@ namespace GalgameOnline.Core
                 groundShots.Add(("worldmap-baita-ground", 2000f, 1300f, 2000f, 2100f, 5f));
                 groundShots.Add(("worldmap-skyvault-ground", 3010f, -900f, 3010f, -291f, 5f));
                 groundShots.Add(("worldmap-yongye-ground", 1000f, -200f, 1000f, -800f, 5f));
+                // 建模重做 Item 2：永夜湖近景（RAW 实测低洼区质心 x=1329 z=-926，
+                // 湖面 z -1125..-800）。第一版机位 (1330,-600) 被林间山脊挡住，
+                // 只看到湖面一条边；改到湖面上空低机位横看水面。
+                groundShots.Add(("worldmap-yongye-lake", 1330f, -850f, 1330f, -1050f, 8f));
                 foreach (var g in groundShots)
                 {
                     float ch = GalgameOnline.WorldMap.WorldMapTerrain.SampleHeight(g.Item2, g.Item3);

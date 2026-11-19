@@ -1,0 +1,16 @@
+// Batch 19 patch: combat fields on GachaCharacter.
+// Add these fields inside the GachaCharacter class in GachaTypes.cs (v2).
+
+[Header("战斗属性")]
+public CharacterCombatStats baseStats =
+    new CharacterCombatStats();
+
+[Header("角色属性")]
+public string element = "Light";
+
+public string combatRole = "DPS";
+
+// NOTE: element/combatRole are plain strings by design (extensible to
+// water/fire/wind/light/dark etc.). combatRole is currently used only
+// by GachaWeaponManager.IsWeaponCompatible, which returns true for
+// everything (placeholder).
