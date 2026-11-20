@@ -281,6 +281,19 @@ public class GachaWeaponManager : MonoBehaviour
 
     public bool EnhanceWeapon(string instanceId, int materialCount)
     {
+        // 强化参数防御性检查
+        if (experiencePerMaterial <= 0 ||
+            experiencePerLevel <= 0)
+        {
+            Debug.LogError(
+                "[GachaWeaponManager] 强化参数无效：" +
+                $"experiencePerMaterial={experiencePerMaterial}, " +
+                $"experiencePerLevel={experiencePerLevel}"
+            );
+
+            return false;
+        }
+
         if (materialCount <= 0 ||
             materialInventory == null)
             return false;

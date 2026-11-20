@@ -150,22 +150,58 @@ public class GachaFinalStatSnapshotManager : MonoBehaviour
     /// </summary>
     private bool CommitSnapshot(
         string characterId,
-        GachaFinalStatSnapshot snapshot)
+        SnapshotEntry expectedEntry,
+        GachaFinalStatSnapshot snapshot,
+        int expectedSourceVersion)
     {
         if (!IsValidId(characterId) || snapshot == null)
             return false;
 
-        if (!snapshots.TryGetValue(characterId, out var entry))
-        {
-            entry = new SnapshotEntry();
-            snapshots.Add(characterId, entry);
-        }
+        if (expectedEntry == null || expectedEntry.removed)
+            return false;
 
-        entry.snapshot = snapshot;
-        entry.dirty = false;
-        entry.version++;
+        if (!snapshots.TryGetValue(characterId, out var currentEntry))
+            return false;
+
+        if (!ReferenceEquals(currentEntry, expectedEntry))
+            return false;
+
+        if (expectedEntry.sourceVersion != expectedSourceVersion)
+            return false;
+
+        expectedEntry.snapshot = snapshot;
+        expectedEntry.dirty = false;
+        expectedEntry.version++;
 
         RaiseSnapshotUpdated(characterId, snapshot);
+
+        return true;
+    }
+
+    /// <summary>
+    /// 检查刷新提交后，快照是否仍然有效。
+    /// 防止更新事件回调再次使快照失效或删除快照。
+    /// </summary>
+    private bool IsSnapshotStillValid(
+        string characterId,
+        SnapshotEntry expectedEntry,
+        GachaFinalStatSnapshot expectedSnapshot,
+        int expectedSourceVersion)
+    {
+        if (!snapshots.TryGetValue(characterId, out SnapshotEntry currentEntry))
+            return false;
+
+        if (!ReferenceEquals(currentEntry, expectedEntry))
+            return false;
+
+        if (expectedEntry.removed || expectedEntry.dirty)
+            return false;
+
+        if (expectedEntry.sourceVersion != expectedSourceVersion)
+            return false;
+
+        if (!ReferenceEquals(expectedEntry.snapshot, expectedSnapshot))
+            return false;
 
         return true;
     }
@@ -219,6 +255,9 @@ public class GachaFinalStatSnapshotManager : MonoBehaviour
         // 记录开始计算时的数据版本。
         int capturedSourceVersion = entry.sourceVersion;
 
+        // 严格刷新策略：刷新一开始就禁止读取旧快照。
+        entry.dirty = true;
+
         try
         {
             GachaFinalStatSnapshot snapshot =
@@ -251,7 +290,21 @@ public class GachaFinalStatSnapshotManager : MonoBehaviour
                 return false;
             }
 
-            return CommitSnapshot(characterId, snapshot);
+            if (!CommitSnapshot(
+                characterId,
+                entry,
+                snapshot,
+                capturedSourceVersion))
+            {
+                return false;
+            }
+
+            return IsSnapshotStillValid(
+                characterId,
+                entry,
+                snapshot,
+                capturedSourceVersion
+            );
         }
         catch (System.Exception exception)
         {
