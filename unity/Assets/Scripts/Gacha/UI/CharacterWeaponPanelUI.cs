@@ -8,6 +8,9 @@ public class CharacterWeaponPanelUI : MonoBehaviour
     [Header("武器系统")]
     public GachaWeaponManager weaponManager;
 
+    [Header("双区域显示")]
+    public CharacterWeaponDualDisplayUI dualDisplayUI;
+
     [Header("界面")]
     public TMP_Text weaponNameText;
     public TMP_Text weaponLevelText;
@@ -122,6 +125,9 @@ public class CharacterWeaponPanelUI : MonoBehaviour
 
     private void RefreshSelectedWeapon()
     {
+        if (dualDisplayUI != null)
+            dualDisplayUI.RefreshSelectedWeapon(GetSelectedWeapon());
+
         GachaWeaponOwnedSave weapon = GetSelectedWeapon();
 
         if (weapon == null)
@@ -154,6 +160,9 @@ public class CharacterWeaponPanelUI : MonoBehaviour
     {
         GachaWeaponOwnedSave equipped =
             weaponManager.GetEquippedWeapon(currentCharacterId);
+
+        if (dualDisplayUI != null)
+            dualDisplayUI.RefreshEquippedWeapon(equipped);
 
         if (equipped == null)
         {
