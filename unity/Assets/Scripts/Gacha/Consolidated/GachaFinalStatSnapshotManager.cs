@@ -225,7 +225,10 @@ public class GachaFinalStatSnapshotManager : MonoBehaviour
                 collectAndCalculate();
 
             if (snapshot == null)
+            {
+                entry.dirty = true;
                 return false;
+            }
 
             // 刷新期间快照被删除，拒绝提交旧快照。
             if (entry.removed ||
@@ -252,6 +255,8 @@ public class GachaFinalStatSnapshotManager : MonoBehaviour
         }
         catch (System.Exception exception)
         {
+            entry.dirty = true;
+
             Debug.LogError(
                 "[GachaFinalStatSnapshotManager] 刷新失败：" +
                 characterId + "\n" + exception

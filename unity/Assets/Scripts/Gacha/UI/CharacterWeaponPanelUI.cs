@@ -20,6 +20,7 @@ public class CharacterWeaponPanelUI : MonoBehaviour
     public Button unequipButton;
     public Button enhanceButton;
     public Button ascendButton;
+    public Button refineButton;
 
     [Header("测试强化材料数量")]
     [Min(1)]
@@ -43,6 +44,9 @@ public class CharacterWeaponPanelUI : MonoBehaviour
 
         if (ascendButton != null)
             ascendButton.onClick.AddListener(Ascend);
+
+        if (refineButton != null)
+            refineButton.onClick.AddListener(Refine);
 
         if (weaponDropdown != null)
             weaponDropdown.onValueChanged.AddListener(OnWeaponSelected);
@@ -244,6 +248,17 @@ public class CharacterWeaponPanelUI : MonoBehaviour
             Refresh(currentCharacterId);
     }
 
+    private void Refine()
+    {
+        GachaWeaponOwnedSave weapon = GetSelectedWeapon();
+
+        if (weapon == null)
+            return;
+
+        if (weaponManager.RefineWeapon(weapon.instanceId))
+            Refresh(currentCharacterId);
+    }
+
     private void Set(TMP_Text target, string value)
     {
         if (target != null)
@@ -263,6 +278,9 @@ public class CharacterWeaponPanelUI : MonoBehaviour
 
         if (ascendButton != null)
             ascendButton.onClick.RemoveListener(Ascend);
+
+        if (refineButton != null)
+            refineButton.onClick.RemoveListener(Refine);
 
         if (weaponDropdown != null)
             weaponDropdown.onValueChanged.RemoveListener(OnWeaponSelected);
