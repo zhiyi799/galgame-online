@@ -128,15 +128,113 @@ public class GachaWeaponConfig : ScriptableObject
 
     public float GetGrowthMultiplier(int level, int ascension)
     {
-        int cap = GetLevelCap(ascension);
-        float normalized = cap <= 1
-            ? 1f
-            : Mathf.Clamp01((float)level / cap);
-
         if (growthCurve == null)
             return 1f;
 
-        return Mathf.Max(0f, growthCurve.Evaluate(normalized));
+        // 没有突破等级表时，保留原有的基础计算行为。
+        if (levelCaps == null || levelCaps.Count == 0)
+        {
+            int cap = Mathf.Max(1, maxLevel);
+            int fallbackLevel = Mathf.Clamp(level, 1, cap);
+
+            float normalized = cap <= 1
+                ? 1f
+                : (float)fallbackLevel / cap;
+
+            return Mathf.Max(
+                0f,
+                growthCurve.Evaluate(normalized)
+            );
+        }
+
+        // 限制突破阶段，防止数组越界。
+        int maxAscension = levelCaps.Count - 1;
+
+        int currentAscension = Mathf.Clamp(
+            ascension,
+            0,
+            maxAscension
+        );
+
+        int firstCap = GetLevelCap(0);
+        int finalCap = GetLevelCap(currentAscension);
+
+        // 当前等级不能超过当前突破阶段的上限。
+        int currentLevel = Mathf.Clamp(
+            level,
+            1,
+            finalCap
+        );
+
+        // 第一阶段完全保留原有曲线。
+        if (currentLevel <= firstCap)
+        {
+            float normalized = firstCap <= 1
+                ? 1f
+                : (float)currentLevel / firstCap;
+
+            return Mathf.Max(
+                0f,
+                growthCurve.Evaluate(normalized)
+            );
+        }
+
+        // 第一阶段达到上限时的累计倍率。
+        float accumulatedMultiplier = Mathf.Max(
+            0f,
+            growthCurve.Evaluate(1f)
+        );
+
+        int previousCap = firstCap;
+
+        // 从第二阶段开始，逐段累计成长。
+        for (int stage = 1; stage <= currentAscension; stage++)
+        {
+            int stageCap = GetLevelCap(stage);
+
+            // 防止异常配置造成零长度或倒退区间。
+            if (stageCap <= previousCap)
+                continue;
+
+            float startNormalized = Mathf.Clamp01(
+                (float)previousCap / stageCap
+            );
+
+            float startCurveValue = growthCurve.Evaluate(
+                startNormalized
+            );
+
+            // 当前等级处于本阶段。
+            if (currentLevel <= stageCap)
+            {
+                float currentNormalized = Mathf.Clamp01(
+                    (float)currentLevel / stageCap
+                );
+
+                float currentCurveValue = growthCurve.Evaluate(
+                    currentNormalized
+                );
+
+                float growth = Mathf.Max(
+                    0f,
+                    currentCurveValue - startCurveValue
+                );
+
+                return accumulatedMultiplier + growth;
+            }
+
+            // 当前等级已经超过本阶段上限，
+            // 将整个阶段的成长累加，再进入下一阶段。
+            float stageGrowth = Mathf.Max(
+                0f,
+                growthCurve.Evaluate(1f) - startCurveValue
+            );
+
+            accumulatedMultiplier += stageGrowth;
+            previousCap = stageCap;
+        }
+
+        return accumulatedMultiplier;
     }
 
     /// <summary>
