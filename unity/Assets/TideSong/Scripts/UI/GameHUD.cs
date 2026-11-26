@@ -170,8 +170,11 @@ namespace TideSong
             GUI.DrawTexture(new Rect(avRect.x + 12f * s, avRect.y + 12f * s, av - 24f * s, av - 24f * s), ArtUtil.Dot);
             GUI.Label(new Rect(avRect.x, avRect.y + av * 0.28f, av, av * 0.5f), "Lv." + player.Level, Center(20f * s));
 
-            // 名字 + 等级
-            GUI.Label(new Rect(avRect.x + av + 12f * s, barArea.y - 2f * s, 220f * s, 24f * s), "无星者", sSmall);
+            // 名字 + 等级（v2.0 队伍激活时显示当前共鸣者，否则显示主角名）
+            string who = TeamManager.Instance != null && TeamManager.Instance.Active != null
+                ? TeamManager.Instance.Active.def.name + " · " + TeamManager.Instance.Active.def.title
+                : "无星者";
+            GUI.Label(new Rect(avRect.x + av + 12f * s, barArea.y - 2f * s, 260f * s, 24f * s), who, sSmall);
 
             // 血条
             float bx = avRect.x + av + 12f * s;
@@ -258,12 +261,12 @@ namespace TideSong
             // ---- PC 技能提示 ----
             if (!InputHub.Mobile)
             {
-                float w = 470f * s, h = 54f * s;
+                float w = 860f * s, h = 54f * s;
                 var r = new Rect(Screen.width * 0.5f - w * 0.5f, Screen.height - 70f * s, w, h);
                 Tint(new Color(0.05f, 0.09f, 0.14f, 0.55f));
                 GUI.DrawTexture(r, white);
                 GUI.Label(new Rect(r.x + 10f * s, r.y + 4f * s, w, h),
-                    "左键 攻击   右键 闪避   E 技能   Q 星鸣   空格 跳跃/滑翔   Shift 冲刺", sSmall);
+                    "左键 攻击   右键 闪避   E 技能   Q 星鸣   R 声骸   空格 跳跃/滑翔   Shift 冲刺   1-4 切人   C 队伍   B 声骸", sSmall);
             }
             Tint(Color.white);
 

@@ -26,7 +26,7 @@ namespace TideSong
             public float flash;
         }
 
-        Btn attack, dodge, jump, skill, burst;
+        Btn attack, dodge, jump, skill, burst, echo, swap, dash;
 
         void Awake()
         {
@@ -53,6 +53,9 @@ namespace TideSong
             jump = new Btn { center = new Vector2(w - 250f * s, h - 250f * s), radius = 50f * s, label = "跳", sub = "跃", color = new Color(0.32f, 0.55f, 0.85f) };
             skill = new Btn { center = new Vector2(w - 250f * s, h - 130f * s), radius = 54f * s, label = "技", sub = "能", color = new Color(0.36f, 0.62f, 0.90f) };
             burst = new Btn { center = new Vector2(150f * s, h - 372f * s), radius = 46f * s, label = "星", sub = "鸣", color = new Color(0.30f, 0.80f, 0.95f) };
+            echo = new Btn { center = new Vector2(w - 250f * s, h - 372f * s), radius = 40f * s, label = "骸", sub = "", color = new Color(0.62f, 0.45f, 0.95f) };
+            swap = new Btn { center = new Vector2(w - 118f * s, h - 432f * s), radius = 36f * s, label = "换", sub = "", color = new Color(0.85f, 0.72f, 0.35f) };
+            dash = new Btn { center = new Vector2(w - 372f * s, h - 190f * s), radius = 36f * s, label = "冲", sub = "", color = new Color(0.45f, 0.78f, 0.85f) };
         }
 
         void Update()
@@ -66,7 +69,7 @@ namespace TideSong
             HandleMouse();
         }
 
-        float flashAttack, flashDodge, flashJump, flashSkill, flashBurst;
+        float flashAttack, flashDodge, flashJump, flashSkill, flashBurst, flashEcho, flashSwap, flashDash;
 
         void HandleTouches()
         {
@@ -139,6 +142,9 @@ namespace TideSong
             if (Vector2.Distance(p, jump.center) < jump.radius * 1.2f) { InputHub.PressJump(); InputHub.JumpHeld = true; flashJump = 1f; return true; }
             if (Vector2.Distance(p, skill.center) < skill.radius * 1.2f) { InputHub.PressSkill(); flashSkill = 1f; return true; }
             if (Vector2.Distance(p, burst.center) < burst.radius * 1.2f) { InputHub.PressBurst(); flashBurst = 1f; return true; }
+            if (Vector2.Distance(p, echo.center) < echo.radius * 1.25f) { if (EchoSystem.Instance != null) EchoSystem.Instance.CastEchoSkill(); flashEcho = 1f; return true; }
+            if (Vector2.Distance(p, swap.center) < swap.radius * 1.25f) { if (TeamManager.Instance != null) TeamManager.Instance.CycleNext(); flashSwap = 1f; return true; }
+            if (Vector2.Distance(p, dash.center) < dash.radius * 1.25f) { InputHub.PressDash(); flashDash = 1f; return true; }
             return false;
         }
 
@@ -188,13 +194,18 @@ namespace TideSong
             DrawBtn(jump, ref flashJump, s);
             DrawBtn(skill, ref flashSkill, s);
             DrawBtn(burst, ref flashBurst, s);
+            DrawBtn(echo, ref flashEcho, s);
+            DrawBtn(swap, ref flashSwap, s);
+            DrawBtn(dash, ref flashDash, s);
 
             // 冷却
             var p = PlayerCharacter.Instance;
             if (p != null)
             {
-                DrawCooldown(skill.center, skill.radius, p.SkillCooldown, s);
+                var tm = TeamManager.Instance;
+                DrawCooldown(skill.center, skill.radius, tm != null ? tm.ActiveSkillCooldown : p.SkillCooldown, s);
                 DrawCooldown(dodge.center, dodge.radius, p.DodgeCooldown, s);
+                if (EchoSystem.Instance != null) DrawCooldown(echo.center, echo.radius, EchoSystem.Instance.EchoSkillCd, s);
             }
 
             // 交互按钮

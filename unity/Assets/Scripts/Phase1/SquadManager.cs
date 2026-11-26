@@ -229,9 +229,19 @@ namespace AstralBloom
             // 上场队员：换状态 + 换配色
             ActiveIndex = index;
             var def = SquadData.Roster[index];
-            float effMax = EffMaxHp(index);
-            _player.maxHP = effMax;
-            _player.hp = Mathf.Clamp(_states[index].hp, 1f, effMax);
+            // v2.0 接管后（EchoManager.ApplyRuntimeBuffs == false）：maxHP 由
+            // TeamManager / EchoSystem 决定，Phase 1 不再用回响 HP 覆盖；
+            // 只把保存的 HP 恢复到当前上限内。
+            if (EchoManager.ApplyRuntimeBuffs)
+            {
+                float effMax = EffMaxHp(index);
+                _player.maxHP = effMax;
+                _player.hp = Mathf.Clamp(_states[index].hp, 1f, effMax);
+            }
+            else
+            {
+                _player.hp = Mathf.Clamp(_states[index].hp, 1f, _player.maxHP);
+            }
             _player.SetEnergy(_states[index].energy);
             _player.ApplyMemberVisual(def.clothColor);
 

@@ -10,7 +10,7 @@ namespace TideSong
         public static bool Mobile;
         public static bool JumpHeld;
         public static bool SprintHeld;
-        static bool _jump, _attack, _dodge, _skill, _burst, _interact;
+        static bool _jump, _attack, _dodge, _skill, _burst, _interact, _dash;
 
         public static void PressJump() { _jump = true; }
         public static void PressAttack() { _attack = true; }
@@ -18,6 +18,7 @@ namespace TideSong
         public static void PressSkill() { _skill = true; }
         public static void PressBurst() { _burst = true; }
         public static void PressInteract() { _interact = true; }
+        public static void PressDash() { _dash = true; }
 
         public static bool ConsumeJump() { var v = _jump; _jump = false; return v; }
         public static bool ConsumeAttack() { var v = _attack; _attack = false; return v; }
@@ -25,11 +26,12 @@ namespace TideSong
         public static bool ConsumeSkill() { var v = _skill; _skill = false; return v; }
         public static bool ConsumeBurst() { var v = _burst; _burst = false; return v; }
         public static bool ConsumeInteract() { var v = _interact; _interact = false; return v; }
+        public static bool ConsumeDash() { var v = _dash; _dash = false; return v; }
 
         public static void ClearAll()
         {
             Move = Vector2.zero;
-            _jump = _attack = _dodge = _skill = _burst = _interact = false;
+            _jump = _attack = _dodge = _skill = _burst = _interact = _dash = false;
             JumpHeld = SprintHeld = false;
         }
     }
@@ -61,6 +63,18 @@ namespace TideSong
         public float burstTime;
         public int comboCount;
         public float comboTimer;
+
+        [Header("共鸣者（v2.0）")]
+        public ResonatorDef Def;              // 当前角色定义，由 TeamManager 写入
+        public float shield;                  // 护盾值
+        public float shieldDamageReduction;   // 护盾期间减伤（0-1）
+        public float damageReductionTime;
+        public float echoAtkBuff;             // 声骸增益攻击（0-1）
+        public float echoBuffTime;
+        public EnemyAI LastHitTarget;
+
+        // v2.0 跑酷提示（ResonanceHUD 读取；墙爬/墙跑/下落攻击未并入，见 UpdateMove 注释）
+        public string ParkourHint { get { return null; } }
 
         public CharacterRig Rig { get; private set; }
         public CharacterController CC { get; private set; }
@@ -95,6 +109,12 @@ namespace TideSong
         float hurtFlashT;
         float lastGroundY;
 
+        // v2.0 空中冲刺（Shift 边缘 / 触屏冲键触发；墙爬/墙跑/下落攻击未并入 ALS）
+        float airDashT;
+        Vector3 airDashDir = Vector3.forward;
+        bool airDashUsed;
+        bool sprintPrev;
+
         // ALS 手感（见 Assets/Scripts/Core/ALSLocomotion.cs）
         Vector3 _hVel;          // 水平速度（加速度/摩擦模型，不再瞬切）
         Vector3 _prevPos;       // 上一帧位置（算真实位移速度）
@@ -121,7 +141,65 @@ namespace TideSong
 
         public void SetupVisual()
         {
+            // 由 TeamManager 接管时它会自己建多套外观；这里只是兜底
+            if (TeamManager.Instance != null) return;
             Rig = CharacterBuilder.Build(transform, new Color(0.14f, 0.30f, 0.67f));
+        }
+
+        /// <summary>切换到某个角色的外观（TeamManager 调用）。</summary>
+        public void SetRig(CharacterRig rig)
+        {
+            Rig = rig;
+            if (rig != null)
+            {
+                rig.root.transform.SetParent(transform, false);
+                animTime = 0f;
+            }
+        }
+
+        public void EndInvulnPublic() { invulnerable = false; }
+
+        public void AddShield(float v)
+        {
+            var echo = EchoSystem.Instance;
+            float bonus = 1f + (echo != null ? echo.ShieldBonus / 100f : 0f);
+            shieldMax = Mathf.Max(shieldMax, maxHP * 1.5f);
+            shield = Mathf.Min(shield + v * bonus, shieldMax);
+            FX.Burst(transform.position + Vector3.up, new Color(1f, 0.92f, 0.6f), 22, 4f, 0.3f, 0.6f);
+        }
+
+        public float shieldMax;
+
+        /// <summary>共鸣技能用的小突进。</summary>
+        public void DashForward(float distance)
+        {
+            Vector3 target = transform.position + transform.forward * distance;
+            target.y = WorldData.HeightAt(target.x, target.z) + 0.3f;
+            CC.enabled = false;
+            transform.position = Vector3.Lerp(transform.position, target, 0.85f);
+            CC.enabled = true;
+            velocity = Vector3.zero;
+        }
+
+        /// <summary>声骸与套装带来的属性刷新。</summary>
+        public void RefreshStatsFromEcho()
+        {
+            var echo = EchoSystem.Instance;
+            float stBonus = echo != null ? echo.StaminaBonus : 0f;
+            maxStamina = 100f + stBonus;
+            stamina = Mathf.Min(stamina, maxStamina);
+
+            if (Def != null && TeamManager.Instance != null)
+            {
+                var st = TeamManager.Instance.Active;
+                if (st != null)
+                {
+                    float hpBonus = echo != null ? echo.HpBonus / 100f : 0f;
+                    st.maxHp = Def.maxHP * (1f + hpBonus);
+                    maxHP = st.maxHp;
+                    hp = Mathf.Min(hp, maxHP);
+                }
+            }
         }
 
         public void Teleport(Vector3 worldPos)
@@ -161,7 +239,10 @@ namespace TideSong
                 m = new Vector2(x, y);
                 if (m.sqrMagnitude > 1f) m.Normalize();
 
-                InputHub.SprintHeld = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+                bool sprintNow = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+                InputHub.SprintHeld = sprintNow;
+                if (sprintNow && !sprintPrev) InputHub.PressDash();
+                sprintPrev = sprintNow;
                 InputHub.JumpHeld = Input.GetKey(KeyCode.Space);
 
                 if (Input.GetKeyDown(KeyCode.Space)) InputHub.PressJump();
@@ -179,6 +260,8 @@ namespace TideSong
         void UpdateTimers(float dt)
         {
             if (stamina < maxStamina) stamina = Mathf.Min(maxStamina, stamina + 14f * dt);
+            if (echoBuffTime > 0f) { echoBuffTime -= dt; if (echoBuffTime <= 0f) echoAtkBuff = 0f; }
+            if (damageReductionTime > 0f) { damageReductionTime -= dt; if (damageReductionTime <= 0f) shieldDamageReduction = 0f; }
             if (dodgeCooldown > 0f) dodgeCooldown -= dt;
             if (skillCooldown > 0f) skillCooldown -= dt;
             if (comboTimer > 0f) { comboTimer -= dt; if (comboTimer <= 0f) comboCount = 0; }
@@ -244,6 +327,7 @@ namespace TideSong
             bool hasInput = dir.sqrMagnitude > 0.02f;
 
             bool grounded = CC.isGrounded;
+            if (grounded) airDashUsed = false;
             float groundH = WorldData.HeightAt(transform.position.x, transform.position.z);
             InWater = grounded && groundH < WorldData.WaterLevel - 0.2f && transform.position.y < WorldData.WaterLevel + 0.6f;
             bool deepWater = groundH < WorldData.WaterLevel - 1.6f;
@@ -304,6 +388,22 @@ namespace TideSong
             if (grounded && velocity.y < 0f) velocity.y = -3f;
             velocity.y -= 24f * dt;
 
+            // v2.0 空中冲刺（Shift 边缘 / 触屏冲键触发；墙爬/墙跑/下落攻击未并入 ALS）
+            if (InputHub.ConsumeDash() && !grounded && !airDashUsed && stamina > 6f)
+            {
+                airDashUsed = true;
+                airDashT = 0.22f;
+                airDashDir = hasInput ? dir.normalized : transform.forward;
+                stamina -= 6f;
+                FX.Burst(transform.position + Vector3.up, new Color(0.65f, 0.95f, 1f), 26, 6f, 0.3f, 0.5f);
+                Sfx.Play(SfxId.Dodge, transform.position);
+            }
+            if (airDashT > 0f)
+            {
+                airDashT -= dt;
+                velocity.y = 0f;
+            }
+
             if (InputHub.ConsumeJump())
             {
                 if (grounded)
@@ -332,6 +432,10 @@ namespace TideSong
             else if (dodgeT > 0f)
             {
                 _hVel = dir * speed;
+            }
+            else if (airDashT > 0f)
+            {
+                _hVel = airDashDir * 26f;
             }
             else
             {
@@ -466,11 +570,15 @@ namespace TideSong
                 if (Rig.visual != null) Rig.visual.localRotation = Quaternion.Euler(12f, 0f, 0f);
             }
 
-            // 受击闪红
+            // 受击闪红（恢复时用当前角色主色，避免换人后串色）
             if (hurtFlashT > 0f && Rig.body != null)
             {
                 var r = Rig.body.GetComponent<Renderer>();
-                if (r != null) r.material.color = Color.Lerp(new Color(0.14f, 0.30f, 0.67f), Color.red, hurtFlashT * 0.7f);
+                if (r != null)
+                {
+                    Color baseCol = Def != null ? Def.primary : new Color(0.14f, 0.30f, 0.67f);
+                    r.material.color = Color.Lerp(baseCol, Color.red, hurtFlashT * 0.7f);
+                }
             }
 
             // 星鸣状态光环
@@ -503,6 +611,21 @@ namespace TideSong
             comboCount++;
             comboTimer = 2.6f;
             comboCount = Mathf.Clamp(comboCount, 1, 99);
+
+            var def = Def != null ? Def : ResonatorLibrary.Shio;
+            if (def.weapon == WeaponStyle.Guns)
+            {
+                // 远程：第三段穿透冰锥
+                Vector3 fwd = transform.forward;
+                float dmg = def.comboDamage[Mathf.Clamp(attackIndex - 1, 0, def.comboDamage.Length - 1)];
+                bool pierce = attackIndex == 3;
+                var pr = ResonanceProjectile.Spawn(transform.position + Vector3.up * 1.2f + fwd * 0.8f, fwd, dmg, def.element,
+                    attackIndex == 3 ? 40f : 50f, pierce ? 0.85f : 0.55f, pierce);
+                if (attackIndex == 3) pr.transform.localScale = Vector3.one * 1.5f;
+                Sfx.Play(SfxId.Swing, transform.position);
+                return;
+            }
+
             Sfx.Play(SfxId.Swing, transform.position);
             var col = burstActive ? new Color(0.55f, 0.95f, 1f) : new Color(0.86f, 0.95f, 1f);
             FX.SlashArc(transform, col, 2.4f, 130f, 0.2f);
@@ -510,8 +633,11 @@ namespace TideSong
 
         void DoMeleeHit(int index)
         {
-            float radius = index == 3 ? 4.2f : 2.9f;
-            float dmg = (index == 3 ? 46f : 26f) * (burstActive ? 1.65f : 1f) * DamageMultiplier;
+            var def = Def != null ? Def : ResonatorLibrary.Shio;
+            if (def.weapon == WeaponStyle.Guns) return;
+
+            float radius = (index == 3 ? 4.2f : 2.9f) * Mathf.Clamp(def.attackRange / 2.9f, 0.8f, 1.5f);
+            float dmg = def.comboDamage[Mathf.Clamp(index - 1, 0, def.comboDamage.Length - 1)];
             Vector3 center = transform.position + transform.forward * (index == 3 ? 2.0f : 1.5f) + Vector3.up * 1f;
 
             if (index == 3)
@@ -527,14 +653,16 @@ namespace TideSong
                 var e = h.GetComponentInParent<EnemyAI>();
                 if (e == null || e.Dead || seen.Contains(e)) continue;
                 seen.Add(e);
-                Vector3 push = (e.transform.position - transform.position).normalized;
-                e.TakeDamage(dmg, push * (index == 3 ? 9f : 4f));
+                CombatUtil.DealDamage(e, dmg, transform.position, def.element);
+                LastHitTarget = e;
                 GameManager.Instance?.HitStop(index == 3 ? 0.07f : 0.035f);
             }
             if (seen.Count > 0)
             {
                 burstEnergy = Mathf.Min(100f, burstEnergy + seen.Count * 5f);
                 OnMeleeHit?.Invoke(seen.Count);
+                if (def.id == "shio" && index == 3 && TeamManager.Instance != null)
+                    TeamManager.Instance.GrantWindStance();
             }
         }
 
@@ -560,6 +688,7 @@ namespace TideSong
 
         public void UseSkill()
         {
+            if (TeamManager.Instance != null) { TeamManager.Instance.UseSkill(); return; }
             if (skillCooldown > 0f) return;
             if (stamina < 20f) return;
             skillCooldown = 7.5f;
@@ -586,6 +715,7 @@ namespace TideSong
 
         public void TryBurst()
         {
+            if (TeamManager.Instance != null) { TeamManager.Instance.UseBurst(); return; }
             if (burstActive || burstEnergy < 100f) return;
             burstActive = true;
             burstTime = 9f;
@@ -603,7 +733,29 @@ namespace TideSong
         {
             if (invulnerable || Dodging) return;
             if (GameManager.Instance != null && GameManager.Instance.GodMode) return;
-            hp -= dmg * (1f - DamageReduction);
+
+            if (damageReductionTime > 0f) dmg *= 1f - Mathf.Clamp01(shieldDamageReduction);
+
+            if (shield > 0f)
+            {
+                float absorb = Mathf.Min(shield, dmg);
+                shield -= absorb;
+                dmg -= absorb;
+                FX.Burst(transform.position + Vector3.up * 1.2f, new Color(1f, 0.92f, 0.6f), 12, 3f, 0.25f, 0.4f);
+            }
+
+            if (dmg > 0f)
+            {
+                // v2.0 声骸防御：EchoSystem.DefBonus 为百分比点（如 40 = 40%），上限 30%。
+                // Phase 1 的 DamageReduction 在本场景已被关闭（ApplyRuntimeBuffs = false，
+                // 故恒为 0）；两者相乘而不相加，避免减伤超过 100%。
+                float echoDef = EchoSystem.Instance != null
+                    ? Mathf.Clamp(EchoSystem.Instance.DefBonus / 100f, 0f, 0.30f) : 0f;
+                hp -= dmg * (1f - DamageReduction) * (1f - echoDef);
+            }
+
+            TeamManager.Instance?.OnDamageTaken(dmg);
+
             hurtFlashT = 1f;
             invulnerable = true;
             Invoke("EndInvuln", 0.55f);

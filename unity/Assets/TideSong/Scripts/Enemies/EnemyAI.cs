@@ -23,6 +23,13 @@ namespace TideSong
         public bool Downed { get; private set; }
         public bool IsWindingUp { get { return windup > 0f; } }
 
+        // v2.0 共鸣领域：减速 / 易伤（由 Combat.ResonanceField 写入）
+        /// <summary>移动速度倍率（1 = 正常，0.5 = 减速一半）。</summary>
+        public float slow = 1f;
+        public float slowTimer;
+        /// <summary>易伤加成（0.15 = 受到伤害 +15%）。</summary>
+        public float vuln;
+
         Transform visual;
         Renderer[] renderers;
         MaterialPropertyBlock mpb;
@@ -85,6 +92,8 @@ namespace TideSong
                 downedT -= dt;
                 if (downedT <= 0f) Downed = false;
             }
+            if (slowTimer > 0f) { slowTimer -= dt; if (slowTimer <= 0f) slow = 1f; }
+            if (vuln > 0f) vuln = Mathf.Max(0f, vuln - dt * 0.10f);
             flash = Mathf.Max(0f, flash - dt * 4f);
 
             var p = PlayerCharacter.Instance;
@@ -114,7 +123,7 @@ namespace TideSong
                 if (windup > 0f)
                 {
                     windup -= dt;
-                    transform.position += to * speed * 0.35f * dt;
+                    transform.position += to * speed * slow * 0.35f * dt;
                     if (visual != null)
                     {
                         float k = 1f - windup / 0.65f;
@@ -138,7 +147,7 @@ namespace TideSong
                 }
                 else if (dist > 2.6f)
                 {
-                    transform.position += to * speed * dt;
+                    transform.position += to * speed * slow * dt;
                     if (visual != null)
                     {
                         float s = 1f + Mathf.Sin(Time.time * 3f) * 0.04f;
@@ -190,6 +199,13 @@ namespace TideSong
         }
 
         public void Stagger(float t) { stagger = Mathf.Max(stagger, t); }
+
+        /// <summary>施加减速。factor 越小越慢，duration 秒后恢复。</summary>
+        public void ApplySlow(float factor, float duration)
+        {
+            slow = Mathf.Min(slow, Mathf.Clamp(factor, 0.15f, 1f));
+            slowTimer = Mathf.Max(slowTimer, duration);
+        }
 
         /// <summary>星律入场技：把敌人拉向目标点（平滑拉力，speed 22 约拉 9 m）。</summary>
         public void PullToward(Vector3 target, float speed)
@@ -253,6 +269,11 @@ namespace TideSong
             Sfx.Play(SfxId.Heavy, transform.position);
             FX.Burst(transform.position, new Color(0.25f, 0.41f, 0.85f), 46, 8f, 0.4f, 1.1f);
             FX.Shockwave(transform.position, new Color(0.35f, 0.55f, 1f), 5f, 0.5f);
+
+            // 声骸掉落 + 击杀回能
+            if (EchoSystem.Instance != null) EchoSystem.Instance.OnEnemyKilled(transform.position, maxHp / 70f);
+            if (TeamManager.Instance != null) TeamManager.Instance.OnEnemyKilled();
+
             Destroy(gameObject, 0.1f);
         }
 

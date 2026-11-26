@@ -42,6 +42,10 @@ namespace TideSong
 
             PlayerPrefs.SetString(Key, JsonUtility.ToJson(d));
             PlayerPrefs.Save();
+
+            if (TeamManager.Instance != null) TeamManager.Instance.Save();
+            if (EchoSystem.Instance != null) EchoSystem.Instance.Save();
+
             GameHUD.Instance?.Toast("进度已保存");
         }
 
@@ -82,11 +86,17 @@ namespace TideSong
                     }
                 }
             }
+
+            // 声骸先加载（影响生命上限），再恢复队伍状态
+            if (EchoSystem.Instance != null) EchoSystem.Instance.Load();
+            if (TeamManager.Instance != null) TeamManager.Instance.Load();
         }
 
         public static void Clear()
         {
             PlayerPrefs.DeleteKey(Key);
+            PlayerPrefs.DeleteKey("TideSong.Team.v1");
+            PlayerPrefs.DeleteKey("TideSong.Echo.v1");
             PlayerPrefs.Save();
         }
     }

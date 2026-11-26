@@ -137,9 +137,32 @@ namespace TideSong
             hud.Init(this);
 
             // ---------- 星律小队（Phase 1 / P1-A + P1-B） ----------
+            // 2026-11-25 决定：v2.0（TeamManager / EchoSystem）是本场景的实时战斗/回响层；
+            // Phase 1 只保留养成数据与 AI 队友/入场退场技/连携等机制，运行时不再叠加
+            // 回响属性（ApplyRuntimeBuffs = false → EchoManager.RecalculateStats 与
+            // SquadManager 切换时的回响 HP 上限均不生效）。
+            AstralBloom.EchoManager.ApplyRuntimeBuffs = false;
             gameObject.AddComponent<AstralBloom.EchoManager>();
             var squad = gameObject.AddComponent<AstralBloom.SquadManager>();
             squad.Init(this);
+
+            // ---------- v2.0 声骸 + 共鸣队伍（TideSong） ----------
+            // v2.0 为本场景唯一实时层：战技只收 v2.0 费用（20 体力 + 冷却，不再收 Phase 1 SP）；
+            // 回响属性只由 EchoSystem 提供（攻击/生命/体力/暴击/防御/属性加成）；
+            // 伤害统一走 CombatUtil，Phase 1 的 DamageMultiplier 不参与结算（且无任何读处）。
+            var echoSys = gameObject.AddComponent<EchoSystem>();
+            var team = gameObject.AddComponent<TeamManager>();
+            team.Initialize(Player);
+            echoSys.Recalc();
+            echoSys.GrantStarterIfEmpty();
+
+            // ---------- 共鸣面板与 HUD ----------
+            var teamPanel = gameObject.AddComponent<TeamPanel>();
+            teamPanel.Init(this);
+            var echoPanel = gameObject.AddComponent<EchoPanel>();
+            echoPanel.Init(this);
+            var resHud = gameObject.AddComponent<ResonanceHUD>();
+            resHud.Init(this, teamPanel, echoPanel);
 
             // ---------- 存档 ----------
             SaveSystem.LoadInto(this);
@@ -149,8 +172,8 @@ namespace TideSong
         {
             if (!Paused) PlayTime += Time.deltaTime;
 
-            if (Input.GetKeyDown(KeyCode.Escape)) GameHUD.Instance?.TogglePause();
-            if (Input.GetKeyDown(KeyCode.Tab)) GameHUD.Instance?.ToggleMap();
+            if (Input.GetKeyDown(KeyCode.Escape) && !ResonanceHUD.PanelOpenStatic) GameHUD.Instance?.TogglePause();
+            if (Input.GetKeyDown(KeyCode.Tab) && !ResonanceHUD.PanelOpenStatic) GameHUD.Instance?.ToggleMap();
             if (Input.GetKeyDown(KeyCode.F5)) SaveSystem.SaveFrom(this);
 
             // 快捷战斗输入转交给玩家
@@ -158,12 +181,9 @@ namespace TideSong
             {
                 if (InputHub.ConsumeAttack()) Player.OnAttackPressed();
                 if (InputHub.ConsumeDodge()) Player.Dodge();
-                // 战技 E：SP 门槛由小队管理器把关（SP < 3 时不放行、不扣费）
-                if (InputHub.ConsumeSkill())
-                {
-                    var sq = AstralBloom.SquadManager.Instance;
-                    if (sq == null || sq.TryUseSkill()) Player.UseSkill();
-                }
+                // 战技 E：唯一费用模型为 v2.0（20 体力 + 角色冷却，见 TeamManager.UseSkill）；
+                // 不再先过 Phase 1 SquadManager 的 SP 门槛（2026-11-25 决定，避免双重扣费）。
+                if (InputHub.ConsumeSkill()) Player.UseSkill();
                 if (InputHub.ConsumeBurst()) Player.TryBurst();
             }
         }
@@ -212,6 +232,9 @@ namespace TideSong
             Player.Teleport(SpawnPoint);
             Player.hp = Player.maxHP;
             Player.stamina = Player.maxStamina;
+            Player.shield = 0f;
+            if (TeamManager.Instance != null && TeamManager.Instance.Active != null)
+                TeamManager.Instance.Active.hp = TeamManager.Instance.Active.maxHp;
         }
 
         public void Respawn()

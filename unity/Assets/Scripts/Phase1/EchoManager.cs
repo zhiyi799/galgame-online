@@ -29,6 +29,11 @@ namespace AstralBloom
         private float _skillCooldownLeft;
         private bool _subscribed;
 
+        /// <summary>为 false 时，RecalculateStats 不再把回响属性写到 PlayerCharacter。
+        /// TideSong 场景由 v2.0 EchoSystem 接管实时回响增益（2026-11-25 决定），
+        /// 此处只保留掉落 / 装备 / 强化 / 存档等养成数据，运行时不叠加增益。</summary>
+        public static bool ApplyRuntimeBuffs = true;
+
         public int StarPlates { get { return _data != null ? _data.starPlates : 0; } }
         public float SkillCooldownLeft { get { return _skillCooldownLeft; } }
         public EchoSaveData Data { get { return _data; } }
@@ -227,9 +232,11 @@ namespace AstralBloom
         }
 
         /// <summary>把当前操作队员的回响属性应用到 PlayerCharacter；非操作队员的
-        /// HP 上限在 SquadManager 切换时读取 EffectiveMaxHp。</summary>
+        /// HP 上限在 SquadManager 切换时读取 EffectiveMaxHp。
+        /// TideSong 场景中 ApplyRuntimeBuffs 为 false 时直接返回（v2.0 EchoSystem 接管）。</summary>
         public void RecalculateStats()
         {
+            if (!ApplyRuntimeBuffs) return;
             var sq = SquadManager.Instance;
             var player = TideSong.GameManager.Instance?.Player;
             if (sq != null && player != null)
