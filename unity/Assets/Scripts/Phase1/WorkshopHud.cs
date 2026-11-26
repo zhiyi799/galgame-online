@@ -48,16 +48,16 @@ namespace AstralBloom
                 MakeStyle(Mathf.RoundToInt(17f * s), TextAnchor.MiddleLeft));
             y += 28f * s;
 
-            // 电力条
+            // 电力条（容量 = 核心 100 + 电力塔 25/座）
             float pw = w - 24f * s;
             GUI.color = new Color(0.02f, 0.04f, 0.07f, 0.85f);
             GUI.DrawTexture(new Rect(x, y, pw, 10f * s), ArtUtil.White);
-            float pk = Mathf.Clamp01((float)wm.PowerUsed / WorkshopManager.PowerCore);
+            float pk = Mathf.Clamp01((float)wm.PowerUsed / wm.PowerCapacity);
             GUI.color = wm.Overloaded ? new Color(0.95f, 0.3f, 0.3f) : new Color(0.45f, 0.75f, 1f);
             GUI.DrawTexture(new Rect(x + 1f, y + 1f, (pw - 2f) * pk, 10f * s - 2f), ArtUtil.White);
             GUI.color = new Color(0.94f, 0.97f, 1f);
             GUI.Label(new Rect(x, y + 12f * s, pw, 20f * s),
-                "电力 " + wm.PowerUsed + " / " + WorkshopManager.PowerCore,
+                "电力 " + wm.PowerUsed + " / " + wm.PowerCapacity,
                 MakeStyle(Mathf.RoundToInt(14f * s), TextAnchor.MiddleLeft));
             y += 34f * s;
 
@@ -66,8 +66,8 @@ namespace AstralBloom
             Color statusColor;
             if (wm.Overloaded)
             {
-                status = "超载停机！移除设施后恢复";
-                statusColor = new Color(1f, 0.45f, 0.45f);
+                status = "电力不足，降速 45% 运行（加电力塔或拆设施）";
+                statusColor = new Color(1f, 0.85f, 0.4f);
             }
             else if (!wm.LineComplete)
             {
@@ -89,11 +89,11 @@ namespace AstralBloom
                 MakeStyle(Mathf.RoundToInt(14f * s), TextAnchor.MiddleLeft));
             y += 24f * s;
 
-            // 产量
+            // 产量（聚合：在途矿石 / 加工站输入矿石，上限按设施数折算）
             GUI.color = new Color(0.94f, 0.97f, 1f);
             GUI.Label(new Rect(x, y, pw, 20f * s),
-                "输送带矿石 " + Mathf.FloorToInt(wm.BeltOre) + "/" + WorkshopManager.BeltBufferCap +
-                "　加工站矿石 " + Mathf.FloorToInt(wm.ProcOre) + "/" + WorkshopManager.ProcInputCap,
+                "输送带矿石 " + Mathf.FloorToInt(wm.BeltOre) + "/" + wm.BeltOreCap +
+                "　加工站矿石 " + Mathf.FloorToInt(wm.ProcOre) + "/" + wm.ProcOreCap,
                 MakeStyle(Mathf.RoundToInt(14f * s), TextAnchor.MiddleLeft));
             y += 22f * s;
             GUI.Label(new Rect(x, y, pw, 20f * s),
@@ -106,7 +106,7 @@ namespace AstralBloom
             // 截图证实「仓库(0)」的右括号被切掉；720p 按比例同样超长）
             var parts = new System.Collections.Generic.List<string>();
             foreach (var f in wm.Facilities)
-                parts.Add(WorkshopManager.TypeName(f.type) + "(" + WorkshopManager.PowerFor(f.type) + ")");
+                parts.Add(WorkshopManager.TypeName(f.type) + "(" + WorkshopManager.PowerText(f.type) + ")");
             GUI.color = new Color(0.79f, 0.83f, 0.91f);
             int half = (parts.Count + 1) / 2;
             GUI.Label(new Rect(x, y, pw, 20f * s), "设施：" + string.Join(" · ", parts.GetRange(0, half).ToArray()),
@@ -151,7 +151,7 @@ namespace AstralBloom
                 Vector3 sp = cam.WorldToScreenPoint(f.pos + Vector3.up * 4.5f);
                 if (sp.z < 0f) continue;
                 string text = WorkshopManager.TypeName(f.type) +
-                    "（" + WorkshopManager.PowerFor(f.type) + "）";
+                    "（" + WorkshopManager.PowerText(f.type) + "）";
                 var style = MakeStyle(Mathf.RoundToInt(14f * s), TextAnchor.MiddleCenter);
                 float w = 130f * s, h = 20f * s;
                 var r = new Rect(sp.x - w * 0.5f, Screen.height - sp.y - h * 0.5f, w, h);
@@ -179,7 +179,7 @@ namespace AstralBloom
                     ? "已选中：" + WorkshopManager.TypeName(wm.Selected.type) + "（R 旋转，X 拆除）"
                     : "点空地选择设施，或按数字键选类型放置");
             GUI.color = new Color(0.94f, 0.97f, 1f);
-            GUI.Label(r, "建造模式 [B 退出]　1 采集器(20)　2 输送带(5)　3 加工站(40)　4 仓库(0)　" + ghost,
+            GUI.Label(r, "建造模式 [B 退出]　1 采集器(20)　2 输送带(5)　3 加工站(40)　4 仓库(0)　5 电力塔(+25)　" + ghost,
                 MakeStyle(Mathf.RoundToInt(14f * s), TextAnchor.MiddleCenter));
             GUI.color = Color.white;
         }

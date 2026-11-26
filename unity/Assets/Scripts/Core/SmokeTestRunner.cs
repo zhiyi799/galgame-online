@@ -463,23 +463,25 @@ namespace GalgameOnline.Core
                 yield return new WaitForEndOfFrame();
                 yield return new WaitForSeconds(0.5f);
                 // 超载：再加 2 个加工站（+80，65→145）
+                // v1：超载不再停机，生产以 45% 速度继续（Running 仍为真）。
                 wm.TestForceOverload();
                 yield return new WaitForSeconds(0.5f);
                 Debug.Log("[SMOKE] workshop overload power=" + wm.PowerUsed +
-                    " overloaded=" + wm.Overloaded + " running=" + wm.Running);
-                if (!wm.Overloaded || wm.Running)
+                    " overloaded=" + wm.Overloaded + " running=" + wm.Running +
+                    " speed=" + wm.SpeedFactor);
+                if (!wm.Overloaded || !wm.Running)
                 {
-                    Debug.Log("[SMOKE] FAIL: overload not triggered");
+                    Debug.Log("[SMOKE] FAIL: overload not triggered or production stopped");
                     FlushAndExit(1);
                     yield break;
                 }
                 int beforeOverload = wm.WarehousePlates;
                 int producedOverload = wm.TestFastForward(30f);
                 Debug.Log("[SMOKE] workshop overload fast-forward 30s produced=" +
-                    producedOverload + " (expect 0)");
-                if (producedOverload != 0)
+                    producedOverload + " (expect ~2 at 45% speed, full speed ~5)");
+                if (producedOverload < 1 || producedOverload > 3)
                 {
-                    Debug.Log("[SMOKE] FAIL: production continued while overloaded");
+                    Debug.Log("[SMOKE] FAIL: overload production out of range (expect 1-3, got " + producedOverload + ")");
                     FlushAndExit(1);
                     yield break;
                 }
