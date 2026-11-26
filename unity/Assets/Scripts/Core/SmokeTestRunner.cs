@@ -751,10 +751,14 @@ namespace GalgameOnline.Core
                 groundShots.Add(("worldmap-baita-ground", 2000f, 1300f, 2000f, 2100f, 5f));
                 groundShots.Add(("worldmap-skyvault-ground", 3010f, -900f, 3010f, -291f, 5f));
                 groundShots.Add(("worldmap-yongye-ground", 1000f, -200f, 1000f, -800f, 5f));
-                // 建模重做 Item 2：永夜湖近景（RAW 实测低洼区质心 x=1329 z=-926，
-                // 湖面 z -1125..-800）。第一版机位 (1330,-600) 被林间山脊挡住，
-                // 只看到湖面一条边；改到湖面上空低机位横看水面。
-                groundShots.Add(("worldmap-yongye-lake", 1330f, -850f, 1330f, -1050f, 8f));
+                // 建模重做 Item 2：永夜湖近景。旧机位 (1330,-850) 高 8 m 正处水面
+                // 上 6 m，却朝南看 (1330,-1050)——该点地面 53 m，正南方 -988/
+                // -1000 m 处是 103–134 m 山脊：机位贴水面掠角看水，水面只占
+                // 画面底部一条，山占满屏。RAW 实测：湖最长连续水面在 z≈-926
+                // 一线，x 600–1300（约 700 m），西岸 x<600 陡升至 ~89 m。
+                // 新机位沿湖长轴向西看：湖面东端上空 22 m，看 600 m 外西岸，
+                // 视线全程水面无遮挡（8 m 掠角看不见水面，故抬到 22 m）。
+                groundShots.Add(("worldmap-yongye-lake", 1250f, -926f, 700f, -926f, 22f));
                 foreach (var g in groundShots)
                 {
                     float ch = GalgameOnline.WorldMap.WorldMapTerrain.SampleHeight(g.Item2, g.Item3);

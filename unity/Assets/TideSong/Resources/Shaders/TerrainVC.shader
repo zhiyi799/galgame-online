@@ -4,6 +4,10 @@ Shader "TideSong/TerrainVC"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Tint ("Tint", Color) = (1,1,1,1)
+        // 探索地基（2026-11-26）：背光面漫反射下限。环形山内侧背光时 Lambert
+        // diffuse≈0 + 场景环境光很暗（sky 0.21）→ 纯黑剪影；下限只抬背光面，
+        // 不影响受光面。阴影距离 90 m 外本就无阴影，远山黑纯属背光。
+        _MinDiffuse ("Min Diffuse (backlit floor)", Range(0, 1)) = 0.35
     }
     SubShader
     {
@@ -11,11 +15,12 @@ Shader "TideSong/TerrainVC"
         LOD 200
 
         CGPROGRAM
-        #pragma surface surf Lambert vertex:vert
+        #pragma surface surf AstralLambert vertex:vert
         #pragma target 3.0
 
         sampler2D _MainTex;
         fixed4 _Tint;
+        half _MinDiffuse;
 
         struct Input
         {
@@ -29,6 +34,17 @@ Shader "TideSong/TerrainVC"
             o.vertColor = v.color;
         }
 
+        // Lambert + 背光下限：背光面不低于 _MinDiffuse，受光面与原来一致。
+        half4 LightingAstralLambert(SurfaceOutput s, half3 lightDir, half atten)
+        {
+            half diff = max(0.0, dot(s.Normal, lightDir));
+            diff = max(diff, _MinDiffuse);
+            half4 c;
+            c.rgb = s.Albedo * _LightColor0.rgb * (diff * atten);
+            c.a = s.Alpha;
+            return c;
+        }
+
         void surf (Input IN, inout SurfaceOutput o)
         {
             float3 c = IN.vertColor.rgb;
@@ -37,7 +53,6 @@ Shader "TideSong/TerrainVC"
             c *= 0.95 + d * 0.10;
             o.Albedo = c * _Tint.rgb;
             o.Alpha = 1;
-            o.Specular = 0.02;
         }
         ENDCG
     }

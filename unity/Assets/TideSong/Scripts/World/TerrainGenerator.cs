@@ -10,8 +10,13 @@ namespace TideSong
 
         public static readonly Color DeepWater = new Color(0.06f, 0.14f, 0.34f);
         public static readonly Color Sand = new Color(0.84f, 0.78f, 0.58f);
-        public static readonly Color Grass = new Color(0.18f, 0.40f, 0.42f);
-        public static readonly Color GrassLight = new Color(0.30f, 0.50f, 0.46f);
+        // 草色偏真绿（B < G）：白天环境光是亮蓝（0.45,0.58,0.85），原来偏青
+        // 的草（B>G）在 3D 里被洗成灰蓝；改绿后实机仍读得出绿色。小地图
+        // （无光照）本就正确，改色后两者一致。
+        public static readonly Color Grass = new Color(0.16f, 0.42f, 0.30f);
+        public static readonly Color GrassLight = new Color(0.28f, 0.52f, 0.34f);
+        public static readonly Color GrassDeep = new Color(0.10f, 0.34f, 0.24f);
+        public static readonly Color Sakura = new Color(0.87f, 0.69f, 0.80f);
         public static readonly Color Rock = new Color(0.36f, 0.38f, 0.46f);
         public static readonly Color Snow = new Color(0.93f, 0.95f, 0.98f);
 
@@ -74,8 +79,10 @@ namespace TideSong
             col.convex = false;
         }
 
-        /// <summary>按高度 + 陡峭程度 + 一点噪声给地表上色。</summary>
-        static Color ShadeAt(float x, float z, float h)
+        /// <summary>按高度 + 陡峭程度 + 一点噪声给地表上色。
+        /// 探索地基（2026-11-26）：低地以草色为主，沙只留在水边一圈薄滩；
+        /// 草加两层噪声拼块 + 稀疏樱粉点缀。布局/高程不动，只改配色。</summary>
+        public static Color ShadeAt(float x, float z, float h)
         {
             float n = NoiseUtil.Fbm(x * 0.09f, z * 0.09f, 3);
             Vector3 nrm = WorldData.NormalAt(x, z);
@@ -86,14 +93,17 @@ namespace TideSong
             {
                 c = Color.Lerp(DeepWater, Sand, Mathf.Clamp01((h - (WorldData.WaterLevel - 6f)) / 6f) * 0.35f);
             }
-            else if (h < WorldData.WaterLevel + 1.6f)
+            else if (h < WorldData.WaterLevel + 0.7f)
             {
+                // 薄滩：只在水边 0.7 m 一圈是沙（原来 1.6 m）。
                 c = Sand;
             }
             else if (h < 20f)
             {
-                float t = Mathf.Clamp01((h - WorldData.WaterLevel) / 16f);
-                c = Color.Lerp(Sand, Color.Lerp(Grass, GrassLight, n), Mathf.Clamp01(t * 1.6f));
+                // 沙→草在 2 m 内完成（原来 16 m）：出生台地 3.4 m 处 75% 草，
+                // 3.9 m 以上全草，低地不再发白。
+                float t = Mathf.Clamp01((h - (WorldData.WaterLevel + 0.7f)) / 2.0f);
+                c = Color.Lerp(Sand, GrassColor(x, z, n), t);
             }
             else if (h < 34f)
             {
@@ -116,6 +126,18 @@ namespace TideSong
             c *= v;
             c.a = 1f;
             return c;
+        }
+
+        /// <summary>草色：细噪声 + 低频拼块两层变化，叠加稀疏樱粉点缀。
+        /// Fbm(3 oct) 均值约 0.47，樱阈值 0.68–0.80 只取顶部约 4% 面积。</summary>
+        static Color GrassColor(float x, float z, float n)
+        {
+            float n2 = NoiseUtil.Fbm(x * 0.02f + 7f, z * 0.02f + 3f, 2);
+            float g = Mathf.Clamp01(n * 0.65f + n2 * 0.55f);
+            Color grass = Color.Lerp(GrassDeep, GrassLight, g);
+            float s = NoiseUtil.Fbm(x * 0.05f + 13f, z * 0.05f + 21f, 3);
+            float sakuraK = Mathf.SmoothStep(0.68f, 0.80f, s) * 0.55f;
+            return Color.Lerp(grass, Sakura, sakuraK);
         }
     }
 }

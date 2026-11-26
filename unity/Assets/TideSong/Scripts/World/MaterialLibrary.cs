@@ -113,10 +113,12 @@ namespace TideSong
 
         // 卡通渲染：角色与布景（叶/木/石/敌）用 toon；金属/发光/透明保持 Standard。
         // 布景阴影色用各自色调的暗色（叶=深青绿、木=深棕、石=深灰蓝），避免整面变黑。
-        // 叶的环境光给到 0.85：清晨低角度阳光下树冠背光面仍能读出绿色。
-        public static Material Foliage { get { if (_foliage == null) _foliage = MakeToon(new Color(0.20f, 0.45f, 0.42f), outline: 0.022f, shadowColor: new Color(0.10f, 0.26f, 0.24f), ambientStrength: 0.85f); return _foliage; } }
-        public static Material Wood { get { if (_wood == null) _wood = MakeToon(new Color(0.35f, 0.26f, 0.19f), shadowColor: new Color(0.16f, 0.11f, 0.08f)); return _wood; } }
-        public static Material Stone { get { if (_stone == null) _stone = MakeToon(new Color(0.47f, 0.47f, 0.50f), shadowColor: new Color(0.20f, 0.21f, 0.26f)); return _stone; } }
+        // 布景描边收窄到 0.006：描边按 clip w 缩放、屏幕宽度恒定，小物件
+        // （石/木/叶）用 0.02 会被黑盘吞掉（实测 0.02 的黑环约 31 px，石头
+        // 本体才 32 px）。角色材质描边不动（体量大，描边比例正常）。
+        public static Material Foliage { get { if (_foliage == null) _foliage = MakeToon(new Color(0.18f, 0.47f, 0.32f), outline: 0.006f, shadowColor: new Color(0.08f, 0.22f, 0.16f), ambientStrength: 0.85f); return _foliage; } }
+        public static Material Wood { get { if (_wood == null) _wood = MakeToon(new Color(0.35f, 0.26f, 0.19f), outline: 0.006f, shadowColor: new Color(0.16f, 0.11f, 0.08f)); return _wood; } }
+        public static Material Stone { get { if (_stone == null) _stone = MakeToon(new Color(0.47f, 0.47f, 0.50f), outline: 0.006f, shadowColor: new Color(0.20f, 0.21f, 0.26f)); return _stone; } }
         public static Material Skin { get { if (_skin == null) _skin = MakeToon(new Color(0.99f, 0.86f, 0.78f), outline: 0.014f, specStrength: 0.35f); return _skin; } }
         public static Material Hair { get { if (_hair == null) _hair = MakeToon(new Color(0.92f, 0.95f, 1.0f), specStrength: 0.9f, gloss: 32f, hairStrength: 1.2f); return _hair; } }
         public static Material Cloth { get { if (_cloth == null) _cloth = MakeToon(new Color(0.14f, 0.30f, 0.67f)); return _cloth; } }

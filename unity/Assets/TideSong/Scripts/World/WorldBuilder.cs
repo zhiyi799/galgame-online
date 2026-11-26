@@ -9,12 +9,13 @@ namespace TideSong
         GameManager gm;
         readonly List<Vector3> used = new List<Vector3>();
 
+        // 树冠绿偏真绿（B < G），与地形草色一致；白天亮蓝环境光下仍读绿。
         static readonly Color[] TreeGreens = new Color[]
         {
-            new Color(0.14f, 0.34f, 0.36f),
-            new Color(0.18f, 0.42f, 0.40f),
-            new Color(0.12f, 0.30f, 0.36f),
-            new Color(0.20f, 0.46f, 0.42f),
+            new Color(0.12f, 0.36f, 0.26f),
+            new Color(0.16f, 0.44f, 0.30f),
+            new Color(0.10f, 0.32f, 0.24f),
+            new Color(0.18f, 0.48f, 0.32f),
         };
 
         public void Build(GameManager manager)
@@ -243,25 +244,41 @@ namespace TideSong
             }
         }
 
+        // 探索地基（2026-11-26）：树浮空修复。原来树干直径仅 0.34×scale，
+        // 远处亚像素不可见，树冠成漂浮绿点；且树基按解析高度放，网格顶点间
+        // 线性插值下沉时树基悬空。改法：树干加粗、根部膨大、整树下沉、
+        // 首层树冠下移加大，与树干重叠。
         void MakeTree(Transform parent, Vector3 pos, float scale)
         {
             var t = new GameObject("Tree").transform;
             t.SetParent(parent, false);
-            t.position = pos;
+            // 整树下沉 0.3×scale：抵消网格插值造成的基部悬空。
+            t.position = pos + Vector3.down * (0.3f * scale);
             t.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
 
             float trunkH = 2.0f * scale;
+            // 树干加粗：0.34 → 0.60×scale（直径 0.45–0.87 m，远处仍可见）。
             MaterialLibrary.Prim(PrimitiveType.Cylinder, t, MaterialLibrary.Wood,
                 new Vector3(0f, trunkH * 0.5f, 0f),
-                new Vector3(0.34f * scale, trunkH * 0.5f, 0.34f * scale));
+                new Vector3(0.60f * scale, trunkH * 0.5f, 0.60f * scale));
+            // 根部膨大：压扁球，底部沉入地下 0.175×scale，树像长在地里。
+            MaterialLibrary.Prim(PrimitiveType.Sphere, t, MaterialLibrary.Wood,
+                new Vector3(0f, 0.05f * scale, 0f),
+                new Vector3(0.95f * scale, 0.45f * scale, 0.95f * scale));
 
             var green = TreeGreens[Random.Range(0, TreeGreens.Length)];
             int blobs = Random.Range(2, 4);
             for (int i = 0; i < blobs; i++)
             {
-                float bs = (1.6f - i * 0.28f) * scale;
-                float by = trunkH + (0.55f + i * 0.62f) * scale;
-                MaterialLibrary.Prim(PrimitiveType.Sphere, t, MaterialLibrary.Make(green * (0.9f + i * 0.06f), 0f, 0.1f),
+                float bs = (1.7f - i * 0.28f) * scale;
+                // 首层树冠下移（0.55 → 0.35×scale），与树干顶重叠 0.33×scale。
+                float by = trunkH + (0.35f + i * 0.62f) * scale;
+                // 树冠用 toon（环境光 0.85）而不用 Standard：Standard 背光面
+                // 在亮蓝环境光下仍近黑，远处看成黑盘；toon 环境光保证背光面
+                // 仍读得出绿色（与 MaterialLibrary.Foliage 同一思路）。
+                var crownMat = MaterialLibrary.MakeToon(green * (0.9f + i * 0.06f),
+                    outline: 0.006f, shadowColor: new Color(0.08f, 0.22f, 0.16f), ambientStrength: 0.85f);
+                MaterialLibrary.Prim(PrimitiveType.Sphere, t, crownMat,
                     new Vector3(Random.Range(-0.25f, 0.25f) * scale, by, Random.Range(-0.25f, 0.25f) * scale),
                     new Vector3(bs, bs * 0.85f, bs));
             }

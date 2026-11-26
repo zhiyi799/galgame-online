@@ -29,7 +29,7 @@ namespace TideSong
         float victoryT;
         float uiScale = 1f;
         float introT = 5f;
-        bool fontTried;
+        float fontRetryT;   // 字体加载失败时的重试倒计时（Init 不再一次定死）
 
         class DamagePop
         {
@@ -47,8 +47,9 @@ namespace TideSong
             gm = manager;
             player = manager.Player;
             touch = GetComponent<TouchControls>();
-            fontTried = true;
             uiFont = LoadFont();
+            if (uiFont != null) LogFontCheck();
+            else fontRetryT = 2f;   // 加载失败：OnGUI 每 2 秒重试，不是一次定死
             BuildMinimap();
             Cursor.lockState = InputHub.Mobile ? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = InputHub.Mobile;
@@ -133,7 +134,16 @@ namespace TideSong
         {
             if (gm == null || player == null) return;
             uiScale = Mathf.Clamp(Screen.height / 900f, 0.68f, 2.4f);
-            if (uiFont == null && !fontTried) { fontTried = true; uiFont = LoadFont(); }
+            if (uiFont == null)
+            {
+                fontRetryT -= Time.unscaledDeltaTime;
+                if (fontRetryT <= 0f)
+                {
+                    uiFont = LoadFont();
+                    if (uiFont != null) LogFontCheck();
+                    else fontRetryT = 2f;
+                }
+            }
             if (uiFont != null && GUI.skin.font != uiFont) GUI.skin.font = uiFont;
             EnsureStyles();
 
@@ -525,6 +535,7 @@ namespace TideSong
                 sCenterCache = MakeStyle(px, TextAnchor.MiddleCenter, Color.white);
                 sCenterSize = px;
             }
+            if (uiFont != null) sCenterCache.font = uiFont;
             sCenterCache.normal.textColor = Color.white;
             return sCenterCache;
         }
@@ -538,24 +549,42 @@ namespace TideSong
 
         void EnsureStyles()
         {
-            if (sLabel != null) return;
-            sLabel = MakeStyle(Mathf.RoundToInt(21f * uiScale), TextAnchor.MiddleLeft, new Color(0.94f, 0.97f, 1f));
-            sSmall = MakeStyle(Mathf.RoundToInt(15f * uiScale), TextAnchor.MiddleLeft, new Color(0.80f, 0.89f, 1f));
-            sTitle = MakeStyle(Mathf.RoundToInt(30f * uiScale), TextAnchor.MiddleLeft, Color.white);
-            sHuge = MakeStyle(Mathf.RoundToInt(48f * uiScale), TextAnchor.MiddleCenter, Color.white);
-            sCenter = MakeStyle(Mathf.RoundToInt(24f * uiScale), TextAnchor.MiddleCenter, Color.white);
-            sBtn = new GUIStyle(GUI.skin.button)
+            if (sLabel == null)
             {
-                fontSize = Mathf.RoundToInt(20f * uiScale),
-                alignment = TextAnchor.MiddleCenter
-            };
-            sBtn.normal.textColor = new Color(0.9f, 0.96f, 1f);
-            sBtn.hover.textColor = Color.white;
+                sLabel = MakeStyle(Mathf.RoundToInt(21f * uiScale), TextAnchor.MiddleLeft, new Color(0.94f, 0.97f, 1f));
+                sSmall = MakeStyle(Mathf.RoundToInt(15f * uiScale), TextAnchor.MiddleLeft, new Color(0.80f, 0.89f, 1f));
+                sTitle = MakeStyle(Mathf.RoundToInt(30f * uiScale), TextAnchor.MiddleLeft, Color.white);
+                sHuge = MakeStyle(Mathf.RoundToInt(48f * uiScale), TextAnchor.MiddleCenter, Color.white);
+                sCenter = MakeStyle(Mathf.RoundToInt(24f * uiScale), TextAnchor.MiddleCenter, Color.white);
+                sBtn = new GUIStyle(GUI.skin.button)
+                {
+                    fontSize = Mathf.RoundToInt(20f * uiScale),
+                    alignment = TextAnchor.MiddleCenter
+                };
+                sBtn.normal.textColor = new Color(0.9f, 0.96f, 1f);
+                sBtn.hover.textColor = Color.white;
+            }
+            // 字体每次都补赋：样式可能在字体加载成功之前就建好了，
+            // 以前早返回后字体再未补赋，sCenterCache 更从未被赋字体。
             if (uiFont != null)
             {
                 sLabel.font = uiFont; sSmall.font = uiFont; sTitle.font = uiFont;
                 sHuge.font = uiFont; sCenter.font = uiFont; sBtn.font = uiFont;
+                if (sCenterCache != null) sCenterCache.font = uiFont;
             }
+        }
+
+        void LogFontCheck()
+        {
+            // HUD 字体自检：证明捆绑字体已加载、关键汉字全在字库里。
+            // 11-24 报告的“无星者→失打者”若复现，这条日志能定位是字体未加载
+            // 还是字库缺字（HasCharacter 逐字查）。
+            const string keys = "无星者星樱回响律锚点结晶宝箱等级攻击闪避技能声骸跳跃滑翔冲刺切人队伍";
+            string missing = "";
+            foreach (char ch in keys)
+                if (!uiFont.HasCharacter(ch)) missing += ch;
+            Debug.Log("[HUD] font=" + uiFont.name + " glyphs=" +
+                (missing.Length == 0 ? "OK(" + keys.Length + ")" : "MISSING:" + missing));
         }
 
         Font LoadFont()
@@ -607,6 +636,8 @@ namespace TideSong
 
         void BuildMinimap()
         {
+            // 探索地基（2026-11-26）：小地图直接复用 TerrainGenerator.ShadeAt，
+            // 与 3D 地形配色严格一致（以前是另一套手写色带，沙带/草色都对不上）。
             int size = 160;
             minimapTex = new Texture2D(size, size, TextureFormat.RGB24, false);
             minimapTex.wrapMode = TextureWrapMode.Clamp;
@@ -618,13 +649,7 @@ namespace TideSong
                     float wx = (x / (float)(size - 1) - 0.5f) * WorldData.Size;
                     float wz = (y / (float)(size - 1) - 0.5f) * WorldData.Size;
                     float h = WorldData.HeightAt(wx, wz);
-                    Color c;
-                    if (h < WorldData.WaterLevel) c = new Color(0.06f, 0.16f, 0.40f);
-                    else if (h < WorldData.WaterLevel + 1.6f) c = new Color(0.62f, 0.58f, 0.42f);
-                    else if (h < 20f) c = Color.Lerp(new Color(0.18f, 0.34f, 0.38f), new Color(0.22f, 0.40f, 0.42f), Random.value * 0.4f);
-                    else if (h < 34f) c = new Color(0.34f, 0.34f, 0.34f);
-                    else c = new Color(0.72f, 0.76f, 0.82f);
-                    px[y * size + x] = c;
+                    px[y * size + x] = TerrainGenerator.ShadeAt(wx, wz, h);
                 }
             }
             minimapTex.SetPixels32(px);
