@@ -84,7 +84,11 @@ namespace TideSong
             }
 
             RenderSettings.fogColor = hor;
-            RenderSettings.fogDensity = Mathf.Lerp(0.0055f, 0.0022f, day);
+            // 地图修复（2026-11-26）：雾只做远景分层——近处/中景保持饱和清晰，
+            // 只有远山才被雾盖住。旧密度（白天 0.0022）100 m 外就开始发灰，整个
+            // 近景都蒙了一层；现在白天 0.0014（100 m 处 98% 清晰，420 m 处仍有
+            // 71%），夜里 0.0032（100 m 处 90% 清晰）。
+            RenderSettings.fogDensity = Mathf.Lerp(0.0032f, 0.0014f, day);
             RenderSettings.ambientSkyColor = Color.Lerp(new Color(0.12f, 0.16f, 0.28f), new Color(0.45f, 0.58f, 0.85f), day);
             RenderSettings.ambientEquatorColor = Color.Lerp(new Color(0.08f, 0.10f, 0.16f), new Color(0.44f, 0.50f, 0.52f), day);
             RenderSettings.ambientGroundColor = Color.Lerp(new Color(0.04f, 0.05f, 0.07f), new Color(0.26f, 0.30f, 0.24f), day);

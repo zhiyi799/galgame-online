@@ -104,7 +104,9 @@ namespace TideSong
             {
                 if (_water == null)
                 {
-                    _water = MakeTransparent(new Color(0.10f, 0.30f, 0.62f, 0.62f), 0.28f, 0.85f);
+                    // 地图修复（2026-11-26）：水面更透明（alpha 0.62→0.42）+ 更亮的
+                    // 青蓝，浅水处能看到下面的湖底渐变（青绿→深蓝），深水仍读成饱和蓝。
+                    _water = MakeTransparent(new Color(0.12f, 0.42f, 0.68f, 0.42f), 0.28f, 0.85f);
                     _water.name = "WaterMat";
                 }
                 return _water;

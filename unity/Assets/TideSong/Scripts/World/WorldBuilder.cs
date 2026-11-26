@@ -9,6 +9,9 @@ namespace TideSong
         GameManager gm;
         readonly List<Vector3> used = new List<Vector3>();
 
+        // 营地中心（地图修复 2026-11-26：HUD 营地标记用；GameManager.BuildWorld 里读它）。
+        public Vector3 CampCenter { get; private set; }
+
         // 树冠绿偏真绿（B < G），与地形草色一致；白天亮蓝环境光下仍读绿。
         static readonly Color[] TreeGreens = new Color[]
         {
@@ -54,31 +57,50 @@ namespace TideSong
                     }
                 }
             }
-            return WorldData.PointAt(0f, 30f, 0f);
+            return WorldData.PointAt(-18f, -4f, 0f);
         }
 
         // ---------- 营地 ----------
+
+        // 营地物件按各自脚下的地形高度贴地放（营地在缓坡上：8 m 圈内地面
+        // 2.32–3.40 m，固定 Y 会让西侧围栏浮空 0.7 m）。localPos.y 是“高于
+        // 脚下地面”的高度，不是绝对高度。
+        GameObject CampPrim(PrimitiveType type, Transform camp, Material mat, Vector3 localPos, Vector3 localScale, Quaternion? rot = null)
+        {
+            Vector3 wxz = camp.position + new Vector3(localPos.x, 0f, localPos.z);
+            float ground = WorldData.HeightAt(wxz.x, wxz.z);
+            Vector3 p = new Vector3(localPos.x, ground - camp.position.y + localPos.y, localPos.z);
+            return MaterialLibrary.Prim(type, camp, mat, p, localScale, rot);
+        }
 
         void BuildCamp()
         {
             var camp = new GameObject("Camp").transform;
             camp.SetParent(transform, false);
-            Vector3 c = WorldData.PointAt(0f, 34f, 0f);
+            // 地图修复（2026-11-26）：营地从湖里搬出来。旧址 (0,34) 地面 0.63 m，
+            // 低于水面 1.2 m，篝火/帐篷泡在水里。新址是湖心岛西侧的干草台地
+            // (-18,0)：实测地面 3.36 m，8 m 圈内最低 2.32 m，全是旱地；西 16 m
+            // 就是沙滩和湖面，东边 18 m 是祭坛（出生面向祭坛）。营地也走同一条
+            // 旱地规则：SafePoint(minHeight 1.0) 要求地面高于水面 1.0 m 以上。
+            // 注：研究文档说的“西岸沙环 1.5–1.9 m”是看图估的，实测沙带只有约
+            // 4 m 宽且很陡，16 m 营地圈放不下；台地是离水最近的平整旱地。
+            Vector3 c = SafePoint(-18f, 0f, 1.0f, 42f);
             camp.position = c;
+            CampCenter = c;
 
             // 地面石圈
             for (int i = 0; i < 10; i++)
             {
                 float a = i / 10f * Mathf.PI * 2f;
-                MaterialLibrary.Prim(PrimitiveType.Sphere, camp, MaterialLibrary.Stone,
+                CampPrim(PrimitiveType.Sphere, camp, MaterialLibrary.Stone,
                     new Vector3(Mathf.Cos(a) * 2.4f, 0.2f, Mathf.Sin(a) * 2.4f),
                     new Vector3(0.6f, 0.4f, 0.6f), Quaternion.Euler(Random.Range(-10f, 10f), Random.Range(0f, 360f), 0f));
             }
 
             // 篝火
-            var fire = MaterialLibrary.Prim(PrimitiveType.Cylinder, camp, MaterialLibrary.Wood,
+            var fire = CampPrim(PrimitiveType.Cylinder, camp, MaterialLibrary.Wood,
                 new Vector3(0f, 0.25f, 0f), new Vector3(1.1f, 0.12f, 1.1f));
-            var flame = MaterialLibrary.Prim(PrimitiveType.Sphere, camp, MaterialLibrary.Glow,
+            var flame = CampPrim(PrimitiveType.Sphere, camp, MaterialLibrary.Glow,
                 new Vector3(0f, 0.8f, 0f), new Vector3(0.75f, 1.05f, 0.75f));
             flame.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             flame.AddComponent<FlameWobble>();
@@ -93,16 +115,16 @@ namespace TideSong
             fireLight.shadows = LightShadows.None;
 
             // 帐篷：两块斜面（建模重做 Item 1 调色：原砖红与群青世界不搭，改深群青帆布）
-            var tentA = MaterialLibrary.Prim(PrimitiveType.Cube, camp, MaterialLibrary.Make(new Color(0.16f, 0.28f, 0.55f)),
+            var tentA = CampPrim(PrimitiveType.Cube, camp, MaterialLibrary.Make(new Color(0.16f, 0.28f, 0.55f)),
                 new Vector3(-4.2f, 1.2f, 1.5f), new Vector3(3.4f, 0.14f, 2.6f), Quaternion.Euler(0f, 0f, 38f));
-            var tentB = MaterialLibrary.Prim(PrimitiveType.Cube, camp, MaterialLibrary.Make(new Color(0.12f, 0.22f, 0.45f)),
+            var tentB = CampPrim(PrimitiveType.Cube, camp, MaterialLibrary.Make(new Color(0.12f, 0.22f, 0.45f)),
                 new Vector3(-2.1f, 1.2f, 1.5f), new Vector3(3.4f, 0.14f, 2.6f), Quaternion.Euler(0f, 0f, -38f));
 
             // 木桩围栏
             for (int i = 0; i < 8; i++)
             {
                 float a = i / 8f * Mathf.PI * 2f + 0.3f;
-                MaterialLibrary.Prim(PrimitiveType.Cylinder, camp, MaterialLibrary.Wood,
+                CampPrim(PrimitiveType.Cylinder, camp, MaterialLibrary.Wood,
                     new Vector3(Mathf.Cos(a) * 7.5f, 0.6f, Mathf.Sin(a) * 7.5f),
                     new Vector3(0.16f, 0.65f, 0.16f), Quaternion.Euler(Random.Range(-6f, 6f), 0f, Random.Range(-6f, 6f)));
             }
@@ -235,7 +257,7 @@ namespace TideSong
                 float h = WorldData.HeightAt(x, z);
                 if (h < WorldData.WaterLevel + 1.8f || h > 36f) continue;
                 if (new Vector2(x, z).magnitude < 26f) continue;   // 给营地/祭坛留空地
-                if (Vector3.Distance(new Vector3(x, 0, z), new Vector3(0, 0, 34)) < 14f) continue;
+                if (Vector3.Distance(new Vector3(x, 0, z), new Vector3(-18, 0, 0)) < 14f) continue;
 
                 float slope = 1f - WorldData.NormalAt(x, z).y;
                 if (slope > 0.24f) continue;
@@ -405,7 +427,7 @@ namespace TideSong
                 float x = Mathf.Cos(a) * r, z = Mathf.Sin(a) * r;
                 float h = WorldData.HeightAt(x, z);
                 if (h < WorldData.WaterLevel + 0.5f || h > 44f) continue;
-                if (Vector3.Distance(new Vector3(x, 0, z), new Vector3(0, 0, 34)) < 26f) continue;
+                if (Vector3.Distance(new Vector3(x, 0, z), new Vector3(-18, 0, 0)) < 26f) continue;
                 EnemyAI.Spawn(new Vector3(x, h, z), Random.Range(0.85f, 1.35f), Random.Range(0.9f, 1.15f), root);
                 placed++;
             }

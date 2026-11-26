@@ -275,6 +275,105 @@ namespace GalgameOnline.Core
                 yield break;
             }
 
+            // Map-fix screenshot mode (2026-11-26): three shots for the map
+            // fixes — (a) spawn view on the dry west-shore camp facing the
+            // altar, (b) lake view facing west (new water gradient +
+            // shoreline), (c) Tab map (new water/sand colours, arrow player
+            // marker, camp + island labels). Also asserts the player stands
+            // on dry land (ground > water level). Saves into the project docs.
+            if (HasArg("-mapfix-shot"))
+            {
+                Debug.Log("[SMOKE] mapfix-shot mode");
+                var exOp = SceneManager.LoadSceneAsync(GameManager.SceneExploration);
+                yield return exOp;
+                yield return new WaitForSeconds(5f);
+                var gm3d = TideSong.GameManager.Instance;
+                if (gm3d == null || gm3d.Player == null)
+                {
+                    Debug.Log("[SMOKE] FAIL: TideSong GameManager/Player not found");
+                    FlushAndExit(1);
+                    yield break;
+                }
+                Vector3 pp = gm3d.Player.transform.position;
+                float ground = TideSong.WorldData.HeightAt(pp.x, pp.z);
+                Debug.Log("[SMOKE] mapfix player at " + pp + " ground=" + ground
+                    + " water=" + TideSong.WorldData.WaterLevel
+                    + " camp=" + gm3d.CampCenter);
+                if (ground <= TideSong.WorldData.WaterLevel)
+                {
+                    Debug.Log("[SMOKE] FAIL: spawn point is underwater (ground " + ground + ")");
+                    FlushAndExit(1);
+                    yield break;
+                }
+                // 地图修复 v2 诊断：营地地面在截图里仍是灰蓝 (116,134,161)，
+                // 与 ShadeAt 的草绿顶点色不符。直接在运行时查：地形材质用的
+                // 哪个 shader、Resources.Load 能不能拿到 TerrainVC、网格里
+                // 营地附近的顶点色到底是什么——定位是 shader 回退还是顶点色丢失。
+                var terrainGo = GameObject.Find("Terrain");
+                if (terrainGo != null)
+                {
+                    var mr = terrainGo.GetComponent<MeshRenderer>();
+                    if (mr != null && mr.sharedMaterial != null)
+                        Debug.Log("[SMOKE] mapfix terrain material shader="
+                            + mr.sharedMaterial.shader.name);
+                    var mf = terrainGo.GetComponent<MeshFilter>();
+                    if (mf != null && mf.sharedMesh != null)
+                    {
+                        var verts = mf.sharedMesh.vertices;
+                        var cols = mf.sharedMesh.colors;
+                        float best = float.MaxValue; int bi = -1;
+                        for (int i = 0; i < verts.Length; i++)
+                        {
+                            float d = (verts[i].x + 18f) * (verts[i].x + 18f)
+                                + verts[i].z * verts[i].z;
+                            if (d < best) { best = d; bi = i; }
+                        }
+                        if (bi >= 0)
+                            Debug.Log("[SMOKE] mapfix terrain vertex near camp ("
+                                + verts[bi].x.ToString("F1") + "," + verts[bi].z.ToString("F1")
+                                + ") color=" + cols[bi] + " (mesh colors=" + cols.Length + ")");
+                    }
+                }
+                var sh = Resources.Load<Shader>("Shaders/TerrainVC");
+                Debug.Log("[SMOKE] mapfix Resources.Load TerrainVC "
+                    + (sh == null ? "NULL (fallback Standard!)" : "OK"));
+                Debug.Log("[SMOKE] mapfix ShadeAt camp expected="
+                    + TideSong.TerrainGenerator.ShadeAt(-18f, 0f, 3.34f));
+                if (gm3d.Interactables != null)
+                {
+                    foreach (var it in gm3d.Interactables)
+                    {
+                        if (it == null) continue;
+                        Vector3 p = it.transform.position;
+                        Debug.Log("[SMOKE] mapfix interactable " + it.GetType().Name
+                            + " at (" + p.x.ToString("F1") + "," + p.z.ToString("F1")
+                            + ") h=" + p.y.ToString("F1"));
+                    }
+                }
+                const string docs = "/home/hatch/workspace/galgame-online/docs/";
+                ScreenCapture.CaptureScreenshot(docs + "exploration-spawn-west-shore-v2-2026-11-26.png");
+                yield return new WaitForEndOfFrame();
+                yield return new WaitForSeconds(0.5f);
+                // (b) 湖面：相机朝西（yaw -90°），看沙滩 + 渐变水面 + 岸线。
+                var rig = TideSong.CameraRig.Instance;
+                if (rig != null) rig.yaw = -90f;
+                yield return new WaitForSeconds(1f);
+                ScreenCapture.CaptureScreenshot(docs + "exploration-lake-v2-2026-11-26.png");
+                yield return new WaitForEndOfFrame();
+                yield return new WaitForSeconds(0.5f);
+                if (rig != null) rig.yaw = 90f;
+                yield return new WaitForSeconds(0.5f);
+                var hud = TideSong.GameHUD.Instance;
+                if (hud != null) hud.ToggleMap();
+                yield return new WaitForSeconds(0.8f);
+                ScreenCapture.CaptureScreenshot(docs + "exploration-map-v2-2026-11-26.png");
+                yield return new WaitForEndOfFrame();
+                yield return new WaitForSeconds(0.5f);
+                Debug.Log("[SMOKE] mapfix screenshots saved");
+                FlushAndExit(0);
+                yield break;
+            }
+
             // Phase 1 / P1-A + P1-B 小队测试：加载 Exploration，验证 4 人同屏、
             // 切换、失衡打满（连携就绪）、回响掉落/装备/主动技能，各截一张图。
             if (HasArg("-squad-shot"))

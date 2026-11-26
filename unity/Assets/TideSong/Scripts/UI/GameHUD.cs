@@ -301,15 +301,35 @@ namespace TideSong
         void DrawMapMarkers(Rect mapRect, float scale)
         {
             var white = ArtUtil.White;
-            // 玩家
-            Vector2 pp = WorldToMap(player.transform.position, mapRect);
-            Tint(new Color(0.5f, 1f, 1f));
-            GUI.DrawTexture(new Rect(pp.x - 4f, pp.y - 4f, 8f, 8f), ArtUtil.Dot);
-            // 朝向
-            Vector3 f = player.transform.forward;
-            Tint(new Color(0.5f, 1f, 1f, 0.85f));
-            GUI.DrawTexture(new Rect(pp.x - 1f + f.x * 5f, pp.y - 1f - f.z * 5f, 3f, 3f), white);
+            // 营地：金色方块 + 白边（出生点）。坐标由 GameManager.CampCenter 给，
+            // 未设定（Vector3.zero）时不画。先画营地，玩家箭头压在上面。
+            Vector2 campPos = Vector2.zero; bool campFound = false;
+            if (gm != null && gm.CampCenter.sqrMagnitude > 0.01f)
+            {
+                campPos = WorldToMap(gm.CampCenter, mapRect);
+                campFound = true;
+                float cs = 11f * scale;
+                Tint(Color.white);
+                GUI.DrawTexture(new Rect(campPos.x - cs * 0.5f - 1.5f, campPos.y - cs * 0.5f - 1.5f, cs + 3f, cs + 3f), white);
+                Tint(new Color(1f, 0.78f, 0.25f));
+                GUI.DrawTexture(new Rect(campPos.x - cs * 0.5f, campPos.y - cs * 0.5f, cs, cs), white);
+            }
 
+            // 玩家：白描边方向箭头（原神罗盘箭头做法），大小是旧青方块的两倍；
+            // 旧 8 px 方块 + 3 px 方向点在新配色地图上几乎看不见。
+            Vector2 pp = WorldToMap(player.transform.position, mapRect);
+            Vector3 f = player.transform.forward;
+            float ang = Mathf.Atan2(f.x, f.z) * Mathf.Rad2Deg;
+            float arr = 16f * scale;
+            Matrix4x4 oldMatrix = GUI.matrix;
+            GUIUtility.RotateAroundPivot(ang, pp);
+            Tint(Color.white);
+            GUI.DrawTexture(new Rect(pp.x - arr * 0.5f - 2f, pp.y - arr * 0.5f - 2f, arr + 4f, arr + 4f), ArrowTex());
+            Tint(new Color(0.5f, 1f, 1f));
+            GUI.DrawTexture(new Rect(pp.x - arr * 0.5f, pp.y - arr * 0.5f, arr, arr), ArrowTex());
+            GUI.matrix = oldMatrix;
+
+            Vector2 altarPos = Vector2.zero; bool altarFound = false;
             if (gm.Interactables != null)
             {
                 for (int i = 0; i < gm.Interactables.Count; i++)
@@ -322,12 +342,50 @@ namespace TideSong
                     if (it is TideShrine) { var sh = (TideShrine)it; c = sh.activated ? new Color(0.35f, 0.9f, 1f) : new Color(0.55f, 0.75f, 0.85f, 0.75f); sz = 7f; }
                     else if (it is TreasureChest) { var ch = (TreasureChest)it; if (ch.opened) continue; c = new Color(1f, 0.85f, 0.35f); }
                     else if (it is GatherNode) { c = new Color(0.5f, 1f, 0.6f, 0.75f); sz = 3.5f; }
-                    else if (it is TideAltar) { c = new Color(0.7f, 1f, 1f); sz = 9f; }
+                    else if (it is TideAltar) { c = new Color(0.7f, 1f, 1f); sz = 9f; altarPos = p; altarFound = true; }
                     Tint(c);
                     GUI.DrawTexture(new Rect(p.x - sz * 0.5f, p.y - sz * 0.5f, sz, sz), white);
                 }
             }
+
+            // 大地图才画文字注记（小地图不挤）：营地 / 湖心岛。
+            // 地图修复 v2（2026-11-26）：两注记不再挤在同一侧。营地在湖心岛
+            // 西边 18 m，地图上只差约 36 px，旧写法（都在标记右上方）叠成
+            // “营地湖心岛”一团。营地注记放标记左侧（右对齐），湖心岛放右
+            // 侧，两边向外散开，中间留 60 px 以上空隙。
+            if (scale > 1.2f)
+            {
+                Tint(Color.white);
+                if (campFound) GUI.Label(new Rect(campPos.x - 9f * scale - 70f, campPos.y - 11f * scale, 70f, 22f), "营地", Right(15f * uiScale));
+                if (altarFound) GUI.Label(new Rect(altarPos.x + 9f * scale, altarPos.y - 11f * scale, 140f, 22f), "湖心岛", sSmall);
+            }
             Tint(Color.white);
+        }
+
+        // 向上箭头纹理（32×32，白，透明底；玩家标记用，Tint 上色）。
+        static Texture2D arrowTex;
+        static Texture2D ArrowTex()
+        {
+            if (arrowTex != null) return arrowTex;
+            int s = 32;
+            arrowTex = new Texture2D(s, s, TextureFormat.RGBA32, false);
+            arrowTex.wrapMode = TextureWrapMode.Clamp;
+            var px = new Color32[s * s];
+            for (int y = 0; y < s; y++)
+            {
+                for (int x = 0; x < s; x++)
+                {
+                    // 行 0 是纹理底部：v=0 底边最宽，v=1 顶中是顶点。
+                    float u = (x + 0.5f) / s;
+                    float v = (y + 0.5f) / s;
+                    float half = (1f - v) * 0.48f;
+                    bool inside = Mathf.Abs(u - 0.5f) <= half;
+                    px[y * s + x] = inside ? new Color32(255, 255, 255, 255) : new Color32(0, 0, 0, 0);
+                }
+            }
+            arrowTex.SetPixels32(px);
+            arrowTex.Apply();
+            return arrowTex;
         }
 
         Vector2 WorldToMap(Vector3 world, Rect mapRect)

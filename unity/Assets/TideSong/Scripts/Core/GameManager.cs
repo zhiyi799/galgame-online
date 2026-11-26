@@ -17,6 +17,8 @@ namespace TideSong
         public List<Interactable> Interactables = new List<Interactable>();
 
         public Vector3 SpawnPoint;
+        // 营地中心（地图修复 2026-11-26：HUD 营地标记用，World.Build 里由 WorldBuilder 填）。
+        public Vector3 CampCenter;
         public float PlayTime;
 
         Transform worldRoot;
@@ -107,7 +109,9 @@ namespace TideSong
             DayNight.Setup(sun, fill, skyMat, sunGo.transform);
 
             // ---------- 玩家 ----------
-            SpawnPoint = WorldData.PointAt(0f, 30f, 1.2f);
+            // 地图修复（2026-11-26）：出生点从湖里（0,30，地面 1.63 m）搬到湖心岛
+            // 西侧营地南边（-18,-4，地面 3.34 m，干草台地），营地在 (-18,0)。
+            SpawnPoint = WorldData.PointAt(-18f, -4f, 1.2f);
             var playerGo = new GameObject("Player");
             playerGo.transform.position = SpawnPoint;
             Player = playerGo.AddComponent<PlayerCharacter>();
@@ -122,12 +126,17 @@ namespace TideSong
             cam.farClipPlane = 1600f;
             camGo.AddComponent<AudioListener>();
             var rig = camGo.AddComponent<CameraRig>();
+            // 地图修复（2026-11-26）：开场镜头朝东（yaw 90°），面向湖心祭坛；
+            // 以前默认朝北，出生第一眼是水，看不到营地和祭坛。Setup 前设，
+            // 这样 smoothYaw 直接从 90° 开始，不做开场扫镜头。
+            rig.yaw = 90f;
             rig.Setup(Player.transform);
 
             // ---------- 世界物件 ----------
             World = new GameObject("Props").AddComponent<WorldBuilder>();
             World.transform.SetParent(worldRoot, false);
             World.Build(this);
+            CampCenter = World.CampCenter;
 
             // ---------- HUD ----------
             var touch = gameObject.AddComponent<TouchControls>();
