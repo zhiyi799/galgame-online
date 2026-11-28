@@ -620,6 +620,80 @@ namespace GalgameOnline.Core
                 yield break;
             }
 
+            // Map-model placement verification (2026-11-28): load WorldMap,
+            // assert the spawn is on dry ground and every region's landmark
+            // root exists, then capture one screenshot per region looking at
+            // its landmark. Saves into the project docs.
+            if (HasArg("-mapmodels-shot"))
+            {
+                Debug.Log("[SMOKE] mapmodels-shot mode");
+                var wmOp2 = SceneManager.LoadSceneAsync(GameManager.SceneWorldMap);
+                yield return wmOp2;
+                yield return new WaitForSeconds(3f);
+                var wplayer2 = FindObjectOfType<GalgameOnline.WorldMap.WorldMapPlayer>();
+                if (wplayer2 == null)
+                {
+                    Debug.Log("[SMOKE] FAIL: WorldMapPlayer not found");
+                    FlushAndExit(1);
+                    yield break;
+                }
+                float spawnGround = GalgameOnline.WorldMap.WorldMapTerrain.SampleHeight(1000f, 569f);
+                Debug.Log("[SMOKE] mapmodels spawn ground=" + spawnGround + " water=2");
+                if (spawnGround <= 2f)
+                {
+                    Debug.Log("[SMOKE] FAIL: spawn point is underwater (ground " + spawnGround + ")");
+                    FlushAndExit(1);
+                    yield break;
+                }
+                string[] regions = { "Xinghuan", "Baita", "Wuhai", "Yongye", "Skyvault" };
+                foreach (var r in regions)
+                {
+                    var root = GameObject.Find("MapModels_" + r);
+                    if (root == null)
+                    {
+                        Debug.Log("[SMOKE] FAIL: MapModels_" + r + " root missing");
+                        FlushAndExit(1);
+                        yield break;
+                    }
+                    Debug.Log("[SMOKE] mapmodels region " + r + " children=" + root.transform.childCount);
+                }
+                // Landmark positions (from the placement log, 2026-11-28).
+                // Camera height is computed at runtime from the terrain at
+                // the camera position (+50 m) so the camera never ends up
+                // buried in a hillside; distance + height give a clear
+                // sightline over the terrain to the landmark.
+                var shots = new (string, float, float, float, float, float, float, float, float)[]
+                {
+                    // name, landmark x, z, topY, lookAtY, camDirX, camDirZ, camDist, camHAboveTop
+                    ("xinghuan", 1060f, 700f, 129f, 110f, 0f, 1f, 200f, 200f),
+                    ("baita", 1300f, 2150f, 475f, 445f, 0f, -1f, 200f, 200f),
+                    ("wuhai", -200f, 2163f, 597f, 590f, 0.7f, -0.7f, 300f, 250f),
+                    ("yongye", 1525f, -925f, 143f, 115f, 0f, 1f, 200f, 200f),
+                    ("skyvault", 2450f, -988f, 733f, 715f, 0f, 1f, 200f, 200f),
+                };
+                const string docs2 = "/home/hatch/workspace/galgame-online/docs/";
+                foreach (var shot in shots)
+                {
+                    float camX = shot.Item2 + shot.Item6 * shot.Item8;
+                    float camZ = shot.Item3 + shot.Item7 * shot.Item8;
+                    float camY = Mathf.Max(shot.Item4 + shot.Item9,
+                        GalgameOnline.WorldMap.WorldMapTerrain.SampleHeight(camX, camZ) + 50f);
+                    var camPos = new Vector3(camX, camY, camZ);
+                    var lookAt = new Vector3(shot.Item2, shot.Item5, shot.Item3);
+                    Debug.Log("[SMOKE] mapmodels shot " + shot.Item1
+                        + " cam=(" + camX.ToString("F0") + "," + camY.ToString("F0") + "," + camZ.ToString("F0") + ")");
+                    wplayer2.SetExternalView(camPos, lookAt);
+                    yield return new WaitForSeconds(1f);
+                    ScreenCapture.CaptureScreenshot(docs2 + "mapmodels-" + shot.Item1 + ".png");
+                    yield return new WaitForEndOfFrame();
+                    yield return new WaitForSeconds(0.5f);
+                    Debug.Log("[SMOKE] mapmodels screenshot saved: mapmodels-" + shot.Item1 + ".png");
+                }
+                Debug.Log("[SMOKE] mapmodels-shot done");
+                FlushAndExit(0);
+                yield break;
+            }
+
             // Phase 1 / P1-D WorldMap 移动验证：4 条主干道（星环城中心 →
             // 四大区域中心）每 25 m 采样：是否在地形上、坡度、碰撞体、
             // 玩家实地站立；边界接缝用 ±1/±5 m 外推法量台阶；每条路
